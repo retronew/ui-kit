@@ -34,19 +34,20 @@ package against the same core — the core logic is never touched.
 
 Everything runs through the unified `vp` CLI:
 
-| Task                      | Command               |
-| ------------------------- | --------------------- |
-| Install deps              | `vp install`          |
-| Run the Vue demo          | `vp run vue-demo#dev` |
-| Format + lint + typecheck | `pnpm run check`      |
-| Lint only                 | `pnpm run lint`       |
-| Typecheck only            | `pnpm run typecheck`  |
-| Test all packages         | `pnpm run test`       |
-| Build all libraries       | `pnpm run build`      |
-| Full local verification   | `pnpm run ready`      |
+| Task                         | Command                 |
+| ---------------------------- | ----------------------- |
+| Install deps                 | `vp install`            |
+| Install E2E Chromium         | `pnpm run e2e:install`  |
+| Run the Vue demo             | `vp run vue-demo#dev`   |
+| Format + lint + typecheck    | `pnpm run check`        |
+| Test with coverage budgets   | `pnpm run test:coverage` |
+| Run browser + axe tests      | `pnpm run e2e`          |
+| Run core performance budgets | `pnpm run perfcheck`    |
+| Build all libraries          | `pnpm run build`        |
+| Full local verification      | `pnpm run ready`        |
 
-Libraries are bundled with **tsdown** (`vp pack`), tested with **Vitest**
-(`vp test`), and linted/formatted with **Oxlint**/**Oxfmt** (`vp check`).
+Libraries are bundled with **tsdown** (`vp pack`), tested with **Vitest** and
+Playwright/axe, and linted/formatted with **Oxlint**/**Oxfmt** (`vp check`).
 
 ## Develop
 

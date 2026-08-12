@@ -7,7 +7,16 @@ yours. Built on the framework-agnostic [`@retronew/toast-core`](../toast-core).
 ## Install
 
 ```bash
-vp install @retronew/toast-vue
+pnpm add @retronew/toast-vue
+```
+
+Add the `progress` prop only when the outlet renders a live countdown or
+progress bar; periodic timer snapshots are disabled by default:
+
+```vue
+<Toaster progress v-slot="{ toasts, getProgress }">
+  <!-- render progress here -->
+</Toaster>
 ```
 
 ## Quick start
@@ -72,7 +81,7 @@ const { store, toast } = createToaster<string>({ max: 3, viewportOffset: '1.5rem
 ## Claude Code skill
 
 This package ships a [Claude Code skill](skills/toast-vue/SKILL.md) covering
-`<ToastWrapper>`/`<HeadlessToastBar>`'s motion contract, `calculateOffset`/
+`<ToastWrapper>`'s motion contract, `calculateOffset`/
 `getStackMetrics`, and common wiring mistakes (like forgetting
 `@height-update`). Claude Code doesn't auto-discover skills inside
 `node_modules` yet, so after installing, copy or symlink it into your project:

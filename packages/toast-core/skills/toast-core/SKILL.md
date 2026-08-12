@@ -50,6 +50,7 @@ create() → visible ──dismiss()──→ dismissed ──(after `removeDela
 `new ToastStore({ max: 3 })` caps how many toasts are "active" at once (oldest of the overflow get `stacked: true`, timer suspended). This is **not** a visual behavior — `ToastStore` doesn't compute positions or stack/queue layouts. It just flags which toasts should have their timers paused because a UI layer is choosing not to show them yet (queued) or is showing them piled into a stack. The UI layer decides what `stacked: true` *looks like*.
 
 Call `store.setMax(n)` to change the cap at runtime; it restacks immediately.
+It returns `true` when the cap changed and `false` for an identical value.
 
 `store.setHeight(id, height)` records a toast's rendered height — needed by adapters that compute stacking offsets from cumulative heights (e.g. `toast-vue`'s `calculateOffset`). Framework-agnostic core, framework-specific offset math.
 
@@ -61,7 +62,11 @@ It is published in `getState()` and every `subscribe()` snapshot. Call `store.se
 
 ## Error dedup + shake
 
-Creating a `type: 'error'` toast while another error toast is still `status: 'visible'` does **not** queue a second one. Instead the existing toast is re-emphasized: its `message` updates only if different, `updatedAt` bumps, and the store emits `{ type: 'shake', id }` via `onEffect`. Non-error types are never deduped this way.
+Creating a `type: 'error'` toast while another error toast with the same
+deduplication key is still `status: 'visible'` does **not** queue a second one.
+The default key is the toast position. The existing toast receives the latest
+options, its timer resets, and the store emits `{ type: 'shake', id }` via
+`onEffect`. Non-error types are never deduped this way.
 
 ```ts
 toast.error('Network request failed') // creates toast A
@@ -69,15 +74,34 @@ toast.error('Network request failed') // no new toast — A gets a shake effect
 toast.error('Timed out')              // still just A — message updates, another shake effect
 ```
 
+Applications can supply `errorDedupeKey` when constructing the store:
+
+```ts
+const store = new ToastStore({
+  errorDedupeKey: ({ meta }) => String(meta?.requestId),
+})
+```
+
+Return a stable primitive. Equal keys share a visible error even across
+positions; different keys remain independent.
+
+## Mutator return values and no-ops
+
+`update`, `dismiss`, `remove`, `pause`, `resume`, `setHeight`, `setMax`,
+`setViewportOffset`, and `destroy` return `true` only when they change state or
+an internal pause reason. Missing ids, empty/identical updates, and repeated
+operations return `false` and do not notify state subscribers. `create`
+continues to return the toast id.
+
 If you're building a UI layer, subscribe to `onEffect` and play a decorative "shake"/re-emphasis animation on the matching toast id when you see `type: 'shake'`. Don't try to derive this from `subscribe()`/state diffing — the effect can fire on updates that otherwise look identical to the previous state (e.g. the "same message repeated" case above only bumps `updatedAt`).
 
 ## Timers
 
 - `duration: number` per toast; `Infinity` (or `0` via options normalization) disables auto-dismiss.
-- `pause(id?)` / `resume(id?)` — suspend/restart the countdown, preserving elapsed time (e.g. wire to `mouseenter`/`mouseleave` in a UI layer). Omit `id` to pause/resume everything.
+- `pause(id?, reason?)` / `resume(id?, reason?)` — suspend/restart the countdown, preserving elapsed time. Reasons are `manual` (default), `interaction`, and `visibility`; the timer resumes only after every active reason is released. Omit `id` to affect every current toast.
 - Stacked or non-visible toasts never have a running timer regardless of `paused` — see `syncTimer` in `store.ts` if you need the exact precedence rules.
-- The store auto-pauses everything when the tab is backgrounded (`document.hidden` via `visibilitychange`) and resumes when it's foregrounded again — no wiring needed, and it no-ops where `document` doesn't exist (SSR/non-browser). It shares the same undifferentiated `paused` flag as hover-pause, so returning to a still-hovered tab resumes it anyway — a known, accepted limitation, not a bug to work around.
-- `getRemaining(id)` / `getProgress(id)` — live countdown data (ms left / `1→0` fraction), pause-and-stack-aware, computed on demand rather than stored. A message function (`toast((t) => ...)`) can read `t.remaining`/`t.progress` directly — the store ticks on its own (every 250ms, only while a timer is actually running) so these stay live without any consumer-side polling.
+- The store auto-pauses everything with the independent `visibility` reason while the tab is backgrounded, so foregrounding never releases an interaction/manual pause.
+- `getRemaining(id)` / `getProgress(id)` — live countdown data (ms left / `1→0` fraction), pause-and-stack-aware, computed on demand rather than stored. Periodic 250ms snapshots are opt-in via `store.subscribe(listener, { progress: true })`; ordinary subscribers only receive real state changes.
 
 ## Building a new framework adapter
 
