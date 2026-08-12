@@ -68,7 +68,10 @@ onUnmounted(() => {
         />
       </span>
     </button>
-    <pre class="m-0 overflow-x-auto px-5 py-4"><code
+    <pre
+      class="m-0 overflow-x-auto px-5 py-4 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#57606a] dark:focus-visible:outline-fg-muted"
+      tabindex="0"
+    ><code
       class="font-mono text-[13px] leading-[1.6] whitespace-pre text-[#1f2328] dark:text-[#d4d4d4]"
       v-html="highlighted"
     /></pre>
@@ -78,7 +81,7 @@ onUnmounted(() => {
 <style scoped>
 /* yace token colors: GitHub Light by default, VS Code Dark Modern under `.dark`. */
 .code-block :deep(.yace-tok--com) {
-  color: #6e7781;
+  color: #656d76;
 }
 
 .code-block :deep(.yace-tok--str) {

@@ -6,6 +6,7 @@ export type {
   CalculateOffsetOptions,
   StackMetrics,
   StackMetricsOptions,
+  UseToasterOptions,
 } from './useToaster'
 export { Toaster } from './Toaster'
 export type { ToasterSlotProps } from './Toaster'
@@ -19,14 +20,17 @@ export type {
   ToastAction,
   ToastApi,
   ToastOptions,
+  ToastPauseReason,
   ToastPosition,
   ToastStatus,
+  ToastSubscriptionOptions,
   ToastType,
+  ToastUpdateOptions,
   ToasterConfig,
   ToasterState,
   ViewportOffset,
   PromiseMessages,
 } from '@retronew/toast-core'
 
-export { resolveValue, prefersReducedMotion } from '@retronew/toast-core'
+export { resolveValue, prefersReducedMotion, subscribeReducedMotion } from '@retronew/toast-core'
 export type { ValueOrFunction, ValueFunction } from '@retronew/toast-core'

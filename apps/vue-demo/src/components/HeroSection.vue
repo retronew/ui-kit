@@ -26,6 +26,7 @@ const { handleHeroClick } = useToasts()
         class="relative inline-flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full border border-border bg-surface px-[18px] py-[9px] text-sm font-medium text-fg transition-colors hover:bg-surface-hover"
         :href="GITHUB_URL"
         target="_blank"
+        rel="noopener noreferrer"
         >GitHub</a
       >
     </div>
@@ -33,6 +34,7 @@ const { handleHeroClick } = useToasts()
       class="mt-[18px] font-medium text-fg-muted underline decoration-[1.5px] decoration-border underline-offset-[3px] transition-colors hover:text-fg hover:decoration-fg-muted"
       :href="`${GITHUB_URL}#readme`"
       target="_blank"
+      rel="noopener noreferrer"
     >
       {{ t('hero.documentation') }}
     </a>

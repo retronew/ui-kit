@@ -25,7 +25,7 @@ export default defineConfig({
   },
   theme: {
     font: {
-      mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+      mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
     },
     colors: {
       fg: {

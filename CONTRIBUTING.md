@@ -19,8 +19,8 @@ hooks from `.vite-hooks`.
 
 ## Branch workflow
 
-Create a short-lived branch from `master`. Do not push changes directly to
-`master`; open a pull request and merge only after CI and review pass.
+Create a short-lived branch from `main`. Do not push changes directly to
+`main`; open a pull request and merge only after CI and review pass.
 
 Use a branch prefix that describes the change:
 
@@ -155,10 +155,13 @@ You can also run individual checks:
 ```sh
 pnpm run check
 pnpm run typecheck
-pnpm run test
+pnpm run test:coverage
 pnpm run build
+pnpm run perfcheck
+pnpm run e2e
 ```
 
-Pull requests to `master` run independent lint, typecheck, and test jobs in
-GitHub Actions. Keep the lockfile committed and make sure each job passes before
-merging.
+Run `pnpm run e2e:install` once before the first local browser test. Pull
+requests to `main` run independent lint, typecheck, coverage, build/performance,
+and Playwright/axe jobs in GitHub Actions. Keep the lockfile committed and make
+sure each job passes before merging.

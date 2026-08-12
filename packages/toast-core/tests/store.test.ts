@@ -98,6 +98,32 @@ describe(ToastStore, () => {
     expect(store.getState().toasts.find((t) => t.id === id)).toBeUndefined()
   })
 
+  it('cancels stale removal when a dismissed toast is shown again', () => {
+    const store = new ToastStore<string>({ removeDelay: 500 })
+    store.create('old', { duration: Infinity, id: 'same' })
+    store.dismiss('same')
+
+    store.update('same', { duration: Infinity, message: 'shown again' })
+    vi.advanceTimersByTime(500)
+
+    expect(store.getState().toasts[0]).toMatchObject({
+      id: 'same',
+      message: 'shown again',
+      status: 'visible',
+    })
+  })
+
+  it('does not let an old removal delete a newly recreated id', () => {
+    const store = new ToastStore<string>({ removeDelay: 500 })
+    store.create('old', { duration: Infinity, id: 'same' })
+    store.dismiss('same')
+    store.remove('same')
+    store.create('new', { duration: Infinity, id: 'same' })
+
+    vi.advanceTimersByTime(500)
+    expect(store.getState().toasts[0]?.message).toBe('new')
+  })
+
   it('pauses and resumes the auto-dismiss timer', () => {
     const store = new ToastStore<string>()
     store.create('hover me', { duration: 1000 })
@@ -113,6 +139,51 @@ describe(ToastStore, () => {
     expect(store.getState().toasts[0]?.paused).toBeFalsy()
     vi.advanceTimersByTime(400)
     expect(store.getState().toasts[0]?.status).toBe('dismissed')
+  })
+
+  it('keeps manual pause when the visibility pause is released', () => {
+    const listeners: ((event: Event) => void)[] = []
+    const fakeDocument = {
+      addEventListener: (_type: string, listener: (event: Event) => void) =>
+        listeners.push(listener),
+      hidden: false,
+      removeEventListener: vi.fn(),
+    }
+    vi.stubGlobal('document', fakeDocument)
+    const store = new ToastStore<string>()
+    store.create('read me', { duration: 1000 })
+    store.pause(undefined, 'manual')
+
+    fakeDocument.hidden = true
+    for (const listener of listeners) listener(new Event('visibilitychange'))
+    fakeDocument.hidden = false
+    for (const listener of listeners) listener(new Event('visibilitychange'))
+    vi.advanceTimersByTime(5000)
+
+    expect(store.getState().toasts[0]).toMatchObject({ paused: true, status: 'visible' })
+    store.resume(undefined, 'manual')
+    vi.advanceTimersByTime(1000)
+    expect(store.getState().toasts[0]?.status).toBe('dismissed')
+    store.destroy()
+    vi.unstubAllGlobals()
+  })
+
+  it('keeps a toast paused when it is reshown while the page is hidden', () => {
+    const fakeDocument = {
+      addEventListener: vi.fn(),
+      hidden: true,
+      removeEventListener: vi.fn(),
+    }
+    vi.stubGlobal('document', fakeDocument)
+    const store = new ToastStore<string>({ removeDelay: 500 })
+    const id = store.create('first', { duration: 1000 })
+    store.dismiss(id)
+    store.update(id, { message: 'reshown' })
+    vi.advanceTimersByTime(5000)
+
+    expect(store.getState().toasts[0]).toMatchObject({ paused: true, status: 'visible' })
+    store.destroy()
+    vi.unstubAllGlobals()
   })
 
   it('reports remaining time, frozen while paused, undefined once removed', () => {
@@ -350,6 +421,27 @@ describe(ToastStore, () => {
     expect(effects).toHaveLength(1)
   })
 
+  it('can subscribe to effects for only one toast id', () => {
+    const store = new ToastStore<string>()
+    const effects: Array<{ type: string; id: string }> = []
+    store.onEffect((effect) => effects.push(effect), 'target')
+    store.create('first', { duration: Infinity, id: 'target', type: 'error' })
+    store.create('first again', { duration: Infinity, type: 'error' })
+    store.create('other', {
+      duration: Infinity,
+      position: 'bottom-right',
+      type: 'error',
+    })
+    store.create('other again', {
+      duration: Infinity,
+      id: 'other',
+      position: 'bottom-right',
+      type: 'error',
+    })
+
+    expect(effects).toEqual([{ id: 'target', type: 'shake' }])
+  })
+
   it('does not deduplicate non-error toasts', () => {
     const store = new ToastStore<string>()
     store.create('msg', { type: 'success' })
@@ -357,6 +449,219 @@ describe(ToastStore, () => {
     store.create('msg', { type: 'info' })
 
     expect(store.getState().toasts).toHaveLength(3)
+  })
+
+  it('deduplicates errors per position and applies the latest options', () => {
+    const store = new ToastStore<string>()
+    const first = store.create('first', {
+      duration: 1000,
+      position: 'top-left',
+      type: 'error',
+    })
+    const second = store.create('second', {
+      action: { label: 'Retry' },
+      duration: 9000,
+      meta: { source: 'network' },
+      position: 'top-left',
+      type: 'error',
+    })
+    const otherPosition = store.create('third', {
+      duration: Infinity,
+      position: 'bottom-right',
+      type: 'error',
+    })
+
+    expect(second).toBe(first)
+    expect(otherPosition).not.toBe(first)
+    expect(store.getState().toasts).toHaveLength(2)
+    expect(store.getState().toasts.find((toast) => toast.id === first)).toMatchObject({
+      action: { label: 'Retry' },
+      duration: 9000,
+      message: 'second',
+      meta: { source: 'network' },
+    })
+  })
+
+  it('supports a custom error dedupe key', () => {
+    const store = new ToastStore<string>({
+      errorDedupeKey: (toast) => String(toast.meta?.requestId),
+    })
+    const first = store.create('first failure', {
+      duration: Infinity,
+      meta: { requestId: 'request-a' },
+      position: 'top-left',
+      type: 'error',
+    })
+    const distinct = store.create('second failure', {
+      duration: Infinity,
+      meta: { requestId: 'request-b' },
+      position: 'top-left',
+      type: 'error',
+    })
+    const duplicateAcrossPosition = store.create('latest first failure', {
+      duration: Infinity,
+      meta: { requestId: 'request-a' },
+      position: 'bottom-right',
+      type: 'error',
+    })
+
+    expect(distinct).not.toBe(first)
+    expect(duplicateAcrossPosition).toBe(first)
+    expect(store.getState().toasts).toHaveLength(2)
+    expect(store.getState().toasts.find((toast) => toast.id === first)).toMatchObject({
+      message: 'latest first failure',
+      position: 'bottom-right',
+    })
+  })
+
+  it('resets a duplicate error timer even when its visible fields are unchanged', () => {
+    const store = new ToastStore<string>()
+    store.create('fail', { duration: 1000, type: 'error' })
+    vi.advanceTimersByTime(750)
+
+    store.create('fail', { duration: 1000, type: 'error' })
+    vi.advanceTimersByTime(750)
+
+    expect(store.getState().toasts[0]?.status).toBe('visible')
+    vi.advanceTimersByTime(250)
+    expect(store.getState().toasts[0]?.status).toBe('dismissed')
+  })
+
+  it('returns snapshots that cannot mutate current or historical state', () => {
+    const store = new ToastStore<string>()
+    const id = store.create('original', {
+      duration: Infinity,
+      meta: { count: 1, nested: { safe: true } },
+    })
+    const before = store.getState()
+    const exposed = before.toasts[0] as {
+      message: string
+      meta?: { count?: number; nested?: { safe?: boolean } }
+    }
+    exposed.message = 'external mutation'
+    if (exposed.meta) exposed.meta.count = 99
+    if (exposed.meta?.nested) exposed.meta.nested.safe = false
+
+    expect(store.getState().toasts[0]).toMatchObject({
+      message: 'original',
+      meta: { count: 1, nested: { safe: true } },
+    })
+    const historical = store.getState()
+    store.update(id, { message: 'updated' })
+    expect(before.toasts[0]?.message).toBe('external mutation')
+    expect(historical.toasts[0]?.message).toBe('original')
+    expect(store.getState().toasts[0]?.message).toBe('updated')
+  })
+
+  it('clears optional fields with null updates', () => {
+    const store = new ToastStore<string>()
+    const id = store.create('with fields', {
+      action: { label: 'Act' },
+      cancel: { label: 'Cancel' },
+      duration: Infinity,
+      meta: { source: 'test' },
+      position: 'top-left',
+    })
+
+    store.update(id, { action: null, cancel: null, meta: null, position: null })
+    const toast = store.getState().toasts[0]
+    expect(toast?.action).toBeUndefined()
+    expect(toast?.cancel).toBeUndefined()
+    expect(toast?.meta).toBeUndefined()
+    expect(toast?.position).toBeUndefined()
+  })
+
+  it('validates configuration and durations', () => {
+    expect(() => new ToastStore({ max: -1 })).toThrow(RangeError)
+    expect(() => new ToastStore({ removeDelay: Number.NaN })).toThrow(RangeError)
+    expect(() => new ToastStore({ removeDelay: Infinity })).toThrow(RangeError)
+    expect(() => new ToastStore({ viewportOffset: -1 })).toThrow(RangeError)
+    const store = new ToastStore<string>()
+    expect(() => store.create('bad', { duration: -1 })).toThrow(RangeError)
+    expect(() => store.setMax(1.5)).toThrow(RangeError)
+    expect(() => store.setViewportOffset('')).toThrow(RangeError)
+  })
+
+  it('returns changed flags and does not emit for semantic no-ops', () => {
+    const store = new ToastStore<string>()
+    const listener = vi.fn()
+    store.subscribe(listener)
+    expect(store.update('missing', { message: 'no-op' })).toBe(false)
+    expect(store.remove('missing')).toBe(false)
+    expect(store.dismiss('missing')).toBe(false)
+    const action = { label: 'Retry' }
+    const id = store.create('one', {
+      action,
+      duration: Infinity,
+      meta: { nested: { count: 1 } },
+    })
+    expect(store.update(id, {})).toBe(false)
+    expect(
+      store.update(id, {
+        action,
+        duration: Infinity,
+        message: 'one',
+        meta: { nested: { count: 1 } },
+      }),
+    ).toBe(false)
+    expect(store.setHeight(id, 20)).toBe(true)
+    expect(store.setHeight(id, 20)).toBe(false)
+    expect(store.pause(id)).toBe(true)
+    expect(store.pause(id)).toBe(false)
+    expect(store.resume(id)).toBe(true)
+    expect(store.resume(id)).toBe(false)
+    expect(store.setMax(1)).toBe(true)
+    expect(store.setMax(1)).toBe(false)
+    expect(store.setViewportOffset(24)).toBe(true)
+    expect(store.setViewportOffset(24)).toBe(false)
+    expect(store.dismiss(id)).toBe(true)
+    expect(store.dismiss(id)).toBe(false)
+    expect(store.remove(id)).toBe(true)
+    expect(store.remove(id)).toBe(false)
+
+    expect(listener).toHaveBeenCalledTimes(8)
+  })
+
+  it('reports a subscriber error without skipping later subscribers', () => {
+    const reportError = vi.fn()
+    vi.stubGlobal('reportError', reportError)
+    const store = new ToastStore<string>()
+    const later = vi.fn()
+    const error = new Error('listener failed')
+    store.subscribe(() => {
+      throw error
+    })
+    store.subscribe(later)
+
+    store.create('still delivered', { duration: Infinity })
+    expect(reportError).toHaveBeenCalledWith(error)
+    expect(later).toHaveBeenCalledOnce()
+    vi.unstubAllGlobals()
+  })
+
+  it('only sends periodic timer snapshots to progress subscribers', () => {
+    const store = new ToastStore<string>()
+    const ordinary = vi.fn()
+    const progress = vi.fn()
+    store.subscribe(ordinary)
+    store.subscribe(progress, { progress: true })
+    store.create('counting', { duration: 1000 })
+    vi.advanceTimersByTime(500)
+
+    expect(ordinary).toHaveBeenCalledTimes(1)
+    expect(progress.mock.calls.length).toBeGreaterThan(1)
+    expect(progress.mock.calls.at(-1)?.[0].toasts[0].remaining).toBe(500)
+  })
+
+  it('clears all timers and rejects reuse after destroy', () => {
+    const store = new ToastStore<string>({ removeDelay: 500 })
+    store.create('one', { duration: 1000 })
+    store.dismiss()
+    expect(store.destroy()).toBe(true)
+
+    expect(vi.getTimerCount()).toBe(0)
+    expect(store.destroy()).toBe(false)
+    expect(() => store.create('after destroy')).toThrow('ToastStore has been destroyed')
   })
 })
 
@@ -370,6 +675,19 @@ describe(createToastApi, () => {
 
     toast.error('nope')
     expect(store.getState().toasts[0]?.type).toBe('error')
+  })
+
+  it('returns changed flags from update, dismiss, and remove', () => {
+    const store = new ToastStore<string>()
+    const toast = createToastApi(store)
+    const id = toast('one', { duration: Infinity })
+
+    expect(toast.update(id, {})).toBe(false)
+    expect(toast.update(id, { message: 'two' })).toBe(true)
+    expect(toast.dismiss(id)).toBe(true)
+    expect(toast.dismiss(id)).toBe(false)
+    expect(toast.remove(id)).toBe(true)
+    expect(toast.remove(id)).toBe(false)
   })
 
   it('drives a toast through promise resolution', async () => {
@@ -393,5 +711,38 @@ describe(createToastApi, () => {
       message: 'saved 42',
       type: 'success',
     })
+  })
+
+  it('settles the loading toast when a promise factory throws synchronously', async () => {
+    const store = new ToastStore<string>()
+    const toast = createToastApi(store)
+    const error = new Error('factory failed')
+
+    await expect(
+      toast.promise(
+        () => {
+          throw error
+        },
+        { error: 'failed', loading: 'loading', success: 'done' },
+      ),
+    ).rejects.toBe(error)
+    expect(store.getState().toasts[0]).toMatchObject({ message: 'failed', type: 'error' })
+  })
+
+  it('settles the toast even when the error message resolver throws', async () => {
+    const store = new ToastStore<string>()
+    const toast = createToastApi(store)
+    const resolverError = new Error('resolver failed')
+
+    await expect(
+      toast.promise(Promise.reject(new Error('request failed')), {
+        error: () => {
+          throw resolverError
+        },
+        loading: 'loading',
+        success: 'done',
+      }),
+    ).rejects.toBe(resolverError)
+    expect(store.getState().toasts[0]).toMatchObject({ status: 'visible', type: 'error' })
   })
 })

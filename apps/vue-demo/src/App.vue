@@ -40,6 +40,7 @@ const { t } = useI18n()
           class="font-medium text-fg-muted underline decoration-[1.5px] decoration-border underline-offset-[3px] transition-colors hover:text-fg hover:decoration-fg-muted"
           :href="GITHUB_URL"
           target="_blank"
+          rel="noopener noreferrer"
           >@retronew/ui-kit</a
         >
       </p>

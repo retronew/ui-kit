@@ -37,9 +37,8 @@ function handleCancel() {
 
 <template>
   <div
-    class="group pointer-events-auto relative flex cursor-pointer items-center gap-3 rounded-3xl border border-[var(--toast-border)] bg-[var(--toast-bg)] px-5 py-3.5 leading-[1.3] text-fg shadow-[var(--toast-shadow)] will-change-transform"
+    class="group pointer-events-auto relative flex cursor-pointer items-center gap-3 rounded-3xl border border-[var(--toast-border)] bg-[var(--toast-bg)] px-5 py-3.5 leading-[1.3] text-fg shadow-[var(--toast-shadow)]"
     :class="fixedWidth ? 'w-[350px]' : 'max-w-[350px]'"
-    style="touch-action: none"
     @click="emit('dismiss')"
   >
     <ToastIcon
@@ -58,17 +57,19 @@ function handleCancel() {
     </div>
     <button
       v-if="toast.action"
+      type="button"
       :class="inlineButtonClass"
       @click.stop="toast.action?.onClick?.(toast)"
     >
       {{ toast.action.label }}
     </button>
-    <button v-if="toast.cancel" :class="inlineButtonClass" @click.stop="handleCancel">
+    <button v-if="toast.cancel" type="button" :class="inlineButtonClass" @click.stop="handleCancel">
       {{ toast.cancel.label }}
     </button>
     <button
       v-if="!toast.meta?.hideDismiss"
-      class="relative grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full text-fg-muted opacity-0 transition-[opacity,background-color,color,scale] duration-150 before:absolute before:-inset-[9px] before:content-[''] group-hover:opacity-100 hover:bg-surface-hover hover:text-fg active:scale-[0.96]"
+      type="button"
+      class="relative grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full text-fg-muted opacity-0 transition-[opacity,background-color,color,scale] duration-150 before:absolute before:-inset-[9px] before:content-[''] group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-surface-hover hover:text-fg focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg-muted active:scale-[0.96]"
       :aria-label="t('toastBar.dismiss')"
       @click.stop="emit('dismiss')"
     >

@@ -14,6 +14,11 @@ const messages = {
       dismiss: 'Dismiss',
     },
     topbar: {
+      theme: 'Theme preference',
+      themeCycle: 'Current theme: {current}. Switch to {next}.',
+      themeDark: 'Dark',
+      themeLight: 'Light',
+      themeSystem: 'System',
       toggleTheme: 'Toggle theme',
       switchLanguage: 'Switch language',
     },
@@ -115,6 +120,11 @@ const messages = {
       dismiss: '关闭',
     },
     topbar: {
+      theme: '主题偏好',
+      themeCycle: '当前主题：{current}。切换到{next}。',
+      themeDark: '深色',
+      themeLight: '浅色',
+      themeSystem: '跟随系统',
       toggleTheme: '切换主题',
       switchLanguage: '切换语言',
     },
@@ -210,7 +220,11 @@ const messages = {
 
 function initialLocale(): Locale {
   if (typeof window === 'undefined') return 'en'
-  return window.localStorage.getItem(LOCALE_STORAGE_KEY) === 'zh-CN' ? 'zh-CN' : 'en'
+  try {
+    return window.localStorage.getItem(LOCALE_STORAGE_KEY) === 'zh-CN' ? 'zh-CN' : 'en'
+  } catch {
+    return 'en'
+  }
 }
 
 export const i18n = createI18n({
@@ -227,6 +241,10 @@ if (typeof document !== 'undefined') {
 /** Switch locale, persisting the choice and syncing the `<html lang>` attr. */
 export function setLocale(locale: Locale) {
   i18n.global.locale.value = locale
-  window.localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  try {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // Locale switching still works when persistence is unavailable.
+  }
   document.documentElement.lang = locale
 }

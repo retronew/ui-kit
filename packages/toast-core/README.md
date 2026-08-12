@@ -8,7 +8,7 @@ React / Svelte / vanilla bindings) subscribe to it and handle rendering.
 ## Install
 
 ```bash
-vp install @retronew/toast-core
+pnpm add @retronew/toast-core
 ```
 
 ## Usage
@@ -35,6 +35,13 @@ toast.promise(saveUser(), {
 unsubscribe()
 ```
 
+Live countdown snapshots are opt-in so consumers that do not render progress
+bars do not re-render every 250ms:
+
+```ts
+store.subscribe(render, { progress: true })
+```
+
 ## API surface
 
 - `ToastStore` — `create` / `update` / `dismiss` / `remove` / `pause` /
@@ -42,6 +49,27 @@ unsubscribe()
 - `createToastApi(store)` — ergonomic `toast()` with `.success` / `.error` /
   `.loading` / `.info` / `.warning` / `.custom` / `.promise` / `.dismiss` /
   `.update` / `.remove`.
+
+`pause`/`resume` accept an optional reason (`manual`, `interaction`, or
+`visibility`), and independent reasons do not overwrite one another. Optional
+fields can be cleared through `update(id, { action: null })` (also `cancel`,
+`meta`, and `position`).
+
+All mutators except `create()` return a boolean indicating whether state or an
+internal pause reason changed. Missing ids, empty patches, identical values,
+and repeated dismiss/remove calls return `false` without notifying subscribers.
+
+Visible errors deduplicate by position by default. Supply `errorDedupeKey` to
+group them by application identity instead:
+
+```ts
+const store = new ToastStore({
+  errorDedupeKey: ({ meta }) => String(meta?.requestId),
+})
+```
+
+Equal keys reuse the visible error toast, apply the latest options, reset its
+timer, and emit a `shake` effect. Different keys create independent errors.
 
 All toast content is generic (`Toast<T>`), so messages can be strings, VNodes,
 render functions, or any custom payload your renderer understands.

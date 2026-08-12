@@ -69,7 +69,7 @@ For a fuller worked example — multi-position support, stack-vs-queue stacking 
 | `<Toaster>` | Subscribes to the store, exposes `toasts`, `viewportOffset`, and control handlers via its default slot. Renders nothing itself. |
 | `<ToastWrapper>` | Everything about a toast's motion — one element, one `transform`: cumulative stacking offset, per-depth scale, enter/exit (driven by `status`), and the error-dedup shake effect. One instance per toast. |
 
-Stacking offset and enter/exit used to live on two separate nested elements (a `<ToastWrapper>`/`<HeadlessToastBar>` pair) with their own independently-eased transforms. That compounds badly: two `scale()`s each easing on their own transition read as a "double ease" instead of one clean curve — noticeably less crisp than [Sonner](https://github.com/emilkowalski/sonner)'s single `transform: var(--y)` model this library is patterned after. They're now merged into one element with one combined `transform` string, animated by one `transition` (`TOAST_TRANSITION`, exported from `ToastWrapper`) — the browser interpolates a single matrix per change. If you build a custom wrapper instead of using `<ToastWrapper>`, reuse `TOAST_TRANSITION` (or match its timing) and keep the whole toast's motion on **one** element rather than splitting stacking and enter/exit across nested ones.
+Stacking offset and enter/exit live on one `<ToastWrapper>` element with one combined `transform` string, animated by one `transition` (`TOAST_TRANSITION`, exported from `ToastWrapper`) — the browser interpolates a single matrix per change. If you build a custom wrapper, reuse `TOAST_TRANSITION` (or match its timing) and keep the whole toast's motion on one element.
 
 **Layout vs. motion split**: `<ToastWrapper>` sets `transform`/`opacity`/`transition`/`z-index` internally from its props (`status`, `offset`, `scale`, `stackOpacity`, `zIndex`). It does **not** set `position`, `top`/`left`/`right`, `display`, or `justify-content` — that's layout, and stays entirely in your `:style` binding on the same element (Vue merges the two style sources onto the rendered root automatically). Don't fight this split by trying to override `transform` from the outside; pass the right `offset`/`scale` props instead.
 
@@ -106,7 +106,7 @@ The outlet is renderless, so it cannot apply the value by itself. Bind it to the
 
 ## Wiring `@height-update` is not optional
 
-`<ToastWrapper>` measures its own rendered height (via `ResizeObserver`-equivalent `MutationObserver`) and emits `height-update`. If you don't wire `@height-update="updateHeight"` back to the slot's `updateHeight` handler, `calculateOffset` never has height data to sum, and every toast renders at offset `0` — they'll stack directly on top of each other instead of cascading.
+`<ToastWrapper>` measures its rendered height with `ResizeObserver` (coalesced to one animation frame) and emits `height-update`. If you don't wire `@height-update="updateHeight"` back to the slot's `updateHeight` handler, `calculateOffset` never has height data to sum, and every toast renders at offset `0`.
 
 ## `--toast-stack-gap` must match your `gutter`
 
@@ -137,7 +137,7 @@ Every axis only engages *outward*, toward the edge the toast already sits at: ve
 
 The fling-out speed on commit continues at roughly the release velocity (clamped to a sane range) rather than a fixed duration — a fast flick flies out fast, a slow drag-past-the-distance-threshold eases out at a normal pace. A fixed duration made a large toast (or a slow release) look like it teleported to the edge instead of continuing its motion.
 
-It sets `touch-action: none` on itself (claiming both axes so a touch drag never competes with native scrolling), but that only takes effect if it's the element the browser hit-tests to. In practice your content (e.g. `ToastBar`'s root) is `pointer-events: auto` and fills the row, so it — not `<ToastWrapper>` — is what receives the touch; add `touch-action: none` to that content root too, or touch drags may fight the page's native scroll.
+Corner toasts use `touch-action: none` because they support both outward horizontal and vertical swipes. Center toasts use `touch-action: pan-x`, preserving native horizontal panning while reserving their vertical dismiss gesture. Do not override this on the content root.
 
 ## Keyboard accessibility
 

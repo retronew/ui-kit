@@ -6,7 +6,7 @@ import DemoSection from '../DemoSection.vue'
 const { t } = useI18n()
 
 const usageCode = [
-  `import { Toaster, toast } from '@retronew/toast-vue'`,
+  `import { Toaster, ToastWrapper, toast } from '@retronew/toast-vue'`,
   ``,
   `// Render the headless outlet in your app root`,
   `<Toaster v-slot="{ toasts, viewportOffset, updateHeight, calculateOffset }">`,

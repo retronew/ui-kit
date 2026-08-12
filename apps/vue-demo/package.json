@@ -7,7 +7,9 @@
     "dev": "vp dev",
     "build": "vp build",
     "preview": "vp preview",
-    "check": "vp check"
+    "check": "vp check",
+    "test": "vp test",
+    "test:coverage": "vp test --coverage"
   },
   "dependencies": {
     "@retronew/toast-vue": "workspace:*",
@@ -19,9 +21,11 @@
   "devDependencies": {
     "@iconify-json/lucide": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
+    "jsdom": "catalog:",
     "typescript": "catalog:",
     "unocss": "catalog:",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

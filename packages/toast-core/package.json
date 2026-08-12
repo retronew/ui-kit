@@ -8,7 +8,16 @@
     "notifications",
     "toast"
   ],
+  "homepage": "https://github.com/retronew/ui-kit#readme",
+  "bugs": {
+    "url": "https://github.com/retronew/ui-kit/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/retronew/ui-kit.git",
+    "directory": "packages/toast-core"
+  },
   "files": [
     "dist",
     "skills"
@@ -33,6 +42,7 @@
     "build": "vp pack",
     "dev": "vp pack --watch",
     "test": "vp test",
+    "test:coverage": "vp test --coverage",
     "check": "vp check",
     "prepublishOnly": "vp run build"
   },

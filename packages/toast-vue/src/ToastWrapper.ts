@@ -1,6 +1,6 @@
 import type { ToastEffect, ToastPosition, ToastStatus, ToastStore } from '@retronew/toast-core'
-import { prefersReducedMotion } from '@retronew/toast-core'
-import { computed, defineComponent, h, onMounted, onUnmounted, ref } from 'vue'
+import { prefersReducedMotion, subscribeReducedMotion } from '@retronew/toast-core'
+import { computed, defineComponent, h, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { CSSProperties, PropType } from 'vue'
 import { toastStore } from './toast'
 
@@ -100,9 +100,11 @@ export const ToastWrapper = defineComponent({
     const wrapperRef = ref<HTMLDivElement | null>(null)
     // Flip to entered on the next frame so the enter transition plays instead of snapping to rest.
     const mounted = ref(false)
-    let observer: MutationObserver | null = null
+    let observer: ResizeObserver | null = null
+    let observesWindowResize = false
+    let measureFrame: number | null = null
     let mountFrame: number | null = null
-    let unsubscribeEffect: (() => void) | null = null
+    let disposed = false
     let shakeAnimation: Animation | null = null
 
     // Swipe-to-dismiss: 1:1 pointer tracking past `SWIPE_HYSTERESIS_PX` so taps aren't intercepted.
@@ -120,6 +122,27 @@ export const ToastWrapper = defineComponent({
     let velocityY = 0
     let suppressNextClick: ((event: MouseEvent) => void) | null = null
     let flingAnimation: Animation | null = null
+    let restoreFocusTarget: HTMLElement | null = null
+    const reduceMotion = ref(prefersReducedMotion())
+    let unsubscribeReducedMotion: (() => void) | null = null
+
+    const stopEffectSubscription = watch(
+      [() => props.store, () => props.id] as const,
+      ([store, id], _previous, onCleanup) => {
+        const unsubscribe = store.onEffect((effect: ToastEffect) => {
+          if (effect.type !== 'shake') return
+          if (reduceMotion.value || !wrapperRef.value?.animate) return
+          shakeAnimation?.cancel()
+          shakeAnimation = wrapperRef.value.animate(SHAKE_KEYFRAMES, {
+            composite: 'add',
+            duration: 500,
+            easing: 'cubic-bezier(.36,.07,.19,.97)',
+          })
+        }, id)
+        onCleanup(unsubscribe)
+      },
+      { immediate: true },
+    )
 
     /** `-1` (swipe up) for a `top-*` toast, `1` (swipe down) for `bottom-*`. */
     function allowedVerticalDirection(): -1 | 1 {
@@ -146,6 +169,9 @@ export const ToastWrapper = defineComponent({
       if (event.pointerType === 'mouse' && event.button !== 0) {
         return
       }
+      clearClickSuppression()
+      flingAnimation?.cancel()
+      flingAnimation = null
       pointerId = event.pointerId
       startX = event.clientX
       startY = event.clientY
@@ -208,13 +234,15 @@ export const ToastWrapper = defineComponent({
       } else {
         dragY.value = dy
       }
+      event.preventDefault()
     }
 
-    function endDrag(): void {
-      if (pointerId !== null && wrapperRef.value?.hasPointerCapture?.(pointerId)) {
-        wrapperRef.value.releasePointerCapture(pointerId)
-      }
+    function endDrag(releaseTime: number): void {
+      const capturedPointer = pointerId
       pointerId = null
+      if (capturedPointer !== null && wrapperRef.value?.hasPointerCapture?.(capturedPointer)) {
+        wrapperRef.value.releasePointerCapture(capturedPointer)
+      }
 
       if (!dragging.value) {
         return
@@ -224,7 +252,8 @@ export const ToastWrapper = defineComponent({
       const axis = dragAxis
       dragAxis = null
       const distance = axis === 'x' ? dragX.value : dragY.value
-      const velocity = axis === 'x' ? velocityX : velocityY
+      const recentVelocity = releaseTime - lastMoveTime <= 80
+      const velocity = recentVelocity ? (axis === 'x' ? velocityX : velocityY) : 0
       const committed =
         Math.abs(distance) > SWIPE_COMMIT_DISTANCE_PX || Math.abs(velocity) > SWIPE_COMMIT_VELOCITY
       if (!committed) {
@@ -235,7 +264,7 @@ export const ToastWrapper = defineComponent({
       }
 
       const direction = distance !== 0 ? Math.sign(distance) : Math.sign(velocity) || 1
-      if (prefersReducedMotion() || !wrapperRef.value?.animate) {
+      if (reduceMotion.value || !wrapperRef.value?.animate) {
         emit('dismiss-request', props.id)
         return
       }
@@ -268,7 +297,7 @@ export const ToastWrapper = defineComponent({
       if (event.pointerId !== pointerId) {
         return
       }
-      endDrag()
+      endDrag(event.timeStamp)
     }
 
     function onPointercancel(event: PointerEvent): void {
@@ -280,6 +309,31 @@ export const ToastWrapper = defineComponent({
       dragging.value = false
       dragAxis = null
       pointerId = null
+      clearClickSuppression()
+    }
+
+    function onLostPointerCapture(event: PointerEvent): void {
+      if (event.pointerId === pointerId) endDrag(event.timeStamp)
+    }
+
+    function onFocusin(event: FocusEvent): void {
+      const previous = event.relatedTarget
+      if (
+        previous instanceof HTMLElement &&
+        wrapperRef.value !== null &&
+        !wrapperRef.value.contains(previous)
+      ) {
+        restoreFocusTarget = previous
+      }
+    }
+
+    function restoreFocus(): void {
+      const target = restoreFocusTarget
+      restoreFocusTarget = null
+      if (target === null) return
+      queueMicrotask(() => {
+        if (target.isConnected) target.focus()
+      })
     }
 
     function measureAndEmit(): void {
@@ -289,43 +343,45 @@ export const ToastWrapper = defineComponent({
       }
     }
 
+    function scheduleMeasure(): void {
+      if (disposed || measureFrame !== null) return
+      measureFrame = requestAnimationFrame(() => {
+        measureFrame = null
+        measureAndEmit()
+      })
+    }
+
     onMounted(() => {
       if (wrapperRef.value) {
         measureAndEmit()
 
-        observer = new MutationObserver(measureAndEmit)
-        observer.observe(wrapperRef.value, {
-          characterData: true,
-          childList: true,
-          subtree: true,
-        })
+        if (typeof ResizeObserver !== 'undefined') {
+          observer = new ResizeObserver(scheduleMeasure)
+          observer.observe(wrapperRef.value)
+        } else {
+          observesWindowResize = true
+          window.addEventListener('resize', scheduleMeasure)
+        }
+        void document.fonts?.ready.then(scheduleMeasure)
       }
 
       mountFrame = requestAnimationFrame(() => {
         mounted.value = true
       })
 
-      unsubscribeEffect = props.store.onEffect((effect: ToastEffect) => {
-        if (effect.type !== 'shake' || effect.id !== props.id) {
-          return
-        }
-        if (prefersReducedMotion() || !wrapperRef.value?.animate) {
-          return
-        }
-        // Cancel a still-running shake so rapid repeats stay a single wobble.
-        shakeAnimation?.cancel()
-        shakeAnimation = wrapperRef.value.animate(SHAKE_KEYFRAMES, {
-          composite: 'add',
-          duration: 500,
-          easing: 'cubic-bezier(.36,.07,.19,.97)',
-        })
+      unsubscribeReducedMotion = subscribeReducedMotion((reduced) => {
+        reduceMotion.value = reduced
       })
     })
 
     onUnmounted(() => {
+      disposed = true
       observer?.disconnect()
+      if (observesWindowResize) window.removeEventListener('resize', scheduleMeasure)
       if (mountFrame != null) cancelAnimationFrame(mountFrame)
-      unsubscribeEffect?.()
+      if (measureFrame != null) cancelAnimationFrame(measureFrame)
+      stopEffectSubscription()
+      unsubscribeReducedMotion?.()
       shakeAnimation?.cancel()
       flingAnimation?.cancel()
       clearClickSuppression()
@@ -347,10 +403,10 @@ export const ToastWrapper = defineComponent({
       const transformOrigin = `${originX} ${originY}`
       const opacity = isVisible ? props.stackOpacity : 0
       // 'none' so a touch drag never competes with native panning.
-      const touchAction = 'none'
+      const touchAction = isCenter ? 'pan-x' : 'none'
 
-      if (prefersReducedMotion()) {
-        return { opacity, touchAction, transition: 'opacity 200ms ease', zIndex: props.zIndex }
+      if (reduceMotion.value) {
+        return { opacity, touchAction, transition: 'none', zIndex: props.zIndex }
       }
 
       // Enter/exit is pure translateY (scale is `props.scale`'s job), chained with stacking/drag offsets.
@@ -366,7 +422,9 @@ export const ToastWrapper = defineComponent({
         transformOrigin,
         // No transition while dragging — direct manipulation must track the pointer 1:1.
         transition: dragging.value ? 'none' : TOAST_TRANSITION,
-        willChange: 'transform, opacity, filter',
+        ...(!mounted.value || props.status === 'dismissed' || dragging.value
+          ? { willChange: 'transform, opacity, filter' }
+          : {}),
         zIndex: props.zIndex,
       }
     })
@@ -375,8 +433,22 @@ export const ToastWrapper = defineComponent({
       if (event.key === 'Escape') {
         // Let page-level Escape handlers (e.g. modals) still see the event.
         emit('dismiss-request', props.id)
+        restoreFocus()
       }
     }
+
+    watch(
+      () => props.status,
+      (status, previous) => {
+        if (
+          status === 'dismissed' &&
+          previous === 'visible' &&
+          wrapperRef.value?.contains(document.activeElement)
+        ) {
+          restoreFocus()
+        }
+      },
+    )
 
     return () =>
       h(
@@ -385,15 +457,18 @@ export const ToastWrapper = defineComponent({
           ref: wrapperRef,
           'data-toast-wrapper': props.id,
           'data-toast-expanded': props.expanded ? 'true' : 'false',
+          'data-toast-status': props.status,
           ...(props.toastPosition ? { 'data-toast-position': props.toastPosition } : {}),
           style: motionStyle.value,
           // Makes the toast Tab-reachable (and thus Escape-dismissible).
           tabindex: '0',
+          onFocusin,
           onKeydown,
           onPointerdown,
           onPointermove,
           onPointerup,
           onPointercancel,
+          onLostpointercapture: onLostPointerCapture,
         },
         slots.default?.(),
       )

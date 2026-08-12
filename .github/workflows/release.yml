@@ -34,6 +34,15 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Install Chromium
+        run: pnpm e2e:install
+
+      - name: Verify release artifacts
+        run: pnpm ready
+
+      - name: Audit production dependencies
+        run: vp exec pnpm audit --prod --audit-level high
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v2
