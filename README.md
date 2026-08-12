@@ -1,5 +1,11 @@
 # ui-kit
 
+[![CI](https://github.com/retronew/ui-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/retronew/ui-kit/actions/workflows/ci.yml)
+[![toast-core npm version](https://img.shields.io/npm/v/%40retronew%2Ftoast-core.svg?label=%40retronew%2Ftoast-core)](https://www.npmjs.com/package/@retronew/toast-core)
+[![toast-vue npm version](https://img.shields.io/npm/v/%40retronew%2Ftoast-vue.svg?label=%40retronew%2Ftoast-vue)](https://www.npmjs.com/package/@retronew/toast-vue)
+[![License: MIT](https://img.shields.io/npm/l/%40retronew%2Ftoast-core.svg)](./LICENSE)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196.svg)](https://conventionalcommits.org)
+
 A Vite+ powered **monorepo** that houses all `@retronew` frontend libraries.
 The first occupant is a headless toast library; the structure is designed so
 new libraries (React/Svelte/vanilla adapters, components, utilities) drop in

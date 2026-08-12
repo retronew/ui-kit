@@ -1,5 +1,10 @@
 # @retronew/toast-vue
 
+[![npm version](https://img.shields.io/npm/v/%40retronew%2Ftoast-vue.svg)](https://www.npmjs.com/package/@retronew/toast-vue)
+[![npm downloads](https://img.shields.io/npm/dm/%40retronew%2Ftoast-vue.svg)](https://www.npmjs.com/package/@retronew/toast-vue)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/%40retronew%2Ftoast-vue)](https://bundlephobia.com/package/@retronew/toast-vue)
+[![License: MIT](https://img.shields.io/npm/l/%40retronew%2Ftoast-vue.svg)](../../LICENSE)
+
 Headless toast for **Vue 3**. Provides a reactive `useToaster()` composable, a
 renderless `<Toaster>` outlet, and a global `toast()` API — all rendering is
 yours. Built on the framework-agnostic [`@retronew/toast-core`](../toast-core).
