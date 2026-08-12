@@ -1,5 +1,5 @@
-import type { Toast, ToastStore, ViewportOffset } from '@retronew/toast-core'
-import { defineComponent } from 'vue'
+import type { Toast, ToastPauseReason, ToastStore, ViewportOffset } from '@retronew/toast-core'
+import { defineComponent, toRef } from 'vue'
 import type { PropType, SlotsType } from 'vue'
 import { toastStore } from './toast'
 import type { VueToastMessage } from './toast'
@@ -8,21 +8,23 @@ import type { CalculateOffsetOptions, StackMetrics, StackMetricsOptions } from '
 
 /** Slot props exposed by the renderless `<Toaster>` outlet. */
 export interface ToasterSlotProps<T = VueToastMessage> {
-  toasts: Toast<T>[]
+  toasts: readonly Toast<T>[]
   /** Distance from the toast outlet to the viewport edge. Numbers are pixels. */
   viewportOffset: ViewportOffset
-  dismiss: (id?: string) => void
-  remove: (id?: string) => void
-  pause: (id?: string) => void
-  resume: (id?: string) => void
+  dismiss: (id?: string) => boolean
+  remove: (id?: string) => boolean
+  pause: (id?: string, reason?: ToastPauseReason) => boolean
+  resume: (id?: string, reason?: ToastPauseReason) => boolean
   /** Report a toast's rendered height; wire to `<ToastWrapper>`'s `height-update`. */
-  updateHeight: (id: string, height: number) => void
+  updateHeight: (id: string, height: number) => boolean
   /** Cumulative pixel offset for a toast within its stack. */
   calculateOffset: (toast: Toast<T>, opts?: CalculateOffsetOptions) => number
   /** A toast's index/front/z-index within its position group. */
   getStackMetrics: (toast: Toast<T>, opts?: StackMetricsOptions) => StackMetrics
   /** ms left before `id`'s timer fires; pause-aware, `undefined` when no timer is active. */
   getRemaining: (id: string) => number | undefined
+  /** Remaining duration as a `1` → `0` fraction. */
+  getProgress: (id: string) => number | undefined
 }
 
 /**
@@ -37,6 +39,11 @@ export const Toaster = defineComponent({
       default: () => toastStore,
       type: Object as PropType<ToastStore>,
     },
+    /** Enable periodic snapshots for countdown/progress UI. */
+    progress: {
+      default: false,
+      type: Boolean,
+    },
   },
   setup(props, { slots }) {
     const {
@@ -49,13 +56,15 @@ export const Toaster = defineComponent({
       calculateOffset,
       getStackMetrics,
       getRemaining,
+      getProgress,
       viewportOffset,
-    } = useToaster(props.store)
+    } = useToaster(toRef(props, 'store'), { progress: toRef(props, 'progress') })
     return () =>
       slots.default?.({
         calculateOffset,
         dismiss,
         getRemaining,
+        getProgress,
         getStackMetrics,
         pause,
         remove,

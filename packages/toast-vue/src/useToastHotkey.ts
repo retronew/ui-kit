@@ -18,7 +18,14 @@ export function useToastHotkey(options: UseToastHotkeyOptions = {}): void {
   const key = keys.find((k) => !MODIFIERS.has(k))?.toLowerCase()
 
   function handleKeydown(event: KeyboardEvent): void {
-    if (key === undefined || event.key.toLowerCase() !== key) {
+    if (event.repeat || key === undefined || event.key.toLowerCase() !== key) {
+      return
+    }
+    const target = event.target
+    if (
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName))
+    ) {
       return
     }
     const modifierState: Record<string, boolean> = {
@@ -31,7 +38,13 @@ export function useToastHotkey(options: UseToastHotkeyOptions = {}): void {
     if (!modifiersMatch) {
       return
     }
-    document.querySelector<HTMLElement>('[data-toast-wrapper]')?.focus()
+    const toast = document.querySelector<HTMLElement>(
+      '[data-toast-wrapper][data-toast-status="visible"]',
+    )
+    if (toast) {
+      event.preventDefault()
+      toast.focus()
+    }
   }
 
   onMounted(() => {
