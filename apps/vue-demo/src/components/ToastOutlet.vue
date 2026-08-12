@@ -24,6 +24,7 @@ useToastHotkey()
 
 <template>
   <Toaster
+    progress
     v-slot="{
       toasts,
       viewportOffset,

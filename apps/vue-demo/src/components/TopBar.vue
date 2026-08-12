@@ -8,7 +8,7 @@ import { setLocale } from '../i18n'
 import { cn } from '../lib/utils'
 
 const { t, locale } = useI18n()
-const { isDark, toggleTheme } = useTheme()
+const { cycleTheme, nextTheme, theme } = useTheme()
 const { toasts } = useToaster()
 const { effectivePosition } = useToasts()
 
@@ -17,6 +17,17 @@ const hasVisibleToast = computed(() =>
   toasts.value.some(
     (toast) => toast.status === 'visible' && effectivePosition(toast).startsWith('top'),
   ),
+)
+const themeOptions = [
+  { icon: 'i-lucide-monitor', labelKey: 'topbar.themeSystem', value: 'system' },
+  { icon: 'i-lucide-sun', labelKey: 'topbar.themeLight', value: 'light' },
+  { icon: 'i-lucide-moon', labelKey: 'topbar.themeDark', value: 'dark' },
+] as const
+const themeButtonLabel = computed(() =>
+  t('topbar.themeCycle', {
+    current: t(themeOptions.find((option) => option.value === theme.value)?.labelKey ?? ''),
+    next: t(themeOptions.find((option) => option.value === nextTheme.value)?.labelKey ?? ''),
+  }),
 )
 
 function toggleLocale() {
@@ -43,24 +54,24 @@ function toggleLocale() {
         {{ locale === 'zh-CN' ? '中文' : 'EN' }}
       </button>
       <button
-        class="relative grid size-7.5 cursor-pointer place-items-center rounded-full transition-[background-color,scale] duration-150 ease-out before:absolute before:-inset-[5px] before:content-[''] hover:bg-surface-hover active:scale-[0.96]"
-        :aria-label="t('topbar.toggleTheme')"
-        @click="toggleTheme"
+        type="button"
+        class="grid size-7.5 cursor-pointer place-items-center rounded-full transition-[background-color,scale] duration-150 ease-out hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg-muted active:scale-[0.96]"
+        data-theme-preference
+        :aria-label="themeButtonLabel"
+        :title="themeButtonLabel"
+        @click="cycleTheme"
       >
         <span class="relative grid size-4 place-items-center">
           <span
+            v-for="option in themeOptions"
+            :key="option.value"
             :class="
               cn(
-                'i-lucide-sun absolute inset-0 m-auto size-3.5 transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)]',
-                isDark ? 'scale-[0.25] opacity-0 blur-[4px]' : 'scale-100 opacity-100 blur-none',
-              )
-            "
-          />
-          <span
-            :class="
-              cn(
-                'i-lucide-moon size-3.5 transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)]',
-                isDark ? 'scale-100 opacity-100 blur-none' : 'scale-[0.25] opacity-0 blur-[4px]',
+                option.icon,
+                'absolute inset-0 m-auto size-3.5 transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)]',
+                theme === option.value
+                  ? 'scale-100 opacity-100 blur-none'
+                  : 'scale-[0.25] opacity-0 blur-[4px]',
               )
             "
           />

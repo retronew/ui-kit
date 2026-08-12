@@ -5,7 +5,7 @@ import DemoSection from '../DemoSection.vue'
 
 const { t } = useI18n()
 
-const installCode = 'npm install @retronew/toast-vue'
+const installCode = 'pnpm add @retronew/toast-vue'
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import type {
   CalculateOffsetOptions,
   StackMetrics,
   Toast,
+  ToastPauseReason,
   ToastPosition,
   ValueOrFunction,
 } from '@retronew/toast-vue'
@@ -19,6 +20,20 @@ export type StackMode = 'queue' | 'stack'
 
 const activeType = ref('success')
 const dedupActive = ref<'same' | 'different' | 'single'>('same')
+const scheduledTimers = new Set<ReturnType<typeof setTimeout>>()
+
+function schedule(callback: () => void, delay: number): void {
+  const handle = setTimeout(() => {
+    scheduledTimers.delete(handle)
+    callback()
+  }, delay)
+  scheduledTimers.add(handle)
+}
+
+function clearScheduledTimers(): void {
+  for (const handle of scheduledTimers) clearTimeout(handle)
+  scheduledTimers.clear()
+}
 
 const sectionCodes = reactive({
   types: `toast.success('Operation completed successfully!')`,
@@ -118,21 +133,6 @@ const STACK_GUTTER = 8
 const STACKED_VISIBLE = 3
 
 /** Toasts sharing `t`'s position, newest first, still on screen. */
-function positionGroup(all: Toast[], t: Toast): Toast[] {
-  const pos = effectivePosition(t)
-  return all.filter((x) => x.status === 'visible' && effectivePosition(x) === pos)
-}
-
-/** Cumulative offset of toasts stacked before `t` within its group. */
-function expandedOffset(group: Toast[], t: Toast): number {
-  const idx = group.indexOf(t)
-  let acc = 0
-  for (let i = 0; i < idx; i += 1) {
-    acc += (group[i]?.height ?? 0) + STACK_GUTTER
-  }
-  return acc
-}
-
 /**
  * Whether the toast renders at a fixed width (Stack mode + `centerAlignStack`), so all cards
  * share one width for center-anchored scaling and don't jump width when fanning out on hover.
@@ -156,14 +156,22 @@ const DROP_DISTANCE = 40
 // on other toasts' async-measured height, so recalculating on every render would split the
 // recede-and-fade into two motions; freezing keeps it a single transition.
 const stackedOffsets = new Map<string, number>()
+let stackedOffsetsSource: readonly Toast[] | undefined
 
 function toastMotion(
   t: Toast,
-  all: Toast[],
+  all: readonly Toast[],
   calculateOffset: (toast: Toast, opts?: CalculateOffsetOptions) => number,
   getStackMetrics: (toast: Toast, opts?: { defaultPosition?: ToastPosition }) => StackMetrics,
 ): ToastMotion {
   const pos = effectivePosition(t)
+  if (stackedOffsetsSource !== all) {
+    stackedOffsetsSource = all
+    const currentIds = new Set(all.map((toast) => toast.id))
+    for (const id of stackedOffsets.keys()) {
+      if (!currentIds.has(id)) stackedOffsets.delete(id)
+    }
+  }
 
   if (stackMode.value === 'queue') {
     if (t.stacked) {
@@ -183,9 +191,8 @@ function toastMotion(
   }
 
   // Stack mode.
-  const group = positionGroup(all, t)
-  const depth = group.indexOf(t)
-  const cap = maxToasts.value === Infinity ? group.length : maxToasts.value
+  const { index: depth } = getStackMetrics(t, { defaultPosition: pos })
+  const cap = maxToasts.value
 
   if (depth < 0) {
     // Mid-exit: let the exit animation play in place.
@@ -202,7 +209,11 @@ function toastMotion(
   }
   if (hoveredPosition.value === pos) {
     // Fanned out into a readable list.
-    const offset = expandedOffset(group, t)
+    const offset = calculateOffset(t, {
+      ...getOffsetOptions(t),
+      includeStacked: true,
+      reverseOrder: true,
+    })
     // Newest on top so lower toasts don't flash in front during expansion.
     return { offset, scale: 1, stackOpacity: 1, zIndex: 100 - depth }
   }
@@ -215,18 +226,21 @@ function toastMotion(
 }
 
 // The whole stack is one hover region via ToastWrapper's `::after` bridge, so a relatedTarget check suffices.
-function handlePointerEnter(t: Toast, pause: () => void) {
+function handlePointerEnter(t: Toast, pause: (id?: string, reason?: ToastPauseReason) => void) {
   hoveredPosition.value = effectivePosition(t)
-  pause()
+  pause(undefined, 'interaction')
 }
 
-function handlePointerLeave(event: MouseEvent, resume: () => void) {
+function handlePointerLeave(
+  event: MouseEvent,
+  resume: (id?: string, reason?: ToastPauseReason) => void,
+) {
   const target = event.relatedTarget as HTMLElement | null
   if (target?.closest?.('[data-toast-wrapper]')) {
     return
   }
   hoveredPosition.value = null
-  resume()
+  resume(undefined, 'interaction')
 }
 
 function toastOptions() {
@@ -307,7 +321,7 @@ function handleLoadingClick() {
   activeType.value = 'loading'
   sectionCodes.types = `toast.loading('Processing your request…')`
   const id = toast.loading('Processing your request…', toastOptions())
-  setTimeout(() => {
+  schedule(() => {
     toast.update(id, { message: 'Process completed!', type: 'success' })
   }, 2000)
 }
@@ -329,11 +343,15 @@ function handlePromiseClick() {
       }, 2000),
     )
 
-  void toast.promise<{ name: string }>(factory, {
-    error: (err: unknown) => `Error: ${(err as Error).message}`,
-    loading: 'Saving data…',
-    success: (data: { name: string }) => `Saved: ${data.name}`,
-  })
+  void toast
+    .promise<{ name: string }>(factory, {
+      error: (err: unknown) => `Error: ${(err as Error).message}`,
+      loading: 'Saving data…',
+      success: (data: { name: string }) => `Saved: ${data.name}`,
+    })
+    .catch(() => {
+      // The toast already communicates the failure; keep the interactive demo console clean.
+    })
 }
 
 // Infinity has no countdown to show — fall back to a finite default; message reads live `t.remaining`/`t.progress`.
@@ -378,7 +396,7 @@ function handleCustomClick() {
   activeType.value = 'custom'
   sectionCodes.types = [
     `toast.custom((t) =>`,
-    `  h('div', { class: 'group flex max-w-[350px] transform-gpu items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 will-change-[backdrop-filter] dark:border-white/15 dark:bg-white/10 dark:text-white' }, [`,
+    `  h('div', { class: 'group flex max-w-[350px] transform-gpu items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white' }, [`,
     `    h('span', { class: 'grid size-8 shrink-0 place-items-center rounded-full bg-white/50 text-base dark:bg-white/10' }, '🎉'),`,
     `    h('div', { class: 'min-w-0 flex-1' }, [`,
     `      h('p', { class: 'font-semibold leading-tight' }, 'Welcome to Toast Vue!'),`,
@@ -396,7 +414,7 @@ function handleCustomClick() {
       {
         // Liquid glass: translucent, blurred layer with a light-catching top highlight.
         class:
-          'group pointer-events-auto flex max-w-[350px] transform-gpu cursor-default items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 will-change-[backdrop-filter] dark:border-white/15 dark:bg-white/10 dark:text-white',
+          'group pointer-events-auto flex max-w-[350px] transform-gpu cursor-default items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white',
       },
       [
         h(
@@ -419,6 +437,7 @@ function handleCustomClick() {
           'button',
           {
             'aria-label': 'Dismiss',
+            type: 'button',
             class:
               "relative grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full text-black/55 opacity-0 transition-[opacity,background-color,color,scale] duration-150 before:absolute before:-inset-[9px] before:content-[''] group-hover:opacity-100 hover:bg-black/10 hover:text-[#1d1d1f] active:scale-[0.96] dark:text-white/65 dark:hover:bg-white/15 dark:hover:text-white",
             onClick: () => toast.dismiss(t.id),
@@ -480,11 +499,12 @@ function handleBatchClick() {
     `})`,
   ].join('\n')
   ;['First notification', 'Second notification', 'Third notification'].forEach((msg, i) => {
-    setTimeout(() => toast(msg, toastOptions()), i * 150)
+    schedule(() => toast(msg, toastOptions()), i * 150)
   })
 }
 
 function handleDismissAllClick() {
+  clearScheduledTimers()
   sectionCodes.dedup = `toast.dismiss()`
   toast.dismiss()
 }
@@ -540,7 +560,7 @@ function handleSameErrorBurst() {
   sectionCodes.dedup = `toast.error('Network request failed')\n// identical errors shake & reset, never stack`
   // Only one toast shows; each call shakes it and resets its countdown.
   for (let i = 0; i < 5; i += 1) {
-    setTimeout(() => toast.error('Network request failed', toastOptions()), i * 300)
+    schedule(() => toast.error('Network request failed', toastOptions()), i * 300)
   }
 }
 
@@ -550,7 +570,7 @@ function handleDifferentErrors() {
   // Distinct errors replace the visible one in place (still one toast), each swap with a shake.
   const messages = ['Connection timed out', 'Server returned 500', 'Request aborted']
   messages.forEach((msg, i) => {
-    setTimeout(() => toast.error(msg, toastOptions()), i * 600)
+    schedule(() => toast.error(msg, toastOptions()), i * 600)
   })
 }
 
@@ -637,4 +657,8 @@ export function useToasts() {
     handleDifferentErrors,
     handleSingleError,
   }
+}
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(clearScheduledTimers)
 }
