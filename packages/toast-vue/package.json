@@ -1,6 +1,6 @@
 {
   "name": "@retronew/toast-vue",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Headless toast composable & renderless outlet for Vue 3, powered by @retronew/toast-core.",
   "keywords": [
     "composable",
