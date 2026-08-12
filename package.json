@@ -1,0 +1,40 @@
+{
+  "name": "ui-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vp run -r build",
+    "changeset": "changeset",
+    "check": "vp check",
+    "commitlint": "commitlint",
+    "dev": "vp run vue-demo#dev",
+    "lint": "vp lint",
+    "prepare": "vp config",
+    "ready": "pnpm run check && pnpm run test && pnpm run build",
+    "release": "changeset publish",
+    "test": "vp run -r test",
+    "typecheck": "vp check --no-fmt --no-lint",
+    "version-packages": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "@types/node": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.9.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}
