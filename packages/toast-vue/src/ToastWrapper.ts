@@ -286,6 +286,12 @@ export const ToastWrapper = defineComponent({
           fill: 'forwards',
         },
       )
+      if (!flingAnimation.finished) {
+        // Environments without a real Web Animations finished promise (e.g. a
+        // partial animate() polyfill) can't notify us when the fling ends.
+        emit('dismiss-request', props.id)
+        return
+      }
       void flingAnimation.finished
         .then(() => emit('dismiss-request', props.id))
         .catch(() => {
