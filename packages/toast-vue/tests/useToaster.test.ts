@@ -469,6 +469,30 @@ describe(ToastWrapper, () => {
     expect(wrapper.emitted('dismiss-request')).toEqual([['t1']])
   })
 
+  it('dismisses immediately when animate() has no finished promise', async () => {
+    // Default mock from beforeEach: { cancel: vi.fn() }, no `finished`.
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, toastPosition: 'top-right' },
+      slots: { default: 'Oops' },
+    })
+    await nextTick()
+
+    firePointerEvent(wrapper.element, 'pointerdown', {
+      clientX: 0,
+      clientY: 0,
+      pointerId: 1,
+      pointerType: 'touch',
+    })
+    firePointerEvent(wrapper.element, 'pointermove', { clientX: 40, clientY: 0, pointerId: 1 })
+    firePointerEvent(wrapper.element, 'pointermove', { clientX: 120, clientY: 0, pointerId: 1 })
+    firePointerEvent(wrapper.element, 'pointerup', { clientX: 120, clientY: 0, pointerId: 1 })
+    await nextTick()
+
+    expect(animateMock).toHaveBeenCalledTimes(1)
+    expect(wrapper.emitted('dismiss-request')).toEqual([['t1']])
+  })
+
   it('allows horizontal swipe at a corner position', async () => {
     const finished = Promise.resolve()
     animateMock.mockReturnValue({ cancel: vi.fn(), finished })
