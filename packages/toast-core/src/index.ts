@@ -6,13 +6,18 @@ export type {
   PromiseMessages,
   Toast,
   ToastAction,
+  ToastDedupeContext,
+  ToastDedupeKey,
   ToastEffect,
   ToastOptions,
+  ToastPauseReason,
   ToastPosition,
   ToastStatus,
+  ToastSubscriptionOptions,
   ToastType,
+  ToastUpdateOptions,
   ToasterState,
   ViewportOffset,
 } from './types'
-export { resolveValue, prefersReducedMotion } from './utils'
+export { resolveValue, prefersReducedMotion, subscribeReducedMotion } from './utils'
 export type { ValueOrFunction, ValueFunction } from './utils'

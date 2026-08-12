@@ -15,15 +15,27 @@ export function resolveValue<TValue, TArg>(
   return isFunction(valOrFunction) ? valOrFunction(arg) : valOrFunction
 }
 
-/** Whether the user prefers reduced motion; memoised after the first call. */
-export const prefersReducedMotion = (() => {
-  let shouldReduceMotion: boolean | undefined
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
-  return (): boolean => {
-    if (shouldReduceMotion === undefined && typeof window !== 'undefined') {
-      const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)')
-      shouldReduceMotion = !mediaQuery || mediaQuery.matches
-    }
-    return shouldReduceMotion ?? false
+/** Whether the user currently prefers reduced motion. */
+export function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(REDUCED_MOTION_QUERY).matches
+    : false
+}
+
+/** Subscribe to runtime reduced-motion preference changes. */
+export function subscribeReducedMotion(listener: (reduced: boolean) => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
+  const query = window.matchMedia(REDUCED_MOTION_QUERY)
+  const handleChange = (event: MediaQueryListEvent): void => listener(event.matches)
+  if (typeof query.addEventListener === 'function') {
+    query.addEventListener('change', handleChange)
+    return () => query.removeEventListener('change', handleChange)
   }
-})()
+  if (typeof query.addListener === 'function') {
+    query.addListener(handleChange)
+    return () => query.removeListener(handleChange)
+  }
+  return () => {}
+}

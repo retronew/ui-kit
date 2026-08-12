@@ -1,5 +1,5 @@
 import type { ToastStore } from './store'
-import type { PromiseMessages, ToastOptions } from './types'
+import type { PromiseMessages, ToastOptions, ToastUpdateOptions } from './types'
 
 /**
  * The `toast(...)` function bound to a store — a react-hot-toast / sonner-style
@@ -15,11 +15,11 @@ export interface ToastApi<T = unknown> {
   warning(message: T, options?: ToastOptions<T>): string
   custom(message: T, options?: ToastOptions<T>): string
   /** Patch an existing toast by id. */
-  update(id: string, patch: ToastOptions<T>): string
+  update(id: string, patch: ToastUpdateOptions<T>): boolean
   /** Dismiss a toast (or all) — exit, then removal. */
-  dismiss(id?: string): void
+  dismiss(id?: string): boolean
   /** Remove a toast (or all) immediately. */
-  remove(id?: string): void
+  remove(id?: string): boolean
   /**
    * Drive a toast through a promise's lifecycle: `loading` → `success`/`error`.
    * Returns the promise. Accepts a `Promise` or a `() => Promise` factory.
@@ -47,12 +47,8 @@ export function createToastApi<T = unknown>(store: ToastStore<T>): ToastApi<T> {
   api.custom = (message, options) => store.create(message, { ...options, type: 'custom' })
 
   api.update = (id, patch) => store.update(id, patch)
-  api.dismiss = (id) => {
-    store.dismiss(id)
-  }
-  api.remove = (id) => {
-    store.remove(id)
-  }
+  api.dismiss = (id) => store.dismiss(id)
+  api.remove = (id) => store.remove(id)
 
   api.promise = async (promiseOrFactory, messages, options) => {
     const id = store.create(messages.loading, {
@@ -60,9 +56,8 @@ export function createToastApi<T = unknown>(store: ToastStore<T>): ToastApi<T> {
       type: 'loading',
     })
 
-    const p = typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory
-
     try {
+      const p = typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory
       const value = await p
       const message =
         typeof messages.success === 'function'
@@ -71,11 +66,16 @@ export function createToastApi<T = unknown>(store: ToastStore<T>): ToastApi<T> {
       store.update(id, { ...options, message, type: 'success' })
       return value
     } catch (error: unknown) {
-      const message =
-        typeof messages.error === 'function'
-          ? (messages.error as (e: unknown) => T)(error)
-          : messages.error
-      store.update(id, { ...options, message, type: 'error' })
+      try {
+        const message =
+          typeof messages.error === 'function'
+            ? (messages.error as (e: unknown) => T)(error)
+            : messages.error
+        store.update(id, { ...options, message, type: 'error' })
+      } catch (messageError: unknown) {
+        store.update(id, { ...options, type: 'error' })
+        throw messageError
+      }
       throw error
     }
   }
