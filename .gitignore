@@ -19,6 +19,9 @@ dist-ssr
 
 # Test and TypeScript outputs
 coverage/
+output/
+playwright-report/
+test-results/
 *.tsbuildinfo
 
 # Editor directories and files
