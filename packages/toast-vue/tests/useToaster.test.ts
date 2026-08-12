@@ -128,9 +128,51 @@ describe(useToaster, () => {
     const second = exposed?.toasts.value.find((toast) => toast.id === secondId)
     expect(second && exposed?.calculateOffset(second)).toBe(18)
   })
+
+  it('delegates control methods to the current store', () => {
+    const { store } = createToaster<string>()
+    const id = store.create('one', { duration: 5000 })
+    let exposed: ReturnType<typeof useToaster<string>> | undefined
+    const Comp = defineComponent({
+      setup() {
+        exposed = useToaster(store)
+        return () => h('div')
+      },
+    })
+    mount(Comp)
+
+    expect(exposed?.getRemaining(id)).toBe(5000)
+    expect(exposed?.getProgress(id)).toBe(1)
+    expect(exposed?.pause(id)).toBe(true)
+    expect(exposed?.resume(id)).toBe(true)
+    expect(exposed?.updateHeight(id, 42)).toBe(true)
+    expect(exposed?.getStackMetrics(store.getState().toasts[0]!)).toMatchObject({
+      index: 0,
+      isFront: true,
+    })
+    expect(exposed?.dismiss(id)).toBe(true)
+    expect(exposed?.remove(id)).toBe(true)
+    expect(store.getState().toasts).toHaveLength(0)
+  })
 })
 
 describe('Toaster (renderless)', () => {
+  it('defaults to the shared singleton store when none is provided', async () => {
+    const { toastStore, toast } = await import('../src/index.ts')
+    toast('from the default store')
+
+    const wrapper = mount(Toaster, {
+      slots: {
+        default: (props: { toasts: readonly { id: string; message: unknown }[] }) =>
+          props.toasts.map((t) => h('span', { key: t.id }, String(t.message))),
+      },
+    })
+
+    await nextTick()
+    expect(wrapper.text()).toContain('from the default store')
+    toastStore.remove()
+  })
+
   it('exposes toasts and handlers via slot props', async () => {
     // Untyped store, matching <Toaster>'s non-generic prop type.
     const { store, toast } = createToaster({ viewportOffset: '2rem' })

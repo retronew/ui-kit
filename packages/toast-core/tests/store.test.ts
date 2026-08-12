@@ -653,6 +653,49 @@ describe(ToastStore, () => {
     expect(progress.mock.calls.at(-1)?.[0].toasts[0].remaining).toBe(500)
   })
 
+  it('removes all toasts when called with no id', () => {
+    const store = new ToastStore<string>()
+    store.create('one')
+    store.create('two')
+    expect(store.remove()).toBe(true)
+    expect(store.getState().toasts).toHaveLength(0)
+    expect(store.remove()).toBe(false)
+  })
+
+  it('stops the progress ticker once no timed toast remains', () => {
+    const store = new ToastStore<string>()
+    const progress = vi.fn()
+    store.subscribe(progress, { progress: true })
+    store.create('counting', { duration: 1000 })
+    vi.advanceTimersByTime(500)
+    const callsWhileRunning = progress.mock.calls.length
+
+    // Past duration (auto-dismiss) and past the default removeDelay (auto-remove).
+    vi.advanceTimersByTime(1600)
+    progress.mockClear()
+    vi.advanceTimersByTime(1000)
+
+    expect(callsWhileRunning).toBeGreaterThan(1)
+    expect(store.getState().toasts).toHaveLength(0)
+    expect(progress).not.toHaveBeenCalled()
+  })
+
+  it('falls back to queueMicrotask when reportError is unavailable', () => {
+    vi.stubGlobal('reportError', undefined)
+    const queueMicrotaskSpy = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {})
+    const store = new ToastStore<string>()
+    const error = new Error('listener failed')
+    store.subscribe(() => {
+      throw error
+    })
+
+    store.create('boom')
+
+    expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1)
+    const rethrow = queueMicrotaskSpy.mock.calls[0][0]
+    expect(rethrow).toThrow(error)
+  })
+
   it('clears all timers and rejects reuse after destroy', () => {
     const store = new ToastStore<string>({ removeDelay: 500 })
     store.create('one', { duration: 1000 })
@@ -675,6 +718,23 @@ describe(createToastApi, () => {
 
     toast.error('nope')
     expect(store.getState().toasts[0]?.type).toBe('error')
+  })
+
+  it('exposes info, warning, loading, and custom convenience methods', () => {
+    const store = new ToastStore<string>()
+    const toast = createToastApi(store)
+
+    toast.info('fyi')
+    toast.warning('careful')
+    toast.loading('working…')
+    toast.custom('anything')
+
+    expect(store.getState().toasts.map((t) => t.type)).toEqual([
+      'custom',
+      'loading',
+      'warning',
+      'info',
+    ])
   })
 
   it('returns changed flags from update, dismiss, and remove', () => {
@@ -709,6 +769,22 @@ describe(createToastApi, () => {
     await promise
     expect(store.getState().toasts[0]).toMatchObject({
       message: 'saved 42',
+      type: 'success',
+    })
+  })
+
+  it('uses a static success message when resolved', async () => {
+    const store = new ToastStore<string>()
+    const toast = createToastApi(store)
+
+    await toast.promise(Promise.resolve('ok'), {
+      error: 'failed',
+      loading: 'saving…',
+      success: 'done',
+    })
+
+    expect(store.getState().toasts[0]).toMatchObject({
+      message: 'done',
       type: 'success',
     })
   })
