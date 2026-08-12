@@ -1,5 +1,10 @@
 # @retronew/toast-core
 
+[![npm version](https://img.shields.io/npm/v/%40retronew%2Ftoast-core.svg)](https://www.npmjs.com/package/@retronew/toast-core)
+[![npm downloads](https://img.shields.io/npm/dm/%40retronew%2Ftoast-core.svg)](https://www.npmjs.com/package/@retronew/toast-core)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/%40retronew%2Ftoast-core)](https://bundlephobia.com/package/@retronew/toast-core)
+[![License: MIT](https://img.shields.io/npm/l/%40retronew%2Ftoast-core.svg)](../../LICENSE)
+
 Framework-agnostic, **headless** toast state machine. It owns the toast list,
 auto-dismiss timers, pause/resume, max-stack and promise lifecycles — and
 renders **nothing**. Framework adapters (`@retronew/toast-vue`, and future
