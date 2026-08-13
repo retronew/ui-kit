@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "corepack pnpm@11.9.0 install --frozen-lockfile",
+  "buildCommand": "corepack pnpm@11.9.0 --filter toast-vue-demo... run build",
+  "outputDirectory": "dist"
+}
