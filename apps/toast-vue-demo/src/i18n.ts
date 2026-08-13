@@ -56,6 +56,12 @@ const messages = {
         title: 'Animation speed',
         desc: 'How fast toasts slide, stack, and fade — set via a single CSS custom property.',
       },
+      pop: {
+        title: 'Pop motion',
+        desc: 'A more pronounced entrance/exit with a bigger scale pop and its own easing curves — still driven by the animation speed above.',
+        on: 'On',
+        off: 'Off',
+      },
       offset: {
         title: 'Viewport offset',
         desc: 'The core-managed gap between the toast stack and the screen edge.',
@@ -161,6 +167,12 @@ const messages = {
       animation: {
         title: '动画速度',
         desc: 'Toast 滑入、堆叠与淡出的快慢，通过一个 CSS 自定义属性统一控制。',
+      },
+      pop: {
+        title: '弹入效果',
+        desc: '更明显的进/离场：缩放幅度更大、进出场缓动曲线不同，节奏仍然由上面的动画速度控制。',
+        on: '开启',
+        off: '关闭',
       },
       offset: {
         title: '边距偏移',

@@ -16,6 +16,7 @@ const {
   handlePointerLeave,
   motionDuration,
   stackGutter,
+  popMotion,
 } = useToasts()
 
 // Alt+T focuses the frontmost toast; Tab reaches its buttons, Escape dismisses it.
@@ -52,6 +53,7 @@ useToastHotkey()
         :expanded="stackMode === 'stack' && hoveredPosition === effectivePosition(t)"
         :toast-position="effectivePosition(t)"
         :center-align="centerAlignStack"
+        :pop="popMotion"
         v-bind="toastMotion(t, toasts, calculateOffset, getStackMetrics)"
         :style="layoutStyle(effectivePosition(t))"
         @height-update="updateHeight"
