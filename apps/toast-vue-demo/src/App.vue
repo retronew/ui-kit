@@ -6,6 +6,7 @@ import DedupSection from './components/sections/DedupSection.vue'
 import DurationSection from './components/sections/DurationSection.vue'
 import InstallSection from './components/sections/InstallSection.vue'
 import OffsetSection from './components/sections/OffsetSection.vue'
+import PopSection from './components/sections/PopSection.vue'
 import PositionSection from './components/sections/PositionSection.vue'
 import StackingSection from './components/sections/StackingSection.vue'
 import TypesSection from './components/sections/TypesSection.vue'
@@ -30,6 +31,7 @@ const { t } = useI18n()
     <StackingSection />
     <DurationSection />
     <AnimationSection />
+    <PopSection />
     <OffsetSection />
     <DedupSection />
 

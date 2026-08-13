@@ -75,6 +75,8 @@ Stacking offset and enter/exit live on one `<ToastWrapper>` element with one com
 
 **`centerAlign` prop** (default `false`): controls where the stack-depth `scale` (piled-up background cards) anchors. Off, it anchors to the edge implied by `toastPosition` — correct when your toasts have variable width (a corner toast's content-fit width), since a center anchor would make its outer edge visibly recede as it scales down. On, it anchors to center, matching Sonner's own model — but Sonner gets away with center anchoring because **all its toasts share one fixed width**; if your toasts don't too, turn this on and you'll still see misaligned edges between piled cards of different widths, just for a different reason (mismatched centers instead of mismatched edges). Pick one: either leave this off with variable-width content, or turn it on *and* give every toast the same width.
 
+**`pop` prop** (default `false`): swaps the default subtle slide + fade for a more pronounced entrance/exit — a bigger scale pop (`0.6 → 1`), asymmetric enter/exit distance and opacity, and distinct enter/exit easing curves (not mirror images of each other). `transform`/`opacity` duration still reads `--toast-motion-duration`, same as the default motion, so one speed control governs both; `filter` (the blur) intentionally runs 1.4x longer so it stays legible against the bigger, faster motion, and defaults to a stronger `6px` (vs. the default motion's `2px`) via the same `--toast-motion-blur` custom property. Toggle it per-instance from your outlet (e.g. `:pop="popMotion"` bound to a ref) — it's not global state.
+
 ## `useToaster()` — the composable form
 
 If you're not using the `<Toaster>` slot pattern (e.g. building your own outlet component), call `useToaster()` directly:

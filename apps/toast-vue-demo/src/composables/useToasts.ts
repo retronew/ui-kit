@@ -41,6 +41,7 @@ const sectionCodes = reactive({
   stacking: `toastStore.setMax(3)`,
   duration: `toast('Hello', { duration: 3000 })`,
   animation: `:root {\n  --toast-motion-duration: 300ms;\n}`,
+  pop: `<ToastWrapper :pop="false" ... />`,
   offset: `toastStore.setViewportOffset(16)`,
   dedup: `toast.error('Network request failed')\n// identical errors shake & reset, never stack`,
 })
@@ -81,6 +82,16 @@ function handleMotionDurationChange(d: number) {
   motionDuration.value = d
   sectionCodes.animation = `:root {\n  --toast-motion-duration: ${d}ms;\n}`
   toast(`Animation speed → ${d}ms`)
+}
+
+// `pop` opts a toast into the react-hot-toast-style scale pop instead of the default subtle slide + fade.
+// Shares `--toast-motion-duration`/`motionDuration` with the default motion — only the distance/opacity/easing differ.
+const popMotion = ref(false)
+
+function handlePopMotionChange(enabled: boolean) {
+  popMotion.value = enabled
+  sectionCodes.pop = `<ToastWrapper :pop="${enabled}" ... />`
+  toast(`Pop motion → ${enabled ? 'on' : 'off'}`)
 }
 
 // The gap between the toast stack and the screen edge is owned by toast-core; exposed here as `inset`.
@@ -615,6 +626,8 @@ export function useToasts() {
     motionDuration,
     formatMotionDuration,
     handleMotionDurationChange,
+    popMotion,
+    handlePopMotionChange,
     offsetPresets,
     formatOffset,
     handleOffsetChange,

@@ -276,6 +276,40 @@ describe(ToastWrapper, () => {
     expect(wrapper.attributes('style')).toContain('transform-origin: right top')
   })
 
+  it("uses the pop preset's bigger scale, longer distance, and stronger blur while entering", () => {
+    const { store } = createToaster()
+    // No await: checked before the mount-flip rAF fires, i.e. still in the "entering" state.
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, pop: true },
+      slots: { default: 'Oops' },
+    })
+
+    const style = wrapper.attributes('style')
+    expect(style).toContain('scale(0.6)')
+    expect(style).toContain('translateY(-200%)')
+    expect(style).toContain('opacity: 0.5')
+    expect(style).toContain('blur(var(--toast-motion-blur, 6px))')
+    expect(style).toContain('cubic-bezier(0.21, 1.02, 0.73, 1)')
+  })
+
+  it("uses the pop preset's shorter distance and full fade while exiting", async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, pop: true },
+      slots: { default: 'Oops' },
+    })
+    // Flush the mount-flip rAF so the toast is "visible" before we dismiss it.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await wrapper.setProps({ status: 'dismissed' })
+
+    const style = wrapper.attributes('style')
+    expect(style).toContain('scale(0.6)')
+    expect(style).toContain('translateY(-150%)')
+    expect(style).toContain('opacity: 0')
+    expect(style).toContain('blur(var(--toast-motion-blur, 6px))')
+    expect(style).toContain('cubic-bezier(0.06, 0.71, 0.55, 1)')
+  })
+
   it('plays a shake via WAAPI when the store dedups a repeat error for this toast', async () => {
     // Untyped store, matching ToastWrapper's non-generic prop type.
     const { store, toast } = createToaster()

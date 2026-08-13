@@ -22,6 +22,28 @@ const SHAKE_KEYFRAMES: Keyframe[] = [
   { transform: 'translateX(0)' },
 ]
 
+/**
+ * `pop` prop transitions — react-hot-toast-style: bigger scale pop, asymmetric
+ * enter/exit distance and opacity, distinct enter/exit easing. `transform`/`opacity`
+ * duration shares the same `--toast-motion-duration` custom property as the default
+ * motion, so the same speed control governs both. `filter` (the blur) runs 1.4x
+ * longer than that — the pop's bigger, faster motion otherwise blows past the blur
+ * before it reads as motion blur rather than a flash.
+ */
+const POP_ENTER_TRANSITION =
+  'transform var(--toast-motion-duration, 300ms) cubic-bezier(0.21, 1.02, 0.73, 1), opacity var(--toast-motion-duration, 300ms) cubic-bezier(0.21, 1.02, 0.73, 1), filter calc(var(--toast-motion-duration, 300ms) * 1.4) cubic-bezier(0.21, 1.02, 0.73, 1)'
+const POP_EXIT_TRANSITION =
+  'transform var(--toast-motion-duration, 300ms) cubic-bezier(0.06, 0.71, 0.55, 1), opacity var(--toast-motion-duration, 300ms) cubic-bezier(0.06, 0.71, 0.55, 1), filter calc(var(--toast-motion-duration, 300ms) * 1.4) cubic-bezier(0.06, 0.71, 0.55, 1)'
+/** Blur amount while hidden in `pop` mode — stronger than the default `2px` so it reads against the bigger scale/distance. */
+const POP_BLUR = 'var(--toast-motion-blur, 6px)'
+/** Scale a toast starts/ends at while entering/exiting in `pop` mode, before the stacking `props.scale` multiplies in. */
+const POP_SCALE = 0.6
+/** Enter travels further than exit (200% vs 150%) — matches react-hot-toast's asymmetric keyframes. */
+const POP_ENTER_OFFSET_PERCENT = 200
+const POP_EXIT_OFFSET_PERCENT = 150
+/** Entering starts partially visible (opacity .5); exiting fades all the way to 0. */
+const POP_ENTER_HIDDEN_OPACITY = 0.5
+
 /** Pointer movement (px) before a press becomes a drag. */
 const SWIPE_HYSTERESIS_PX = 10
 /** Drag distance (px) past which a release always commits. */
@@ -85,6 +107,17 @@ export const ToastWrapper = defineComponent({
     stackOpacity: {
       default: 1,
       type: Number,
+    },
+    /**
+     * Opt into a react-hot-toast-style entrance/exit: a pronounced scale pop
+     * (0.6 → 1) with asymmetric enter/exit distance, opacity, and easing.
+     * Duration still reads from `--toast-motion-duration`, same as the
+     * default motion. Off by default — the default motion is a subtler
+     * slide + fade with no scale change.
+     */
+    pop: {
+      default: false,
+      type: Boolean,
     },
     zIndex: {
       default: 0,
@@ -407,27 +440,45 @@ export const ToastWrapper = defineComponent({
       const originX = props.centerAlign || isCenter ? 'center' : isRight ? 'right' : 'left'
       const originY = props.centerAlign ? 'center' : isTop ? 'top' : 'bottom'
       const transformOrigin = `${originX} ${originY}`
-      const opacity = isVisible ? props.stackOpacity : 0
       // 'none' so a touch drag never competes with native panning.
       const touchAction = isCenter ? 'pan-x' : 'none'
 
       if (reduceMotion.value) {
+        const opacity = isVisible ? props.stackOpacity : 0
         return { opacity, touchAction, transition: 'none', zIndex: props.zIndex }
       }
 
-      // Enter/exit is pure translateY (scale is `props.scale`'s job), chained with stacking/drag offsets.
-      const enterOffsetPercent = isVisible ? 0 : dir * -60
+      const exiting = props.status === 'dismissed'
+      let enterOffsetPercent: number
+      let enterExitScale: number
+      let hiddenOpacity: number
+      let baseTransition: string
+      if (props.pop) {
+        const magnitude = exiting ? POP_EXIT_OFFSET_PERCENT : POP_ENTER_OFFSET_PERCENT
+        enterOffsetPercent = isVisible ? 0 : dir * -magnitude
+        enterExitScale = isVisible ? 1 : POP_SCALE
+        hiddenOpacity = exiting ? 0 : POP_ENTER_HIDDEN_OPACITY
+        baseTransition = exiting ? POP_EXIT_TRANSITION : POP_ENTER_TRANSITION
+      } else {
+        // Default: a subtler translateY slide + fade, no scale change, symmetric enter/exit.
+        enterOffsetPercent = isVisible ? 0 : dir * -60
+        enterExitScale = 1
+        hiddenOpacity = 0
+        baseTransition = TOAST_TRANSITION
+      }
+      const opacity = isVisible ? props.stackOpacity : hiddenOpacity
       // Blur keyed off opacity so any fade-to-hidden (enter/exit or overflow) gets the same soften treatment.
-      const filter = opacity < 1 ? 'blur(var(--toast-motion-blur, 2px))' : 'blur(0)'
+      const filter =
+        opacity < 1 ? `blur(${props.pop ? POP_BLUR : 'var(--toast-motion-blur, 2px)'})` : 'blur(0)'
 
       return {
         filter,
         opacity,
         touchAction,
-        transform: `translateX(${dragX.value}px) translateY(${dragY.value}px) translateY(${dir * props.offset}px) translateY(${enterOffsetPercent}%) scale(${props.scale})`,
+        transform: `translateX(${dragX.value}px) translateY(${dragY.value}px) translateY(${dir * props.offset}px) translateY(${enterOffsetPercent}%) scale(${props.scale * enterExitScale})`,
         transformOrigin,
         // No transition while dragging — direct manipulation must track the pointer 1:1.
-        transition: dragging.value ? 'none' : TOAST_TRANSITION,
+        transition: dragging.value ? 'none' : baseTransition,
         ...(!mounted.value || props.status === 'dismissed' || dragging.value
           ? { willChange: 'transform, opacity, filter' }
           : {}),

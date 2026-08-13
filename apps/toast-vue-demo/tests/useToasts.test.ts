@@ -33,4 +33,18 @@ describe(useToasts, () => {
     vi.advanceTimersByTime(5000)
     expect(toastStore.getState().toasts).toHaveLength(0)
   })
+
+  it('toggles pop motion, updates its code sample, and announces the change', () => {
+    const { handlePopMotionChange, popMotion, sectionCodes } = useToasts()
+
+    handlePopMotionChange(true)
+    expect(popMotion.value).toBe(true)
+    expect(sectionCodes.pop).toContain('pop="true"')
+    expect(toastStore.getState().toasts[0]).toMatchObject({ message: 'Pop motion → on' })
+
+    handlePopMotionChange(false)
+    expect(popMotion.value).toBe(false)
+    expect(sectionCodes.pop).toContain('pop="false"')
+    expect(toastStore.getState().toasts[0]).toMatchObject({ message: 'Pop motion → off' })
+  })
 })
