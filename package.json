@@ -8,7 +8,7 @@
     "changeset": "changeset",
     "check": "vp check",
     "commitlint": "commitlint",
-    "dev": "vp run vue-demo#dev",
+    "dev": "vp run toast-vue-demo#dev",
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
     "lint": "vp lint",

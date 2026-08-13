@@ -60,7 +60,7 @@ import { Toaster, ToastWrapper } from '@retronew/toast-vue'
 
 That's the minimum wiring to get toasts appearing, stacking, and animating in/out. Everything visual (colors, radius, shadow, icons) is yours to add on top of `<div>{{ t.message }}</div>`.
 
-For a fuller worked example — multi-position support, stack-vs-queue stacking modes, custom message rendering, dark mode — read `apps/vue-demo/src/composables/useToasts.ts` and `apps/vue-demo/src/components/ToastOutlet.vue` in this monorepo (or the equivalent files if this skill is being used from an installed copy of the package).
+For a fuller worked example — multi-position support, stack-vs-queue stacking modes, custom message rendering, dark mode — read `apps/toast-vue-demo/src/composables/useToasts.ts` and `apps/toast-vue-demo/src/components/ToastOutlet.vue` in this monorepo (or the equivalent files if this skill is being used from an installed copy of the package).
 
 ## What `<ToastWrapper>` owns
 

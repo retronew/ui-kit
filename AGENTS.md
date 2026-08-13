@@ -11,7 +11,7 @@ This is a Vite+ and pnpm monorepo for the `@retronew` frontend libraries.
   free of Vue and other framework dependencies.
 - `packages/toast-vue`: the Vue 3 adapter. Keep framework integration here and
   delegate shared behavior to `toast-core`.
-- `apps/vue-demo`: the private playground used to exercise the public Vue API.
+- `apps/toast-vue-demo`: the private playground used to exercise the public Vue API.
 
 Preserve the separation between the headless core, framework adapters, and demo
 applications. New shared behavior belongs in the core; presentation and
@@ -30,7 +30,7 @@ Common commands:
 
 ```sh
 vp install
-vp run vue-demo#dev
+vp run toast-vue-demo#dev
 pnpm run check
 pnpm run typecheck
 pnpm run test

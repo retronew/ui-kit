@@ -19,7 +19,7 @@ ui-kit/
 │  ├─ toast-core/            # framework-agnostic headless toast state machine
 │  └─ toast-vue/             # Vue 3 adapter (composable + renderless outlet)
 ├─ apps/                     # demo / playground apps (private, not published)
-│  └─ vue-demo/              # Vite + Vue app exercising @retronew/toast-vue
+│  └─ toast-vue-demo/        # Vite + Vue app exercising @retronew/toast-vue
 ├─ vite.config.ts            # shared lint / fmt / task config
 └─ pnpm-workspace.yaml       # workspace + dependency catalog
 ```
@@ -44,7 +44,7 @@ Everything runs through the unified `vp` CLI:
 | ---------------------------- | ----------------------- |
 | Install deps                 | `vp install`            |
 | Install E2E Chromium         | `pnpm run e2e:install`  |
-| Run the Vue demo             | `vp run vue-demo#dev`   |
+| Run the Vue demo             | `vp run toast-vue-demo#dev` |
 | Format + lint + typecheck    | `pnpm run check`        |
 | Test with coverage budgets   | `pnpm run test:coverage` |
 | Run browser + axe tests      | `pnpm run e2e`          |
@@ -59,7 +59,7 @@ Playwright/axe, and linted/formatted with **Oxlint**/**Oxfmt** (`vp check`).
 
 ```bash
 vp install
-vp run vue-demo#dev      # open the playground
+vp run toast-vue-demo#dev # open the playground
 ```
 
 ## Contributing
