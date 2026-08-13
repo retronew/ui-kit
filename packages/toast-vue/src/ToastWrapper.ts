@@ -449,22 +449,36 @@ export const ToastWrapper = defineComponent({
       }
 
       const exiting = props.status === 'dismissed'
-      let enterOffsetPercent: number
+      let enterExitOffset: string
       let enterExitScale: number
       let hiddenOpacity: number
       let baseTransition: string
       if (props.pop) {
         const magnitude = exiting ? POP_EXIT_OFFSET_PERCENT : POP_ENTER_OFFSET_PERCENT
-        enterOffsetPercent = isVisible ? 0 : dir * -magnitude
+        enterExitOffset = isVisible ? '0%' : `${dir * -magnitude}%`
         enterExitScale = isVisible ? 1 : POP_SCALE
         hiddenOpacity = exiting ? 0 : POP_ENTER_HIDDEN_OPACITY
         baseTransition = exiting ? POP_EXIT_TRANSITION : POP_ENTER_TRANSITION
       } else {
-        // Default: a subtler translateY slide + fade, no scale change, symmetric enter/exit.
-        enterOffsetPercent = isVisible ? 0 : dir * -60
+        // Default: a subtler slide + fade, no scale change. Exit keeps the
+        // original symmetric ±60% (own-height-relative) offset. Entering uses
+        // an exact length instead — `own height + gap` — so it travels the
+        // same distance neighbours are reflowing by, over the same shared
+        // transition, keeping a constant gap between them the whole time
+        // instead of the two sliding through each other.
         enterExitScale = 1
         hiddenOpacity = 0
         baseTransition = TOAST_TRANSITION
+        if (isVisible) {
+          enterExitOffset = '0%'
+        } else if (exiting) {
+          enterExitOffset = `${dir * -60}%`
+        } else {
+          enterExitOffset =
+            dir === 1
+              ? 'calc(-100% - var(--toast-stack-gap, 8px))'
+              : 'calc(100% + var(--toast-stack-gap, 8px))'
+        }
       }
       const opacity = isVisible ? props.stackOpacity : hiddenOpacity
       // Blur keyed off opacity so any fade-to-hidden (enter/exit or overflow) gets the same soften treatment.
@@ -475,7 +489,7 @@ export const ToastWrapper = defineComponent({
         filter,
         opacity,
         touchAction,
-        transform: `translateX(${dragX.value}px) translateY(${dragY.value}px) translateY(${dir * props.offset}px) translateY(${enterOffsetPercent}%) scale(${props.scale * enterExitScale})`,
+        transform: `translateX(${dragX.value}px) translateY(${dragY.value}px) translateY(${dir * props.offset}px) translateY(${enterExitOffset}) scale(${props.scale * enterExitScale})`,
         transformOrigin,
         // No transition while dragging — direct manipulation must track the pointer 1:1.
         transition: dragging.value ? 'none' : baseTransition,
