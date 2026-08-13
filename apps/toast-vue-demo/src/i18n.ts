@@ -146,7 +146,7 @@ const messages = {
       },
       usage: {
         title: '用法',
-        desc: '在应用根部渲染无头 Toaster 出口，然后随处触发 Toast。',
+        desc: '在应用根部渲染无头 ToasterProvider 出口，然后随处触发 Toast。',
       },
       types: {
         title: '类型',

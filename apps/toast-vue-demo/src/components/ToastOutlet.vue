@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { Toaster, ToastWrapper, toViewportOffsetCss, useToastHotkey } from '@retronew/toast-vue'
+import {
+  ToasterProvider,
+  ToastWrapper,
+  toViewportOffsetCss,
+  useToastHotkey,
+} from '@retronew/toast-vue'
 import { useToasts } from '../composables/useToasts'
 import ToastBar from './ToastBar.vue'
 
@@ -24,7 +29,7 @@ useToastHotkey()
 </script>
 
 <template>
-  <Toaster
+  <ToasterProvider
     progress
     v-slot="{
       toasts,
@@ -65,5 +70,5 @@ useToastHotkey()
         <ToastBar v-else :toast="t" :fixed-width="needsFixedWidth()" @dismiss="dismiss(t.id)" />
       </ToastWrapper>
     </div>
-  </Toaster>
+  </ToasterProvider>
 </template>

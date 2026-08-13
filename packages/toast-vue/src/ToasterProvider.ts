@@ -6,8 +6,8 @@ import type { VueToastMessage } from './toast'
 import { useToaster } from './useToaster'
 import type { CalculateOffsetOptions, StackMetrics, StackMetricsOptions } from './useToaster'
 
-/** Slot props exposed by the renderless `<Toaster>` outlet. */
-export interface ToasterSlotProps<T = VueToastMessage> {
+/** Slot props exposed by the renderless `<ToasterProvider>` outlet. */
+export interface ToasterProviderSlotProps<T = VueToastMessage> {
   toasts: readonly Toast<T>[]
   /** Distance from the toast outlet to the viewport edge. Numbers are pixels. */
   viewportOffset: ViewportOffset
@@ -31,8 +31,8 @@ export interface ToasterSlotProps<T = VueToastMessage> {
  * Renderless toast outlet: renders nothing itself; you provide the markup via
  * the default slot and receive `toasts` plus control handlers as slot props.
  */
-export const Toaster = defineComponent({
-  name: 'Toaster',
+export const ToasterProvider = defineComponent({
+  name: 'ToasterProvider',
   props: {
     /** Store to bind to. Defaults to the shared singleton store. */
     store: {
@@ -75,6 +75,6 @@ export const Toaster = defineComponent({
       })
   },
   slots: Object as SlotsType<{
-    default: (props: ToasterSlotProps) => unknown
+    default: (props: ToasterProviderSlotProps) => unknown
   }>,
 })
