@@ -58,7 +58,7 @@ It returns `true` when the cap changed and `false` for an identical value.
 
 `viewportOffset` is the core-owned global layout hint for the gap between an outlet and the viewport edge. Configure it with `new ToastStore({ viewportOffset })`; the default is `16`. A number represents pixels, while a string may be any renderer-supported length such as `'1.5rem'` or `'max(16px, env(safe-area-inset-top))'`.
 
-It is published in `getState()` and every `subscribe()` snapshot. Call `store.setViewportOffset(value)` to change it at runtime; adapters should mirror it into their native reactive primitive. Core stores the value but never touches the DOM, so the renderer remains responsible for applying it (for example as CSS `inset`).
+It is published in `getState()` and every `subscribe()` snapshot. Call `store.setViewportOffset(value)` to change it at runtime; adapters should mirror it into their native reactive primitive. Core stores the value but never touches the DOM, so the renderer remains responsible for applying it (for example as CSS `inset`). Use the exported `toViewportOffsetCss(offset)` to resolve it to a CSS length (`number → 'Npx'`, strings pass through) instead of hand-rolling that check in every consumer.
 
 ## Error dedup + shake
 

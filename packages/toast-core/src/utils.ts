@@ -1,3 +1,5 @@
+import type { ViewportOffset } from './types'
+
 export type ValueFunction<TValue, TArg> = (arg: TArg) => TValue
 export type ValueOrFunction<TValue, TArg> = TValue | ValueFunction<TValue, TArg>
 
@@ -38,4 +40,9 @@ export function subscribeReducedMotion(listener: (reduced: boolean) => void): ()
     return () => query.removeListener(handleChange)
   }
   return () => {}
+}
+
+/** Resolve a `ViewportOffset` to a CSS length: numbers become `px`, strings pass through as-is. */
+export function toViewportOffsetCss(offset: ViewportOffset): string {
+  return typeof offset === 'number' ? `${offset}px` : offset
 }

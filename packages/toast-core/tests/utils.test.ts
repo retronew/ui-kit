@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
-import { prefersReducedMotion, resolveValue, subscribeReducedMotion } from '../src/utils'
+import {
+  prefersReducedMotion,
+  resolveValue,
+  subscribeReducedMotion,
+  toViewportOffsetCss,
+} from '../src/utils'
 
 describe('resolveValue', () => {
   it('returns a plain value unchanged', () => {
@@ -10,6 +15,16 @@ describe('resolveValue', () => {
     const fn = vi.fn((arg: number) => arg * 2)
     expect(resolveValue(fn, 21)).toBe(42)
     expect(fn).toHaveBeenCalledWith(21)
+  })
+})
+
+describe('toViewportOffsetCss', () => {
+  it('appends px to a number', () => {
+    expect(toViewportOffsetCss(16)).toBe('16px')
+  })
+
+  it('returns a string offset unchanged', () => {
+    expect(toViewportOffsetCss('1.5rem')).toBe('1.5rem')
   })
 })
 

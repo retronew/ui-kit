@@ -19,5 +19,10 @@ export type {
   ToasterState,
   ViewportOffset,
 } from './types'
-export { resolveValue, prefersReducedMotion, subscribeReducedMotion } from './utils'
+export {
+  resolveValue,
+  prefersReducedMotion,
+  subscribeReducedMotion,
+  toViewportOffsetCss,
+} from './utils'
 export type { ValueOrFunction, ValueFunction } from './utils'
