@@ -1,4 +1,5 @@
 import { toastStore } from '@retronew/toast-vue'
+import type { Toast } from '@retronew/toast-vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { useToasts } from '../src/composables/useToasts.ts'
 
@@ -32,6 +33,27 @@ describe(useToasts, () => {
 
     vi.advanceTimersByTime(5000)
     expect(toastStore.getState().toasts).toHaveLength(0)
+  })
+
+  it('recedes an overflowing stack-mode toast at a fixed, ever-shrinking offset/scale instead of growing with its depth', () => {
+    const { toastMotion, stackMode, maxToasts } = useToasts()
+    stackMode.value = 'stack'
+    maxToasts.value = 3
+
+    const overflowing = { id: 't1' } as Toast
+    // depth (4) is past the cap (3) — an overflow card several toasts deep in history.
+    const motion = toastMotion(
+      overflowing,
+      [overflowing],
+      () => 0,
+      () => ({ index: 4, isFront: false, zIndex: 0 }),
+    )
+
+    // Fixed regardless of `depth`: (STACKED_VISIBLE - 1) * 14 + STACK_DROP_DISTANCE = 2 * 14 + 20.
+    expect(motion.offset).toBe(48)
+    // Continues the pile's -0.05/level shrink one step past the visible edge: 1 - 3 * 0.05.
+    expect(motion.scale).toBeCloseTo(0.85)
+    expect(motion.stackOpacity).toBe(0)
   })
 
   it('toggles pop motion, updates its code sample, and announces the change', () => {

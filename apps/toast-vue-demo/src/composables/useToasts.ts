@@ -162,6 +162,8 @@ export interface ToastMotion {
 
 /** Extra push (px) an overflow-evicted toast gets on top of its last stacking offset, so it keeps receding instead of springing back toward the edge. */
 const DROP_DISTANCE = 40
+/** Same idea for stack mode's overflow cards — smaller since it's added to the pile's fixed edge offset, not a growing `depth`-based one. */
+const STACK_DROP_DISTANCE = 20
 
 // Offset each queue-evicted toast is frozen at when bumped, keyed by id. `calculateOffset` depends
 // on other toasts' async-measured height, so recalculating on every render would split the
@@ -210,10 +212,13 @@ function toastMotion(
     return { offset: 0, scale: 1, stackOpacity: 1, zIndex: 0 }
   }
   if (depth >= cap) {
-    // Exceeds the cap: same "keep receding" treatment as the queue-mode overflow case above.
+    // Exceeds the cap: recede one step further than the pile's own capped edge
+    // offset/scale, not the raw (unbounded) `depth` — keeps the exit distance
+    // constant regardless of stack history, and keeps shrinking instead of
+    // popping back toward full size on the way out.
     return {
-      offset: depth * 14 + DROP_DISTANCE,
-      scale: 0.96,
+      offset: (STACKED_VISIBLE - 1) * 14 + STACK_DROP_DISTANCE,
+      scale: 1 - STACKED_VISIBLE * 0.05,
       stackOpacity: 0,
       zIndex: 100 - depth,
     }
