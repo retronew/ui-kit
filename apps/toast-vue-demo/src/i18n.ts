@@ -21,6 +21,7 @@ const messages = {
       themeSystem: 'System',
       toggleTheme: 'Toggle theme',
       switchLanguage: 'Switch language',
+      easterEgg: 'Click for a surprise',
     },
     hero: {
       subtitle: 'Headless notifications for Vue.js',
@@ -133,6 +134,7 @@ const messages = {
       themeSystem: '跟随系统',
       toggleTheme: '切换主题',
       switchLanguage: '切换语言',
+      easterEgg: '点击有惊喜',
     },
     hero: {
       subtitle: '为 Vue.js 打造的无头通知',
