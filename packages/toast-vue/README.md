@@ -9,6 +9,17 @@ Headless toast for **Vue 3**. Provides a reactive `useToaster()` composable, a
 renderless `<Toaster>` outlet, and a global `toast()` API — all rendering is
 yours. Built on the framework-agnostic [`@retronew/toast-core`](../toast-core).
 
+## Features
+
+- 🎯 **Renderless** — `<Toaster>` outlet + `useToaster()` composable; you own all markup and CSS
+- 🧲 **One-transform motion** — stacking offset, per-depth scale, and enter/exit all live on a single `<ToastWrapper>` `transform`/`transition`
+- 🫳 **Swipe-to-dismiss** — 1:1 pointer tracking with velocity-based commit and a Web Animations fling
+- 🫨 **Shake-on-dedup** — a visual nudge when a duplicate error re-emphasizes instead of stacking
+- 🎛️ **Two motion presets** — a subtle slide + fade by default, or opt into a bigger `pop` entrance/exit
+- ⌨️ **Keyboard accessible** — Tab to reach a toast, `Escape` to dismiss, focus restored on close
+- ♿ **Respects reduced motion** — transitions, shake, and fling all skip when `prefers-reduced-motion` is set
+- 🧵 **Scoped toasters** — `createToaster()` for isolated stores per instance
+
 ## Install
 
 ```bash
