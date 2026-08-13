@@ -1,5 +1,11 @@
 # @retronew/toast-core
 
+## 0.3.0
+
+### Minor Changes
+
+- 18f7996: Add `toViewportOffsetCss(offset)`, exported from both packages, to resolve a `ViewportOffset` (`number | string`) to a CSS length (`number → 'Npx'`, strings pass through) — replaces the `typeof viewportOffset === 'number' ? ... : ...` boilerplate every outlet previously had to hand-roll.
+
 ## 0.2.0
 
 ### Minor Changes
