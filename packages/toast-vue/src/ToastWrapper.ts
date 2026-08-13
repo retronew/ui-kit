@@ -44,6 +44,19 @@ const POP_EXIT_OFFSET_PERCENT = 150
 /** Entering starts partially visible (opacity .5); exiting fades all the way to 0. */
 const POP_ENTER_HIDDEN_OPACITY = 0.5
 
+/**
+ * A toast can fade below full opacity while still `visible` — pushed out of a
+ * queue's cap, or piled past the deep-stack limit. That fade shares the same
+ * `--toast-motion-duration` as enter/exit by default, which is tuned for a
+ * single toast's own appearance; a longer duration then makes overflowing
+ * toasts linger and visually overlap the toast that displaced them. This
+ * fixed, faster transition is used for the overflow fade only, independent
+ * of `--toast-motion-duration` — overflowing toasts always clear the way
+ * promptly, whatever speed you've picked for enter/exit.
+ */
+const STACK_OVERFLOW_TRANSITION =
+  'transform 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), filter 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+
 /** Pointer movement (px) before a press becomes a drag. */
 const SWIPE_HYSTERESIS_PX = 10
 /** Drag distance (px) past which a release always commits. */
@@ -467,6 +480,10 @@ export const ToastWrapper = defineComponent({
         baseTransition = TOAST_TRANSITION
       }
       const opacity = isVisible ? props.stackOpacity : hiddenOpacity
+      // Overflowing while still `visible` (queue eviction or deep-stack pile) — clear the way
+      // fast, regardless of the enter/exit duration, so it doesn't linger and overlap whatever
+      // displaced it.
+      if (isVisible && opacity < 1) baseTransition = STACK_OVERFLOW_TRANSITION
       // Blur keyed off opacity so any fade-to-hidden (enter/exit or overflow) gets the same soften treatment.
       const filter =
         opacity < 1 ? `blur(${props.pop ? POP_BLUR : 'var(--toast-motion-blur, 2px)'})` : 'blur(0)'

@@ -77,6 +77,8 @@ Stacking offset and enter/exit live on one `<ToastWrapper>` element with one com
 
 **`pop` prop** (default `false`): swaps the default subtle slide + fade for a more pronounced entrance/exit — a bigger scale pop (`0.6 → 1`), asymmetric enter/exit distance and opacity, and distinct enter/exit easing curves (not mirror images of each other). `transform`/`opacity` duration still reads `--toast-motion-duration`, same as the default motion, so one speed control governs both; `filter` (the blur) intentionally runs 1.4x longer so it stays legible against the bigger, faster motion, and defaults to a stronger `6px` (vs. the default motion's `2px`) via the same `--toast-motion-blur` custom property. Toggle it per-instance from your outlet (e.g. `:pop="popMotion"` bound to a ref) — it's not global state.
 
+**Overflow fade is decoupled from `--toast-motion-duration`**: a toast that's still `status: 'visible'` but fading below full opacity (queue eviction past the cap, or a deep-stack pile past the visible depth) transitions on a fixed, fast `200ms` — not the configurable enter/exit duration. Without this, cranking `--toast-motion-duration` up (or just inserting toasts faster than it) makes overflowing toasts linger and visually overlap whatever displaced them, since the "get out of the way" fade shared the same duration budget as a fresh toast's own entrance. This only affects toasts that are `visible` with `stackOpacity < 1`; actual enter/exit (driven by `status`) is untouched.
+
 ## `useToaster()` — the composable form
 
 If you're not using the `<Toaster>` slot pattern (e.g. building your own outlet component), call `useToaster()` directly:
@@ -97,7 +99,7 @@ const {
 } = useToaster()
 ```
 
-- **`calculateOffset(toast, opts?)`** — cumulative pixel offset of `toast` within its position group, computed from the heights you've reported via `updateHeight`. Requires `<ToastWrapper>` (or your own height-measuring logic) to call `updateHeight` on mount/resize, or every offset comes back `0`.
+- **`calculateOffset(toast, opts?)`** — cumulative pixel offset of `toast` within its position group, computed from the heights you've reported via `updateHeight`. Requires `<ToastWrapper>` (or your own height-measuring logic) to call `updateHeight` on mount/resize, or every offset comes back `0`. A toast that hasn't reported a height yet (its own `<ToastWrapper>` hasn't mounted/measured itself) is assumed to be `opts.estimatedHeight` px tall (default `44`) rather than `0` — tune it to your typical toast height if 44px is off, so the one-frame gap before the real height arrives doesn't produce a visible correction jump in whatever's stacked behind it.
 - **`getStackMetrics(toast, opts?)`** — `{ index, isFront, zIndex }` for `toast` within its group. Use this instead of hand-rolling depth/z-index math per app — it's the one place that logic lives.
 
 ## Viewport offset comes from core
@@ -108,7 +110,7 @@ The outlet is renderless, so it cannot apply the value by itself. Bind it to the
 
 ## Wiring `@height-update` is not optional
 
-`<ToastWrapper>` measures its rendered height with `ResizeObserver` (coalesced to one animation frame) and emits `height-update`. If you don't wire `@height-update="updateHeight"` back to the slot's `updateHeight` handler, `calculateOffset` never has height data to sum, and every toast renders at offset `0`.
+`<ToastWrapper>` measures its rendered height with `ResizeObserver` (coalesced to one animation frame) and emits `height-update`. If you don't wire `@height-update="updateHeight"` back to the slot's `updateHeight` handler, `calculateOffset` never has real height data — every toast is treated as `estimatedHeight` px tall forever (see above) instead of its actual measured height, so stacking will be visibly wrong rather than just unanimated.
 
 ## `--toast-stack-gap` must match your `gutter`
 

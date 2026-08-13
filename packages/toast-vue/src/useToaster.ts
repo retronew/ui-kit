@@ -12,6 +12,17 @@ import { toastStore } from './toast'
 import type { VueToastMessage } from './toast'
 
 const DEFAULT_GUTTER = 8
+/**
+ * Height (px) assumed for a toast that hasn't reported its measured height yet
+ * (via `<ToastWrapper>`'s `height-update`, wired to `updateHeight`). A brand
+ * new toast's height is unknown for the render that inserts it — its
+ * `<ToastWrapper>` hasn't mounted and measured itself yet — so toasts stacked
+ * behind it would otherwise compute their offset assuming it takes up zero
+ * space, then jump/re-transition once the real height arrives a moment later.
+ * Assuming a plausible height instead keeps that correction small enough to
+ * be imperceptible. Tune via `estimatedHeight` if your toasts are taller.
+ */
+const DEFAULT_ESTIMATED_HEIGHT = 44
 
 export interface CalculateOffsetOptions {
   /** Stack newer toasts before older ones when true. Default: `false`. */
@@ -22,6 +33,8 @@ export interface CalculateOffsetOptions {
   defaultPosition?: ToastPosition
   /** Include queued/stacked toasts in cumulative offsets. Default `false`. */
   includeStacked?: boolean
+  /** Assumed height (px) for a toast that hasn't measured itself yet. Default: `44`. */
+  estimatedHeight?: number
 }
 
 export interface StackMetricsOptions {
@@ -94,12 +107,13 @@ export function useToaster<T = VueToastMessage>(
     gutter: number,
     reverseOrder: boolean,
     includeStacked: boolean,
+    estimatedHeight: number,
   ): LayoutCache {
     if (layoutSource !== toasts.value) {
       layoutSource = toasts.value
       layoutCaches.clear()
     }
-    const key = `${defaultPosition ?? '__default__'}|${gutter}|${reverseOrder}|${includeStacked}`
+    const key = `${defaultPosition ?? '__default__'}|${gutter}|${reverseOrder}|${includeStacked}|${estimatedHeight}`
     const cached = layoutCaches.get(key)
     if (cached) return cached
 
@@ -126,12 +140,8 @@ export function useToaster<T = VueToastMessage>(
       const ordered = reverseOrder ? group : [...group].reverse()
       for (const toast of ordered) {
         layout.offsets.set(toast.id, offset)
-        if (
-          toast.height != null &&
-          toast.status === 'visible' &&
-          (includeStacked || !toast.stacked)
-        ) {
-          offset += toast.height + gutter
+        if (toast.status === 'visible' && (includeStacked || !toast.stacked)) {
+          offset += (toast.height ?? estimatedHeight) + gutter
         }
       }
     }
@@ -145,14 +155,23 @@ export function useToaster<T = VueToastMessage>(
       gutter = DEFAULT_GUTTER,
       defaultPosition,
       includeStacked = false,
+      estimatedHeight = DEFAULT_ESTIMATED_HEIGHT,
     } = opts ?? {}
     return (
-      getLayout(defaultPosition, gutter, reverseOrder, includeStacked).offsets.get(toast.id) ?? 0
+      getLayout(defaultPosition, gutter, reverseOrder, includeStacked, estimatedHeight).offsets.get(
+        toast.id,
+      ) ?? 0
     )
   }
 
   function getStackMetrics(toast: Toast<T>, opts?: StackMetricsOptions): StackMetrics {
-    const layout = getLayout(opts?.defaultPosition, DEFAULT_GUTTER, false, false)
+    const layout = getLayout(
+      opts?.defaultPosition,
+      DEFAULT_GUTTER,
+      false,
+      false,
+      DEFAULT_ESTIMATED_HEIGHT,
+    )
     return layout.metrics.get(toast.id) ?? { index: -1, isFront: false, zIndex: 0 }
   }
 

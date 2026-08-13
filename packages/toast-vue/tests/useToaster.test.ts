@@ -129,6 +129,31 @@ describe(useToaster, () => {
     expect(second && exposed?.calculateOffset(second)).toBe(18)
   })
 
+  it('assumes a default height for an unmeasured toast instead of zero', () => {
+    vi.setSystemTime(1000)
+    const { store } = createToaster<string>()
+    // `first` is older; `second` is created after (prepended, so it's newest/frontmost) and
+    // never reports a height — as if its <ToastWrapper> hasn't mounted yet. With
+    // `reverseOrder: true` (newest stacks in front), `first`'s offset is pushed down by
+    // `second`'s height, which is exactly the case that used to be undercounted as 0.
+    const firstId = store.create('first', { duration: Infinity })
+    store.create('second', { duration: Infinity })
+    let exposed: ReturnType<typeof useToaster<string>> | undefined
+    const Comp = defineComponent({
+      setup() {
+        exposed = useToaster(store)
+        return () => h('div')
+      },
+    })
+    mount(Comp)
+    const first = exposed?.toasts.value.find((toast) => toast.id === firstId)
+    // Default gutter (8) + default estimated height (44), not the old "unmeasured = 0" result.
+    expect(first && exposed?.calculateOffset(first, { reverseOrder: true })).toBe(52)
+    expect(
+      first && exposed?.calculateOffset(first, { estimatedHeight: 100, reverseOrder: true }),
+    ).toBe(108)
+  })
+
   it('delegates control methods to the current store', () => {
     const { store } = createToaster<string>()
     const id = store.create('one', { duration: 5000 })
@@ -290,6 +315,22 @@ describe(ToastWrapper, () => {
     expect(style).toContain('opacity: 0.5')
     expect(style).toContain('blur(var(--toast-motion-blur, 6px))')
     expect(style).toContain('cubic-bezier(0.21, 1.02, 0.73, 1)')
+  })
+
+  it('fades an overflowing-but-visible toast on a fast fixed transition, not --toast-motion-duration', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, stackOpacity: 1 },
+      slots: { default: 'Oops' },
+    })
+    // Flush the mount-flip rAF so the toast is "visible" before it overflows.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await wrapper.setProps({ stackOpacity: 0 })
+
+    const style = wrapper.attributes('style')
+    expect(style).toContain('opacity: 0')
+    expect(style).toContain('200ms cubic-bezier(0.4, 0, 0.2, 1)')
+    expect(style).not.toContain('--toast-motion-duration')
   })
 
   it("uses the pop preset's shorter distance and full fade while exiting", async () => {
