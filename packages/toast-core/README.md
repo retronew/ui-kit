@@ -10,6 +10,17 @@ auto-dismiss timers, pause/resume, max-stack and promise lifecycles — and
 renders **nothing**. Framework adapters (`@retronew/toast-vue`, and future
 React / Svelte / vanilla bindings) subscribe to it and handle rendering.
 
+## Features
+
+- 🪶 **Headless** — owns state only, renders nothing; bring your own DOM/framework
+- 🔁 **Promise-aware** — `toast.promise()` walks loading → success/error automatically
+- 🧠 **Full lifecycle control** — create, update, dismiss, remove, and pause/resume with independent, non-clobbering reasons
+- 🪄 **Smart error dedup** — repeat errors re-emphasize the existing toast (and emit a `shake` effect for adapters to animate) instead of stacking duplicates
+- 📊 **Opt-in progress snapshots** — countdown/progress UI without the re-render cost when you don't ask for it
+- 🧬 **Generic payloads** — `Toast<T>`: strings, VNodes, render functions, or any custom content
+- 🧩 **Adapter-ready** — the engine behind `@retronew/toast-vue`, designed for more framework adapters
+- 🪶 **Zero dependencies**
+
 ## Install
 
 ```bash
