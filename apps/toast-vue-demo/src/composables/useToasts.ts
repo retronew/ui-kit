@@ -81,7 +81,7 @@ function formatMotionDuration(d: number) {
 function handleMotionDurationChange(d: number) {
   motionDuration.value = d
   sectionCodes.animation = `:root {\n  --toast-motion-duration: ${d}ms;\n}`
-  toast(`Animation speed → ${d}ms`)
+  toast(`Animation speed → ${d}ms`, { position: resolvedPosition() })
 }
 
 // `pop` opts a toast into the react-hot-toast-style scale pop instead of the default subtle slide + fade.
@@ -91,7 +91,7 @@ const popMotion = ref(false)
 function handlePopMotionChange(enabled: boolean) {
   popMotion.value = enabled
   sectionCodes.pop = `<ToastWrapper :pop="${enabled}" ... />`
-  toast(`Pop motion → ${enabled ? 'on' : 'off'}`)
+  toast(`Pop motion → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
 }
 
 // The gap between the toast stack and the screen edge is owned by toast-core; exposed here as `inset`.
@@ -259,9 +259,16 @@ function handlePointerLeave(
   resume(undefined, 'interaction')
 }
 
+// Always resolve to a concrete position (never `undefined`) — `toast-core` caps `max`
+// per distinct `position` value, so leaving it unset here would silently drop the toast
+// into its own `'__default__'` bucket, uncoupled from whatever position is actually shown.
+function resolvedPosition(): ToastPosition {
+  return perToastPosition.value ?? position.value
+}
+
 function toastOptions() {
   return {
-    ...(perToastPosition.value ? { position: perToastPosition.value } : {}),
+    position: resolvedPosition(),
     duration: duration.value,
   }
 }
@@ -306,7 +313,7 @@ function layoutStyle(pos: ToastPosition): Record<string, string> {
 }
 
 function handleHeroClick() {
-  toast('Hello there!')
+  toast('Hello there!', { position: resolvedPosition() })
 }
 
 function handleSuccessClick() {
@@ -401,10 +408,7 @@ function handleCountdownClick() {
           }),
         ]),
       ]),
-    {
-      ...(perToastPosition.value ? { position: perToastPosition.value } : {}),
-      duration: totalMs,
-    },
+    { ...toastOptions(), duration: totalMs },
   )
 }
 
@@ -462,17 +466,14 @@ function handleCustomClick() {
         ),
       ],
     )
-  })
+  }, toastOptions())
 }
 
 function handlePersistentClick() {
   activeType.value = 'persistent'
   sectionCodes.types = `toast("📌 Won't auto-dismiss", { duration: Infinity })`
   // ToastBar already renders a dismiss button — no need for a second "✕".
-  toast("📌 Won't auto-dismiss", {
-    duration: Infinity,
-    ...(perToastPosition.value ? { position: perToastPosition.value } : {}),
-  })
+  toast("📌 Won't auto-dismiss", { ...toastOptions(), duration: Infinity })
 }
 
 // `cancel` has no `onClick` — ToastBar's default dismiss stands in for the close icon hidden via `meta.hideDismiss`.
@@ -529,7 +530,7 @@ function handleDurationChange(d: number) {
   duration.value = d
   sectionCodes.duration =
     d === Infinity ? `toast('Hello', { duration: Infinity })` : `toast('Hello', { duration: ${d} })`
-  toast(`Duration → ${formatDuration(d)}`, { duration: d })
+  toast(`Duration → ${formatDuration(d)}`, { duration: d, position: resolvedPosition() })
 }
 
 function handlePositionChange(pos: ToastPosition) {
@@ -550,7 +551,7 @@ function handlePerToastPositionChange(pos: ToastPosition | null) {
 function handleDirectionChange(newDirection: boolean) {
   direction.value = newDirection
   sectionCodes.stacking = `calculateOffset(toast, { reverseOrder: ${newDirection} })`
-  toast(`Stack direction → ${newDirection ? 'ltr' : 'rtl'}`)
+  toast(`Stack direction → ${newDirection ? 'ltr' : 'rtl'}`, { position: resolvedPosition() })
 }
 
 // Repeated identical errors are not queued — the existing toast is re-emphasized (shake + timer reset).
