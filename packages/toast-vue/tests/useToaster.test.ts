@@ -276,6 +276,43 @@ describe(ToastWrapper, () => {
     expect(wrapper.attributes('style')).toContain('transform-origin: right top')
   })
 
+  it('enters at an exact reflow-matching offset (own height + gap) in the default motion for a top toast', () => {
+    const { store } = createToaster()
+    // No await: checked before the mount-flip rAF fires, i.e. still entering.
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, toastPosition: 'top-center' },
+      slots: { default: 'Oops' },
+    })
+
+    expect(wrapper.attributes('style')).toContain(
+      'translateY(calc(-100% - var(--toast-stack-gap, 8px)))',
+    )
+  })
+
+  it('mirrors the entering offset for a bottom toast in the default motion', () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, toastPosition: 'bottom-center' },
+      slots: { default: 'Oops' },
+    })
+
+    expect(wrapper.attributes('style')).toContain(
+      'translateY(calc(100% + var(--toast-stack-gap, 8px)))',
+    )
+  })
+
+  it('keeps the original ±60% offset while exiting in the default motion', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, toastPosition: 'top-center' },
+      slots: { default: 'Oops' },
+    })
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await wrapper.setProps({ status: 'dismissed' })
+
+    expect(wrapper.attributes('style')).toContain('translateY(-60%)')
+  })
+
   it("uses the pop preset's bigger scale, longer distance, and stronger blur while entering", () => {
     const { store } = createToaster()
     // No await: checked before the mount-flip rAF fires, i.e. still in the "entering" state.
