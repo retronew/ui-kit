@@ -56,6 +56,32 @@ describe(useToasts, () => {
     expect(motion.stackOpacity).toBe(0)
   })
 
+  it('groups toasts fired without a per-toast override under the currently shown position, not a separate default bucket', () => {
+    // `toast-core` caps `max` per distinct `position` value — an unset position
+    // silently drops a toast into its own `'__default__'` bucket, uncoupled from
+    // whatever position is actually being shown, so overflow limits stop being
+    // shared with position-explicit toasts (e.g. from the position picker).
+    const { handleSuccessClick, handleHeroClick, position } = useToasts()
+
+    handleSuccessClick()
+    handleHeroClick()
+
+    const toasts = toastStore.getState().toasts
+    expect(toasts).toHaveLength(2)
+    for (const t of toasts) {
+      expect(t.position).toBe(position.value)
+    }
+  })
+
+  it('routes new toasts to a per-toast position override once one is set', () => {
+    const { handleSuccessClick, handlePerToastPositionChange } = useToasts()
+    handlePerToastPositionChange('bottom-left')
+
+    handleSuccessClick()
+
+    expect(toastStore.getState().toasts[0]).toMatchObject({ position: 'bottom-left' })
+  })
+
   it('toggles pop motion, updates its code sample, and announces the change', () => {
     const { handlePopMotionChange, popMotion, sectionCodes } = useToasts()
 
