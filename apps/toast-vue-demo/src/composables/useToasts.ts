@@ -316,6 +316,26 @@ function handleHeroClick() {
   toast('Hello there!', { position: resolvedPosition() })
 }
 
+// Easter egg: clicking the "Toast Vue" wordmark in the top bar fires a random emoji toast.
+const EASTER_EGG_MESSAGES = [
+  '🎉 You found it!',
+  '🍞 Toast Vue says hi',
+  '✨ Keep clicking, I dare you',
+  '🚀 To the moon, one toast at a time',
+  '🐣 A wild toast appeared',
+  '🎈 Pop! Another one',
+  '🔥 This button is on fire',
+  '🌈 Rainbow toast incoming',
+]
+
+function randomEasterEggMessage(): string {
+  return EASTER_EGG_MESSAGES[Math.floor(Math.random() * EASTER_EGG_MESSAGES.length)] as string
+}
+
+function handleEasterEggClick() {
+  toast(randomEasterEggMessage(), toastOptions())
+}
+
 function handleSuccessClick() {
   activeType.value = 'success'
   sectionCodes.types = `toast.success('Operation completed successfully!')`
@@ -661,6 +681,7 @@ export function useToasts() {
     effectivePosition,
     resolveCustomMessage,
     handleHeroClick,
+    handleEasterEggClick,
     typeDemos,
     handleSuccessClick,
     handleErrorClick,

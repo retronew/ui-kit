@@ -26,6 +26,13 @@ describe(useToasts, () => {
     })
   })
 
+  it('fires a toast from the easter egg, deterministic on Math.random', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    useToasts().handleEasterEggClick()
+
+    expect(toastStore.getState().toasts[0]?.message).toBe('🎉 You found it!')
+  })
+
   it('cancels scheduled burst work when dismiss-all is requested', () => {
     const { handleDismissAllClick, handleSameErrorBurst } = useToasts()
     handleSameErrorBurst()

@@ -10,7 +10,7 @@ import { cn } from '../lib/utils'
 const { t, locale } = useI18n()
 const { cycleTheme, nextTheme, theme } = useTheme()
 const { toasts } = useToaster()
-const { effectivePosition } = useToasts()
+const { effectivePosition, handleEasterEggClick } = useToasts()
 
 // Blur the bar only while a top toast is visible — bottom toasts don't overlap it.
 const hasVisibleToast = computed(() =>
@@ -44,7 +44,14 @@ function toggleLocale() {
       )
     "
   >
-    <span class="text-lg tracking-tight">Toast Vue</span>
+    <button
+      type="button"
+      class="cursor-pointer rounded-full text-lg tracking-tight transition-transform duration-150 ease-out active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg-muted"
+      :aria-label="t('topbar.easterEgg')"
+      @click="handleEasterEggClick"
+    >
+      Toast Vue
+    </button>
     <div class="flex items-center gap-1.5">
       <button
         class="grid h-7.5 min-w-[38px] cursor-pointer place-items-center rounded-2xl px-2 text-xs font-semibold transition-colors hover:bg-surface-hover"
