@@ -32,5 +32,10 @@ export type {
   PromiseMessages,
 } from '@retronew/toast-core'
 
-export { resolveValue, prefersReducedMotion, subscribeReducedMotion } from '@retronew/toast-core'
+export {
+  resolveValue,
+  prefersReducedMotion,
+  subscribeReducedMotion,
+  toViewportOffsetCss,
+} from '@retronew/toast-core'
 export type { ValueOrFunction, ValueFunction } from '@retronew/toast-core'

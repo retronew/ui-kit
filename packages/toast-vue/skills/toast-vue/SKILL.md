@@ -20,7 +20,7 @@ toast.promise(api.save(), { loading: 'Saving…', success: 'Saved!', error: 'Som
 ```vue
 <!-- once, near your app root -->
 <script setup lang="ts">
-import { Toaster, ToastWrapper } from '@retronew/toast-vue'
+import { Toaster, ToastWrapper, toViewportOffsetCss } from '@retronew/toast-vue'
 </script>
 
 <template>
@@ -36,10 +36,7 @@ import { Toaster, ToastWrapper } from '@retronew/toast-vue'
       getStackMetrics,
     }"
   >
-    <div
-      class="fixed pointer-events-none"
-      :style="{ inset: typeof viewportOffset === 'number' ? `${viewportOffset}px` : viewportOffset }"
-    >
+    <div class="fixed pointer-events-none" :style="{ inset: toViewportOffsetCss(viewportOffset) }">
       <ToastWrapper
         v-for="t in toasts"
         :id="t.id"
@@ -104,7 +101,7 @@ const {
 
 Set the global edge gap when creating a scoped toaster with `createToaster({ viewportOffset: 16 })`, or change it at runtime with `store.setViewportOffset('1.5rem')`. Numbers represent pixels. Both `useToaster()` and the `<Toaster>` slot expose it reactively as `viewportOffset`.
 
-The outlet is renderless, so it cannot apply the value by itself. Bind it to the fixed outlet container's CSS `inset`, as shown in the quick start. Do not confuse this global edge gap with `calculateOffset({ gutter })`, which controls spacing between adjacent toasts.
+The outlet is renderless, so it cannot apply the value by itself. Bind it to the fixed outlet container's CSS `inset`, as shown in the quick start — use `toViewportOffsetCss(viewportOffset)` (exported from `@retronew/toast-vue`, re-exported from `@retronew/toast-core`) rather than hand-rolling the `number → 'Npx'` check yourself. Do not confuse this global edge gap with `calculateOffset({ gutter })`, which controls spacing between adjacent toasts.
 
 ## Wiring `@height-update` is not optional
 

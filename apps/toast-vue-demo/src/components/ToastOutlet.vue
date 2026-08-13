@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Toaster, ToastWrapper, useToastHotkey } from '@retronew/toast-vue'
+import { Toaster, ToastWrapper, toViewportOffsetCss, useToastHotkey } from '@retronew/toast-vue'
 import { useToasts } from '../composables/useToasts'
 import ToastBar from './ToastBar.vue'
 
@@ -40,7 +40,7 @@ useToastHotkey()
     <div
       class="fixed z-9999 pointer-events-none"
       :style="{
-        inset: typeof viewportOffset === 'number' ? `${viewportOffset}px` : viewportOffset,
+        inset: toViewportOffsetCss(viewportOffset),
         '--toast-motion-duration': `${motionDuration}ms`,
         '--toast-stack-gap': `${stackGutter}px`,
       }"
