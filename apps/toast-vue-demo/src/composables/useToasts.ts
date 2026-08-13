@@ -407,7 +407,7 @@ function handleCustomClick() {
   activeType.value = 'custom'
   sectionCodes.types = [
     `toast.custom((t) =>`,
-    `  h('div', { class: 'group flex max-w-[350px] transform-gpu items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white' }, [`,
+    `  h('div', { class: 'group flex max-w-[350px] transform-gpu items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/95 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white' }, [`,
     `    h('span', { class: 'grid size-8 shrink-0 place-items-center rounded-full bg-white/50 text-base dark:bg-white/10' }, '🎉'),`,
     `    h('div', { class: 'min-w-0 flex-1' }, [`,
     `      h('p', { class: 'font-semibold leading-tight' }, 'Welcome to Toast Vue!'),`,
@@ -425,7 +425,7 @@ function handleCustomClick() {
       {
         // Liquid glass: translucent, blurred layer with a light-catching top highlight.
         class:
-          'group pointer-events-auto flex max-w-[350px] transform-gpu cursor-default items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/40 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white',
+          'group pointer-events-auto flex max-w-[350px] transform-gpu cursor-default items-center gap-3 overflow-hidden rounded-3xl border border-white/40 bg-white/95 px-5 py-3.5 text-[#1d1d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),var(--toast-shadow)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/15 dark:bg-white/10 dark:text-white',
       },
       [
         h(
