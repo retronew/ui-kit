@@ -1,5 +1,20 @@
 # @retronew/toast-vue
 
+## 1.0.0
+
+### Major Changes
+
+- cf653ee: **Breaking:** the renderless outlet `<Toaster>` is renamed to `<ToasterProvider>` (its `ToasterSlotProps` type is now `ToasterProviderSlotProps`). Update your imports/templates: `import { Toaster } from '@retronew/toast-vue'` → `import { ToasterProvider } from '@retronew/toast-vue'`, and `<Toaster v-slot="...">` → `<ToasterProvider v-slot="...">`. No behavior change otherwise — this is purely a rename, freeing up the `Toaster` name for a possible future batteries-included component.
+
+### Minor Changes
+
+- 18f7996: Add `toViewportOffsetCss(offset)`, exported from both packages, to resolve a `ViewportOffset` (`number | string`) to a CSS length (`number → 'Npx'`, strings pass through) — replaces the `typeof viewportOffset === 'number' ? ... : ...` boilerplate every outlet previously had to hand-roll.
+
+### Patch Changes
+
+- Updated dependencies [18f7996]
+  - @retronew/toast-core@0.3.0
+
 ## 0.3.1
 
 ### Patch Changes
