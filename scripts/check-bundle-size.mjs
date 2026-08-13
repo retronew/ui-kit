@@ -15,13 +15,13 @@ async function findAsset(directory, extension) {
 
 budgets.push(
   {
-    label: 'vue-demo JavaScript',
-    path: await findAsset('apps/vue-demo/dist/assets', '.js'),
+    label: 'toast-vue-demo JavaScript',
+    path: await findAsset('apps/toast-vue-demo/dist/assets', '.js'),
     bytes: 280 * 1024,
   },
   {
-    label: 'vue-demo CSS',
-    path: await findAsset('apps/vue-demo/dist/assets', '.css'),
+    label: 'toast-vue-demo CSS',
+    path: await findAsset('apps/toast-vue-demo/dist/assets', '.css'),
     bytes: 45 * 1024,
   },
 )

@@ -105,6 +105,6 @@ jobs:
       - name: Install Chromium
         run: pnpm e2e:install
       - name: Build demo
-        run: pnpm --filter vue-demo build
+        run: pnpm --filter toast-vue-demo build
       - name: Run browser tests
         run: pnpm e2e
