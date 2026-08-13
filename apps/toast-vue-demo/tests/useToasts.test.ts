@@ -35,6 +35,20 @@ describe(useToasts, () => {
     expect(toastStore.getState().toasts).toHaveLength(0)
   })
 
+  it('clears both action buttons after undoing the action demo', () => {
+    useToasts().handleActionClick()
+
+    const toast = toastStore.getState().toasts[0]
+    toast?.action?.onClick?.(toast)
+
+    expect(toastStore.getState().toasts[0]).toMatchObject({
+      action: undefined,
+      cancel: undefined,
+      message: 'Restored',
+      type: 'success',
+    })
+  })
+
   it('recedes an overflowing stack-mode toast at a fixed, ever-shrinking offset/scale instead of growing with its depth', () => {
     const { toastMotion, stackMode, maxToasts } = useToasts()
     stackMode.value = 'stack'

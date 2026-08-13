@@ -8,8 +8,8 @@ export type {
   StackMetricsOptions,
   UseToasterOptions,
 } from './useToaster'
-export { Toaster } from './Toaster'
-export type { ToasterSlotProps } from './Toaster'
+export { ToasterProvider } from './ToasterProvider'
+export type { ToasterProviderSlotProps } from './ToasterProvider'
 export { ToastWrapper, TOAST_TRANSITION } from './ToastWrapper'
 export { useToastHotkey } from './useToastHotkey'
 export type { UseToastHotkeyOptions } from './useToastHotkey'

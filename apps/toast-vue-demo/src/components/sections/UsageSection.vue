@@ -6,10 +6,10 @@ import DemoSection from '../DemoSection.vue'
 const { t } = useI18n()
 
 const usageCode = [
-  `import { Toaster, ToastWrapper, toast, toViewportOffsetCss } from '@retronew/toast-vue'`,
+  `import { ToasterProvider, ToastWrapper, toast, toViewportOffsetCss } from '@retronew/toast-vue'`,
   ``,
   `// Render the headless outlet in your app root`,
-  `<Toaster v-slot="{ toasts, viewportOffset, updateHeight, calculateOffset }">`,
+  `<ToasterProvider v-slot="{ toasts, viewportOffset, updateHeight, calculateOffset }">`,
   `  <div :style="{ position: 'fixed', inset: toViewportOffsetCss(viewportOffset) }">`,
   `    <ToastWrapper v-for="t in toasts" :key="t.id" :id="t.id"`,
   `      :style="{ transform: 'translateY(' + calculateOffset(t) + 'px)' }"`,
@@ -17,7 +17,7 @@ const usageCode = [
   `      {{ t.message }}`,
   `    </ToastWrapper>`,
   `  </div>`,
-  `</Toaster>`,
+  `</ToasterProvider>`,
   ``,
   `// Fire a toast from anywhere`,
   `toast('My first toast')`,

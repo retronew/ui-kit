@@ -484,7 +484,13 @@ function handleActionClick() {
     `  action: {`,
     `    label: 'Undo',`,
     `    onClick: (t) =>`,
-    `      toast.update(t.id, { message: 'Restored', type: 'success', duration: 2000 }),`,
+    `      toast.update(t.id, {`,
+    `        action: null,`,
+    `        cancel: null,`,
+    `        message: 'Restored',`,
+    `        type: 'success',`,
+    `        duration: 2000,`,
+    `      }),`,
     `  },`,
     `  cancel: { label: 'Dismiss' }, // no onClick needed — cancel just closes it`,
     `  meta: { hideDismiss: true }, // hide ToastBar's own close icon`,
@@ -497,6 +503,8 @@ function handleActionClick() {
       label: 'Undo',
       onClick: (t: Toast) => {
         toast.update(t.id, {
+          action: null,
+          cancel: null,
           duration: 2000,
           message: 'Restored',
           type: 'success',

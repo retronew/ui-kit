@@ -1,11 +1,11 @@
 ---
 name: toast-vue
-description: Use this skill whenever working with @retronew/toast-vue in a Vue 3 app — firing toasts with `toast()`/`toast.success()`/`toast.promise()`, wiring up the renderless `<Toaster>` outlet, `useToaster()`, `<ToastWrapper>`, styling toasts (it's headless — no default CSS ships), positioning/stacking toasts, configuring the viewport edge offset, scoped toasters via `createToaster`, or the error-dedup shake behavior. Trigger it any time the user mentions toast-vue, `<Toaster>`, `useToaster()`, toast notifications in a Vue project, or asks why their toasts aren't animating/stacking/positioning correctly. Also use it if a toast rendered with this library shows no styling at all — that's expected (headless), not a bug, and this skill explains what you still need to author yourself.
+description: Use this skill whenever working with @retronew/toast-vue in a Vue 3 app — firing toasts with `toast()`/`toast.success()`/`toast.promise()`, wiring up the renderless `<ToasterProvider>` outlet, `useToaster()`, `<ToastWrapper>`, styling toasts (it's headless — no default CSS ships), positioning/stacking toasts, configuring the viewport edge offset, scoped toasters via `createToaster`, or the error-dedup shake behavior. Trigger it any time the user mentions toast-vue, `<ToasterProvider>`, `useToaster()`, toast notifications in a Vue project, or asks why their toasts aren't animating/stacking/positioning correctly. Also use it if a toast rendered with this library shows no styling at all — that's expected (headless), not a bug, and this skill explains what you still need to author yourself.
 ---
 
 # @retronew/toast-vue
 
-Headless toast composable + renderless outlet for Vue 3, built on `@retronew/toast-core`. "Headless" here is load-bearing: **this library ships zero default CSS**. It gives you reactive state, motion primitives, and stacking math — you author every visual style yourself. If you mount `<Toaster>` and see unstyled text with no animation, that's the intended starting point, not a bug.
+Headless toast composable + renderless outlet for Vue 3, built on `@retronew/toast-core`. "Headless" here is load-bearing: **this library ships zero default CSS**. It gives you reactive state, motion primitives, and stacking math — you author every visual style yourself. If you mount `<ToasterProvider>` and see unstyled text with no animation, that's the intended starting point, not a bug.
 
 ## Quick start
 
@@ -20,11 +20,11 @@ toast.promise(api.save(), { loading: 'Saving…', success: 'Saved!', error: 'Som
 ```vue
 <!-- once, near your app root -->
 <script setup lang="ts">
-import { Toaster, ToastWrapper, toViewportOffsetCss } from '@retronew/toast-vue'
+import { ToasterProvider, ToastWrapper, toViewportOffsetCss } from '@retronew/toast-vue'
 </script>
 
 <template>
-  <Toaster
+  <ToasterProvider
     v-slot="{
       toasts,
       viewportOffset,
@@ -51,7 +51,7 @@ import { Toaster, ToastWrapper, toViewportOffsetCss } from '@retronew/toast-vue'
         <div style="pointer-events: auto" @click="dismiss(t.id)">{{ t.message }}</div>
       </ToastWrapper>
     </div>
-  </Toaster>
+  </ToasterProvider>
 </template>
 ```
 
@@ -63,7 +63,7 @@ For a fuller worked example — multi-position support, stack-vs-queue stacking 
 
 | Piece | Owns |
 | --- | --- |
-| `<Toaster>` | Subscribes to the store, exposes `toasts`, `viewportOffset`, and control handlers via its default slot. Renders nothing itself. |
+| `<ToasterProvider>` | Subscribes to the store, exposes `toasts`, `viewportOffset`, and control handlers via its default slot. Renders nothing itself. |
 | `<ToastWrapper>` | Everything about a toast's motion — one element, one `transform`: cumulative stacking offset, per-depth scale, enter/exit (driven by `status`), and the error-dedup shake effect. One instance per toast. |
 
 Stacking offset and enter/exit live on one `<ToastWrapper>` element with one combined `transform` string, animated by one `transition` (`TOAST_TRANSITION`, exported from `ToastWrapper`) — the browser interpolates a single matrix per change. If you build a custom wrapper, reuse `TOAST_TRANSITION` (or match its timing) and keep the whole toast's motion on one element.
@@ -76,7 +76,7 @@ Stacking offset and enter/exit live on one `<ToastWrapper>` element with one com
 
 ## `useToaster()` — the composable form
 
-If you're not using the `<Toaster>` slot pattern (e.g. building your own outlet component), call `useToaster()` directly:
+If you're not using the `<ToasterProvider>` slot pattern (e.g. building your own outlet component), call `useToaster()` directly:
 
 ```ts
 import { useToaster } from '@retronew/toast-vue'
@@ -99,7 +99,7 @@ const {
 
 ## Viewport offset comes from core
 
-Set the global edge gap when creating a scoped toaster with `createToaster({ viewportOffset: 16 })`, or change it at runtime with `store.setViewportOffset('1.5rem')`. Numbers represent pixels. Both `useToaster()` and the `<Toaster>` slot expose it reactively as `viewportOffset`.
+Set the global edge gap when creating a scoped toaster with `createToaster({ viewportOffset: 16 })`, or change it at runtime with `store.setViewportOffset('1.5rem')`. Numbers represent pixels. Both `useToaster()` and the `<ToasterProvider>` slot expose it reactively as `viewportOffset`.
 
 The outlet is renderless, so it cannot apply the value by itself. Bind it to the fixed outlet container's CSS `inset`, as shown in the quick start — use `toViewportOffsetCss(viewportOffset)` (exported from `@retronew/toast-vue`, re-exported from `@retronew/toast-core`) rather than hand-rolling the `number → 'Npx'` check yourself. Do not confuse this global edge gap with `calculateOffset({ gutter })`, which controls spacing between adjacent toasts.
 
@@ -119,7 +119,7 @@ For an isolated toast region (a modal's own notifications, a test, multiple inde
 import { createToaster } from '@retronew/toast-vue'
 
 const { store, toast } = createToaster<MyMessageType>({ max: 3, viewportOffset: 16 })
-// <Toaster :store="store"> or useToaster(store)
+// <ToasterProvider :store="store"> or useToaster(store)
 ```
 
 `<ToastWrapper>` also takes a `store` prop (defaults to the shared singleton) — pass the same scoped `store` to it so the error-dedup shake effect is heard on the right instance.

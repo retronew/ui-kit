@@ -6,12 +6,13 @@
 [![License: MIT](https://img.shields.io/npm/l/%40retronew%2Ftoast-vue.svg)](../../LICENSE)
 
 Headless toast for **Vue 3**. Provides a reactive `useToaster()` composable, a
-renderless `<Toaster>` outlet, and a global `toast()` API — all rendering is
-yours. Built on the framework-agnostic [`@retronew/toast-core`](../toast-core).
+renderless `<ToasterProvider>` outlet, and a global `toast()` API — all
+rendering is yours. Built on the framework-agnostic
+[`@retronew/toast-core`](../toast-core).
 
 ## Features
 
-- 🎯 **Renderless** — `<Toaster>` outlet + `useToaster()` composable; you own all markup and CSS
+- 🎯 **Renderless** — `<ToasterProvider>` outlet + `useToaster()` composable; you own all markup and CSS
 - 🧲 **One-transform motion** — stacking offset, per-depth scale, and enter/exit all live on a single `<ToastWrapper>` `transform`/`transition`
 - 🫳 **Swipe-to-dismiss** — 1:1 pointer tracking with velocity-based commit and a Web Animations fling
 - 🫨 **Shake-on-dedup** — a visual nudge when a duplicate error re-emphasizes instead of stacking
@@ -30,9 +31,9 @@ Add the `progress` prop only when the outlet renders a live countdown or
 progress bar; periodic timer snapshots are disabled by default:
 
 ```vue
-<Toaster progress v-slot="{ toasts, getProgress }">
+<ToasterProvider progress v-slot="{ toasts, getProgress }">
   <!-- render progress here -->
-</Toaster>
+</ToasterProvider>
 ```
 
 ## Quick start
@@ -54,14 +55,14 @@ Render them with the renderless outlet (you own the markup & styles):
 
 ```vue
 <script setup lang="ts">
-import { Toaster } from '@retronew/toast-vue'
+import { ToasterProvider, toViewportOffsetCss } from '@retronew/toast-vue'
 </script>
 
 <template>
-  <Toaster v-slot="{ toasts, viewportOffset, dismiss, pause, resume }">
+  <ToasterProvider v-slot="{ toasts, viewportOffset, dismiss, pause, resume }">
     <div
       class="toaster"
-      :style="{ inset: typeof viewportOffset === 'number' ? `${viewportOffset}px` : viewportOffset }"
+      :style="{ inset: toViewportOffsetCss(viewportOffset) }"
       @mouseenter="pause()"
       @mouseleave="resume()"
     >
@@ -75,7 +76,7 @@ import { Toaster } from '@retronew/toast-vue'
         {{ t.message }}
       </article>
     </div>
-  </Toaster>
+  </ToasterProvider>
 </template>
 ```
 
@@ -85,13 +86,15 @@ Prefer a composable instead of the component? Use `useToaster()`:
 const { toasts, viewportOffset, dismiss, pause, resume } = useToaster()
 ```
 
+Want a fuller, styled reference implementation — icons, dark mode, action/cancel/dismiss buttons, stack-vs-queue modes — instead of writing one from scratch? Read `apps/toast-vue-demo/src/composables/useToasts.ts` and `apps/toast-vue-demo/src/components/ToastOutlet.vue`/`ToastBar.vue` in this monorepo and adapt them; this package intentionally ships no default styling of its own.
+
 ## Scoped / multiple outlets
 
 ```ts
 import { createToaster } from '@retronew/toast-vue'
 
 const { store, toast } = createToaster<string>({ max: 3, viewportOffset: '1.5rem' })
-// pass `store` to <Toaster :store="store"> or useToaster(store)
+// pass `store` to <ToasterProvider :store="store"> or useToaster(store)
 ```
 
 ## Claude Code skill

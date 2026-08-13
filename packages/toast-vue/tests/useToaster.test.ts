@@ -2,7 +2,13 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { defineComponent, h, nextTick, shallowRef } from 'vue'
-import { Toaster, ToastWrapper, createToaster, useToaster, useToastHotkey } from '../src/index.ts'
+import {
+  ToasterProvider,
+  ToastWrapper,
+  createToaster,
+  useToaster,
+  useToastHotkey,
+} from '../src/index.ts'
 
 /**
  * jsdom's `trigger()` assigns `clientX`/`clientY` onto a getter-only
@@ -156,12 +162,12 @@ describe(useToaster, () => {
   })
 })
 
-describe('Toaster (renderless)', () => {
+describe('ToasterProvider (renderless)', () => {
   it('defaults to the shared singleton store when none is provided', async () => {
     const { toastStore, toast } = await import('../src/index.ts')
     toast('from the default store')
 
-    const wrapper = mount(Toaster, {
+    const wrapper = mount(ToasterProvider, {
       slots: {
         default: (props: { toasts: readonly { id: string; message: unknown }[] }) =>
           props.toasts.map((t) => h('span', { key: t.id }, String(t.message))),
@@ -174,11 +180,11 @@ describe('Toaster (renderless)', () => {
   })
 
   it('exposes toasts and handlers via slot props', async () => {
-    // Untyped store, matching <Toaster>'s non-generic prop type.
+    // Untyped store, matching <ToasterProvider>'s non-generic prop type.
     const { store, toast } = createToaster({ viewportOffset: '2rem' })
     toast('hi')
 
-    const wrapper = mount(Toaster, {
+    const wrapper = mount(ToasterProvider, {
       props: { store },
       slots: {
         default: (props: {
@@ -200,7 +206,7 @@ describe('Toaster (renderless)', () => {
     const second = createToaster()
     first.toast('first')
     second.toast('second')
-    const wrapper = mount(Toaster, {
+    const wrapper = mount(ToasterProvider, {
       props: { store: first.store },
       slots: {
         default: ({ toasts }: { toasts: readonly { message: unknown }[] }) =>
@@ -219,7 +225,7 @@ describe('Toaster (renderless)', () => {
   it('exposes progress and opts into timer snapshots only when requested', async () => {
     const { store, toast } = createToaster()
     const subscribe = vi.spyOn(store, 'subscribe')
-    const wrapper = mount(Toaster, {
+    const wrapper = mount(ToasterProvider, {
       props: { progress: true, store },
       slots: {
         default: ({
