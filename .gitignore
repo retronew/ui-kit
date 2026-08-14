@@ -35,6 +35,9 @@ test-results/
 *.sln
 *.sw?
 
+# Local planning/audit docs (working notes, not maintained documentation)
+docs/plan/
+
 # Local AI agent state
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
