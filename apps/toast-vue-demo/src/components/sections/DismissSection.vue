@@ -10,7 +10,9 @@ const {
   escapeDismissEnabled,
   handleSwipeDismissChange,
   handleEscapeDismissChange,
-  handleUndismissableDemo,
+  handleSwipeOverrideDemo,
+  handleEscapeOverrideDemo,
+  lastDismissOverride,
   sectionCodes,
 } = useToasts()
 </script>
@@ -63,8 +65,19 @@ const {
         t('sections.dismiss.perToast')
       }}</span>
       <div class="mt-2 flex flex-wrap gap-2">
-        <button class="demo-btn" @click="handleUndismissableDemo">
-          {{ t('sections.dismiss.perToastDemo') }}
+        <button
+          class="demo-btn"
+          :data-active="lastDismissOverride === 'swipe'"
+          @click="handleSwipeOverrideDemo"
+        >
+          {{ t('sections.dismiss.perToastSwipeOff') }}
+        </button>
+        <button
+          class="demo-btn"
+          :data-active="lastDismissOverride === 'escape'"
+          @click="handleEscapeOverrideDemo"
+        >
+          {{ t('sections.dismiss.perToastEscapeOff') }}
         </button>
       </div>
       <CodeBlock :code="sectionCodes.dismissOverride" />

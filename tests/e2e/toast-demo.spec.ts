@@ -181,21 +181,16 @@ test('ignores Escape once escape-dismiss is turned off, and resumes once back on
   await expect(scopedToast).toHaveCount(0)
 })
 
-test('locks an individual toast against both dismiss gestures via meta, independent of the global toggles', async ({
+test('ignores swipe via a per-toast meta override, independent of Escape and the global toggle', async ({
   page,
 }) => {
   const dismissSection = page.locator('section').filter({
     has: page.getByRole('heading', { name: 'Dismiss gestures' }),
   })
-  // Global toggles stay at their default `on` — the per-toast override should
-  // win regardless.
-  await dismissSection.getByRole('button', { name: 'Fire an undismissable toast' }).click()
+  // Global toggle stays at its default `on` — the per-toast override should win regardless.
+  await dismissSection.getByRole('button', { name: 'No swipe' }).click()
   const testToast = page.locator('[data-toast-wrapper]').first()
   await expect(testToast).toBeVisible()
-
-  await testToast.focus()
-  await page.keyboard.press('Escape')
-  await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
 
   const box = await testToast.boundingBox()
   expect(box).not.toBeNull()
@@ -214,7 +209,27 @@ test('locks an individual toast against both dismiss gestures via meta, independ
   await testToast.dispatchEvent('pointerup', { clientX: x, clientY: startY - 120, pointerId: 1 })
   await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
 
-  // Only the toast's own dismiss button can close it.
+  // Escape isn't overridden on this toast, so it still works.
+  await testToast.focus()
+  await page.keyboard.press('Escape')
+  await expect(testToast).toHaveCount(0)
+})
+
+test('ignores Escape via a per-toast meta override, independent of swipe and the global toggle', async ({
+  page,
+}) => {
+  const dismissSection = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Dismiss gestures' }),
+  })
+  await dismissSection.getByRole('button', { name: 'No escape' }).click()
+  const testToast = page.locator('[data-toast-wrapper]').first()
+  await expect(testToast).toBeVisible()
+
+  await testToast.focus()
+  await page.keyboard.press('Escape')
+  await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
+
+  // Only the toast's own dismiss button can close it once Escape is out of the picture.
   await testToast.getByRole('button', { name: 'Dismiss' }).click()
   await expect(testToast).toHaveCount(0)
 })
