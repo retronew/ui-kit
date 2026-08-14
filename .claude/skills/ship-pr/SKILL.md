@@ -37,16 +37,13 @@ disable-model-invocation: false
    ```
    Bump level: `patch` for fixes, `minor` for new backward-compatible features, `major` for breaking changes.
 
-4. **Commit** with a Conventional Commits message (enforced by commitlint) ending in the standard trailer:
+4. **Commit** with a Conventional Commits message (enforced by commitlint). Do not add `Co-Authored-By` or `Claude-Session` trailers — this repo's history stays agent-neutral so it doesn't matter which agent/tool made the commit:
    ```
    git add <files>          # never `git add -A` — review `git status` first
    git commit -m "$(cat <<'EOF'
    <type>(<scope>): <summary>
 
    <body explaining why>
-
-   Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
-   Claude-Session: https://claude.ai/code/session_01Jn5oLAfUg3BJ7CgswwHyGs
    EOF
    )"
    ```
@@ -63,9 +60,6 @@ disable-model-invocation: false
    - [x] vp check
    - [x] vp run -r test
    - [x] vp run -r build
-
-   Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
-   Claude-Session: https://claude.ai/code/session_01Jn5oLAfUg3BJ7CgswwHyGs
    EOF
    )"
    ```
