@@ -13,5 +13,6 @@ defineProps<{
       <slot name="buttons" />
     </div>
     <slot name="code" />
+    <slot />
   </section>
 </template>
