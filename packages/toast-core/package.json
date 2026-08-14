@@ -1,6 +1,6 @@
 {
   "name": "@retronew/toast-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Framework-agnostic headless toast state machine — the core powering @retronew toast adapters.",
   "keywords": [
     "framework-agnostic",
