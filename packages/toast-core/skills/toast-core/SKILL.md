@@ -1,6 +1,6 @@
 ---
 name: toast-core
-description: Use this skill whenever working with @retronew/toast-core — the framework-agnostic headless toast state machine that powers @retronew toast adapters (e.g. @retronew/toast-vue). Trigger it when the user wants to build a new framework adapter (React, Svelte, vanilla JS) on top of ToastStore, write/debug logic against ToastStore or createToastApi directly, understand the toast lifecycle (visible → dismissed → removed), the error-dedup/shake behavior, stacking (`max`/`stacked`), viewport offset configuration, or auto-dismiss timer semantics (pause/resume, Infinity duration). Also use it when the user asks "how do I use toast-core" or mentions ToastStore, ToastEffect, or createToastApi by name.
+description: Use this skill whenever working with @retronew/toast-core — the framework-agnostic headless toast state machine that powers @retronew toast adapters (e.g. @retronew/toast-vue). Trigger it when the user wants to build a new framework adapter (React, Svelte, vanilla JS) on top of ToastStore, write/debug logic against ToastStore or createToastApi directly, understand the toast lifecycle (visible → dismissed → removed), the error-dedup/shake behavior, stacking (`max`/`stacked`), default/viewport-offset configuration (`defaultPosition`, `setDefaultPosition`), or auto-dismiss timer semantics (pause/resume, Infinity duration). Also use it when the user asks "how do I use toast-core" or mentions ToastStore, ToastEffect, or createToastApi by name.
 ---
 
 # @retronew/toast-core
@@ -28,7 +28,7 @@ toast.promise(fetchThing(), { loading: 'Loading…', success: 'Done!', error: 'F
 
 `ToastStore` has **two separate subscription channels** — don't conflate them:
 
-1. **`store.subscribe(listener)`** — persistent state. Fires on every toast list or global layout-hint change (create/update/dismiss/remove/pause/resume/height/viewport-offset change). `listener` receives `{ toasts: Toast<T>[], viewportOffset: number | string }`. This is what a framework adapter's reactive wrapper (e.g. Vue's `useToaster`) subscribes to for its refs/signals.
+1. **`store.subscribe(listener)`** — persistent state. Fires on every toast list or global layout-hint change (create/update/dismiss/remove/pause/resume/height/viewport-offset/default-position change). `listener` receives `{ toasts: Toast<T>[], viewportOffset: number | string, defaultPosition?: ToastPosition }`. This is what a framework adapter's reactive wrapper (e.g. Vue's `useToaster`) subscribes to for its refs/signals.
 2. **`store.onEffect(listener)`** — one-shot signals, currently just `{ type: 'shake', id }` (fired when a duplicate error re-emphasizes an existing toast instead of queueing a new one — see "Error dedup" below). **Effects are not part of a `Toast` record** and never appear in `getState()`. If you're tempted to add a "bumped counter" field to `Toast` to drive a UI animation, use `onEffect` instead — it's an actual event, not persisted state a consumer has to diff.
 
 Both return an unsubscribe function.
@@ -53,6 +53,23 @@ Call `store.setMax(n)` to change the cap at runtime; it restacks immediately.
 It returns `true` when the cap changed and `false` for an identical value.
 
 `store.setHeight(id, height)` records a toast's rendered height — needed by adapters that compute stacking offsets from cumulative heights (e.g. `toast-vue`'s `calculateOffset`). Framework-agnostic core, framework-specific offset math.
+
+`max` counts toasts **per distinct `position` value** — `recomputeStacking()` buckets by `toast.position ?? '__default__'`. Toasts with no explicit `position` are resolved through `defaultPosition` (see below) at creation time, so as long as one is configured they land in the bucket matching what's actually shown, not a shared `'__default__'` bucket uncoupled from the real layout.
+
+## Default position
+
+`defaultPosition` is the fallback `position` for toasts created (or updated) without an explicit one. Configure it with `new ToastStore({ defaultPosition })`, or change it at runtime with `store.setDefaultPosition(position)` (`undefined` clears it). It's published in `getState()`/`subscribe()` like `viewportOffset`, and read back via `store.getDefaultPosition()`.
+
+Unlike `viewportOffset`, it isn't just a layout hint read at render time — it's **resolved once and baked into `toast.position`** at creation/update time:
+
+```ts
+const store = new ToastStore({ defaultPosition: 'top-center' })
+store.create('a')                    // toast.position === 'top-center'
+store.create('b', { position: 'bottom-left' }) // explicit wins: 'bottom-left'
+store.setDefaultPosition('bottom-right')       // only affects toasts created after this
+```
+
+This means changing `defaultPosition` never retroactively moves existing toasts — same principle as `durations`, which only apply to toasts created after a config change. It also means `update(id, { position: null })` re-resolves through `defaultPosition` instead of going fully unset, unlike `action`/`cancel`/`meta`, where `null` clears the field outright.
 
 ## Viewport offset
 
@@ -88,7 +105,7 @@ positions; different keys remain independent.
 ## Mutator return values and no-ops
 
 `update`, `dismiss`, `remove`, `pause`, `resume`, `setHeight`, `setMax`,
-`setViewportOffset`, and `destroy` return `true` only when they change state or
+`setViewportOffset`, `setDefaultPosition`, and `destroy` return `true` only when they change state or
 an internal pause reason. Missing ids, empty/identical updates, and repeated
 operations return `false` and do not notify state subscribers. `create`
 continues to return the toast id.

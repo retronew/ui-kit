@@ -49,6 +49,63 @@ describe(ToastStore, () => {
     expect(store.getState().viewportOffset).toBe(16)
   })
 
+  it('resolves an unset position through defaultPosition, but leaves an explicit one alone', () => {
+    const store = new ToastStore<string>({ defaultPosition: 'top-center' })
+
+    const withoutPosition = store.create('a')
+    const withPosition = store.create('b', { position: 'bottom-left' })
+
+    const toasts = store.getState().toasts
+    expect(toasts.find((t) => t.id === withoutPosition)).toMatchObject({ position: 'top-center' })
+    expect(toasts.find((t) => t.id === withPosition)).toMatchObject({ position: 'bottom-left' })
+  })
+
+  it('changes defaultPosition at runtime without retroactively touching existing toasts', () => {
+    const store = new ToastStore<string>({ defaultPosition: 'top-center' })
+    const before = store.create('before')
+
+    expect(store.setDefaultPosition('bottom-right')).toBe(true)
+    const after = store.create('after')
+
+    const toasts = store.getState().toasts
+    expect(toasts.find((t) => t.id === before)).toMatchObject({ position: 'top-center' })
+    expect(toasts.find((t) => t.id === after)).toMatchObject({ position: 'bottom-right' })
+    expect(store.getDefaultPosition()).toBe('bottom-right')
+  })
+
+  it('buckets default-position toasts under their resolved position for max, not a shared __default__ bucket', () => {
+    const store = new ToastStore<string>({ defaultPosition: 'top-center', max: 1 })
+
+    const first = store.create('first')
+    const second = store.create('second', { position: 'top-center' })
+
+    const toasts = store.getState().toasts
+    // Both resolve to 'top-center', so the second (older, since newest is unshifted to front) overflows.
+    expect(toasts.find((t) => t.id === first)).toMatchObject({ stacked: true })
+    expect(toasts.find((t) => t.id === second)).toMatchObject({ stacked: false })
+  })
+
+  it('re-resolves position through defaultPosition when explicitly cleared via update', () => {
+    const store = new ToastStore<string>({ defaultPosition: 'top-center' })
+    const id = store.create('a', { position: 'bottom-left' })
+
+    store.update(id, { position: null })
+
+    expect(store.getState().toasts[0]).toMatchObject({ position: 'top-center' })
+  })
+
+  it('setDefaultPosition is a no-op when the value is unchanged', () => {
+    const store = new ToastStore<string>({ defaultPosition: 'top-center' })
+    const listener = vi.fn()
+    store.subscribe(listener)
+
+    expect(store.setDefaultPosition('top-center')).toBe(false)
+    expect(listener).not.toHaveBeenCalled()
+
+    expect(store.setDefaultPosition('bottom-right')).toBe(true)
+    expect(listener).toHaveBeenCalledOnce()
+  })
+
   it('carries action/cancel through create and update', () => {
     const store = new ToastStore<string>()
     const onUndo = vi.fn()

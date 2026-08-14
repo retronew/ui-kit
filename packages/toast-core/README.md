@@ -61,15 +61,27 @@ store.subscribe(render, { progress: true })
 ## API surface
 
 - `ToastStore` — `create` / `update` / `dismiss` / `remove` / `pause` /
-  `resume` / `setViewportOffset` / `subscribe` / `getState` / `destroy`.
+  `resume` / `setViewportOffset` / `setDefaultPosition` /
+  `getDefaultPosition` / `subscribe` / `getState` / `destroy`.
 - `createToastApi(store)` — ergonomic `toast()` with `.success` / `.error` /
   `.loading` / `.info` / `.warning` / `.custom` / `.promise` / `.dismiss` /
   `.update` / `.remove`.
 
 `pause`/`resume` accept an optional reason (`manual`, `interaction`, or
 `visibility`), and independent reasons do not overwrite one another. Optional
-fields can be cleared through `update(id, { action: null })` (also `cancel`,
-`meta`, and `position`).
+fields can be cleared through `update(id, { action: null })` (also `cancel`
+and `meta`) — except `position`, where `null` falls back to
+`defaultPosition` rather than going fully unset.
+
+Toasts created or updated without an explicit `position` resolve through
+`defaultPosition` immediately, so it's baked into `toast.position` — `max`
+and `errorDedupeKey` bucket these toasts by their actual displayed position
+instead of a shared bucket:
+
+```ts
+const store = new ToastStore({ defaultPosition: 'top-center' })
+store.setDefaultPosition('bottom-right') // changes future toasts only
+```
 
 All mutators except `create()` return a boolean indicating whether state or an
 internal pause reason changed. Missing ids, empty patches, identical values,

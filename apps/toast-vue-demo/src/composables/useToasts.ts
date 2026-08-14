@@ -37,7 +37,7 @@ function clearScheduledTimers(): void {
 
 const sectionCodes = reactive({
   types: `toast.success('Operation completed successfully!')`,
-  position: `toast(msg, { position: 'top-center' }) // pass this to every call below`,
+  position: `toastStore.setDefaultPosition('top-center')`,
   positionOverride: `toast('Hello', { position: 'bottom-left' })`,
   stacking: `toastStore.setMax(3)`,
   duration: `toast('Hello', { duration: 3000 })`,
@@ -56,9 +56,11 @@ const positions: ToastPosition[] = [
   'bottom-center',
   'bottom-right',
 ]
-const position = ref<ToastPosition>('top-center')
-// Highlights the last override button clicked — purely cosmetic, never feeds into
-// resolvedPosition(). An override is a one-off `{ position }` argument, not a mode.
+// The real global default — every toast() call that omits `position` resolves
+// through this. Read it back reactively via `useToaster(toastStore).defaultPosition`.
+toastStore.setDefaultPosition('top-center')
+// Highlights the last override button clicked — purely cosmetic. An override is a
+// one-off `{ position }` argument passed straight to toast(), not a stored mode.
 const lastOverridePosition = ref<ToastPosition | null>(null)
 const direction = ref(true)
 
@@ -85,7 +87,7 @@ function formatMotionDuration(d: number) {
 function handleMotionDurationChange(d: number) {
   motionDuration.value = d
   sectionCodes.animation = `:root {\n  --toast-motion-duration: ${d}ms;\n}`
-  toast(`Animation speed → ${d}ms`, { position: resolvedPosition() })
+  toast(`Animation speed → ${d}ms`)
 }
 
 // `pop` opts a toast into the react-hot-toast-style scale pop instead of the default subtle slide + fade.
@@ -97,7 +99,7 @@ const popMotion = ref(false)
 function handlePopMotionChange(enabled: boolean) {
   popMotion.value = enabled
   sectionCodes.pop = `<ToastWrapper :pop="${enabled}" ... />`
-  toast(`Pop motion → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+  toast(`Pop motion → ${enabled ? 'on' : 'off'}`)
 }
 
 /** Per-toast override for `pop`, read from `meta`. Falls back to the global toggle above. */
@@ -112,7 +114,6 @@ function handlePopOverrideDemo() {
   sectionCodes.pop = `toast('...', { meta: { pop: ${override} } })\n// overrides the global toggle above, for just this one toast`
   toast(`This one always uses pop: ${override} — try the toggle above, it won't change`, {
     meta: { pop: override },
-    position: resolvedPosition(),
   })
 }
 
@@ -130,13 +131,13 @@ function syncDismissCode() {
 function handleSwipeDismissChange(enabled: boolean) {
   swipeDismissEnabled.value = enabled
   syncDismissCode()
-  toast(`Swipe dismiss → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+  toast(`Swipe dismiss → ${enabled ? 'on' : 'off'}`)
 }
 
 function handleEscapeDismissChange(enabled: boolean) {
   escapeDismissEnabled.value = enabled
   syncDismissCode()
-  toast(`Escape dismiss → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+  toast(`Escape dismiss → ${enabled ? 'on' : 'off'}`)
 }
 
 /**
@@ -160,7 +161,6 @@ function handleUndismissableDemo() {
   toast('Cannot swipe or Escape this one — only the button below closes it', {
     duration: Number.POSITIVE_INFINITY,
     meta: { escapeDismiss: false, swipeDismiss: false },
-    position: resolvedPosition(),
   })
 }
 
@@ -329,22 +329,17 @@ function handlePointerLeave(
   resume(undefined, 'interaction')
 }
 
-// Always resolve to a concrete position (never `undefined`) — `toast-core` caps `max`
-// per distinct `position` value, so leaving it unset here would silently drop the toast
-// into its own `'__default__'` bucket, uncoupled from whatever position is actually shown.
-function resolvedPosition(): ToastPosition {
-  return position.value
-}
-
 function toastOptions() {
   return {
-    position: resolvedPosition(),
     duration: duration.value,
   }
 }
 
+// `t.position` is baked in by the store's `defaultPosition` at creation time (see
+// `toastStore.setDefaultPosition` above), so this fallback only matters for toasts
+// created before any default was ever set.
 function effectivePosition(t: Toast): ToastPosition {
-  return t.position ?? position.value
+  return t.position ?? toastStore.getDefaultPosition() ?? 'top-center'
 }
 
 /** Resolve a custom toast's render function/value to renderable content. */
@@ -383,7 +378,7 @@ function layoutStyle(pos: ToastPosition): Record<string, string> {
 }
 
 function handleHeroClick() {
-  toast('Hello there!', { position: resolvedPosition() })
+  toast('Hello there!')
 }
 
 // Easter egg: clicking the "Toast Vue" wordmark in the top bar fires a random emoji toast.
@@ -628,15 +623,13 @@ function handleDurationChange(d: number) {
   duration.value = d
   sectionCodes.duration =
     d === Infinity ? `toast('Hello', { duration: Infinity })` : `toast('Hello', { duration: ${d} })`
-  toast(`Duration → ${formatDuration(d)}`, { duration: d, position: resolvedPosition() })
+  toast(`Duration → ${formatDuration(d)}`, { duration: d })
 }
 
 function handlePositionChange(pos: ToastPosition) {
-  position.value = pos
-  // toast-core has no "default position" setting — every call takes its own `position`.
-  // This is this demo's own convenience: pass the same value to every toast() below.
-  sectionCodes.position = `toast(msg, { position: '${pos}' }) // pass this to every call below`
-  toast('Hello', { position: pos, duration: duration.value })
+  toastStore.setDefaultPosition(pos)
+  sectionCodes.position = `toastStore.setDefaultPosition('${pos}')`
+  toast('Hello', { duration: duration.value })
 }
 
 function handlePerToastPositionChange(pos: ToastPosition) {
@@ -648,7 +641,7 @@ function handlePerToastPositionChange(pos: ToastPosition) {
 function handleDirectionChange(newDirection: boolean) {
   direction.value = newDirection
   sectionCodes.stacking = `calculateOffset(toast, { reverseOrder: ${newDirection} })`
-  toast(`Stack direction → ${newDirection ? 'ltr' : 'rtl'}`, { position: resolvedPosition() })
+  toast(`Stack direction → ${newDirection ? 'ltr' : 'rtl'}`)
 }
 
 // Repeated identical errors are not queued — the existing toast is re-emphasized (shake + timer reset).
@@ -718,7 +711,6 @@ export function useToasts() {
     dedupActive,
     sectionCodes,
     positions,
-    position,
     lastOverridePosition,
     direction,
     formatPositionName,

@@ -1,6 +1,6 @@
 ---
 name: toast-vue
-description: Use this skill whenever working with @retronew/toast-vue in a Vue 3 app — firing toasts with `toast()`/`toast.success()`/`toast.promise()`, wiring up the renderless `<ToasterProvider>` outlet, `useToaster()`, `<ToastWrapper>`, styling toasts (it's headless — no default CSS ships), positioning/stacking toasts, configuring the viewport edge offset, scoped toasters via `createToaster`, or the error-dedup shake behavior. Trigger it any time the user mentions toast-vue, `<ToasterProvider>`, `useToaster()`, toast notifications in a Vue project, or asks why their toasts aren't animating/stacking/positioning correctly. Also use it if a toast rendered with this library shows no styling at all — that's expected (headless), not a bug, and this skill explains what you still need to author yourself.
+description: Use this skill whenever working with @retronew/toast-vue in a Vue 3 app — firing toasts with `toast()`/`toast.success()`/`toast.promise()`, wiring up the renderless `<ToasterProvider>` outlet, `useToaster()`, `<ToastWrapper>`, styling toasts (it's headless — no default CSS ships), positioning/stacking toasts, configuring a default/fallback position (`defaultPosition`) or the viewport edge offset, scoped toasters via `createToaster`, or the error-dedup shake behavior. Trigger it any time the user mentions toast-vue, `<ToasterProvider>`, `useToaster()`, toast notifications in a Vue project, or asks why their toasts aren't animating/stacking/positioning correctly. Also use it if a toast rendered with this library shows no styling at all — that's expected (headless), not a bug, and this skill explains what you still need to author yourself.
 ---
 
 # @retronew/toast-vue
@@ -28,6 +28,7 @@ import { ToasterProvider, ToastWrapper, toViewportOffsetCss } from '@retronew/to
     v-slot="{
       toasts,
       viewportOffset,
+      defaultPosition,
       dismiss,
       pause,
       resume,
@@ -42,9 +43,9 @@ import { ToasterProvider, ToastWrapper, toViewportOffsetCss } from '@retronew/to
         :id="t.id"
         :key="t.id"
         :status="t.status"
-        :toast-position="t.position ?? 'top-center'"
-        :offset="calculateOffset(t, { defaultPosition: 'top-center' })"
-        :z-index="getStackMetrics(t, { defaultPosition: 'top-center' }).zIndex"
+        :toast-position="t.position ?? defaultPosition ?? 'top-center'"
+        :offset="calculateOffset(t, { defaultPosition })"
+        :z-index="getStackMetrics(t, { defaultPosition }).zIndex"
         :style="{ position: 'absolute', top: 0, left: 0, right: 0, pointerEvents: 'none' }"
         @height-update="updateHeight"
       >
@@ -84,6 +85,7 @@ import { useToaster } from '@retronew/toast-vue'
 const {
   toasts,
   viewportOffset,
+  defaultPosition,
   dismiss,
   remove,
   pause,
@@ -102,6 +104,14 @@ const {
 Set the global edge gap when creating a scoped toaster with `createToaster({ viewportOffset: 16 })`, or change it at runtime with `store.setViewportOffset('1.5rem')`. Numbers represent pixels. Both `useToaster()` and the `<ToasterProvider>` slot expose it reactively as `viewportOffset`.
 
 The outlet is renderless, so it cannot apply the value by itself. Bind it to the fixed outlet container's CSS `inset`, as shown in the quick start — use `toViewportOffsetCss(viewportOffset)` (exported from `@retronew/toast-vue`, re-exported from `@retronew/toast-core`) rather than hand-rolling the `number → 'Npx'` check yourself. Do not confuse this global edge gap with `calculateOffset({ gutter })`, which controls spacing between adjacent toasts.
+
+## Default position comes from core too
+
+Set the fallback `position` for toasts created without an explicit one when creating a scoped toaster with `createToaster({ defaultPosition: 'top-center' })`, or change it at runtime with `store.setDefaultPosition('bottom-right')`. Both `useToaster()` and the `<ToasterProvider>` slot expose it reactively as `defaultPosition`, same convention as `viewportOffset`.
+
+Unlike `viewportOffset`, it isn't a pure render-time hint — `toast-core` bakes it into `toast.position` at creation, so `max`'s per-position stacking cap and `errorDedupeKey`'s default grouping both key off the real resolved position, not an `undefined` shared bucket. This means `t.position` is effectively always set once a `defaultPosition` is configured — `t.position ?? defaultPosition ?? 'top-center'` in the outlet is a defensive fallback for toasts created before any default existed, not the primary resolution path.
+
+Don't keep a second, app-level "current default position" ref that you thread manually into every `toast()` call — that was the pattern before `defaultPosition` existed, and it's easy to let it drift from what `toast-core` itself thinks the default is (see the `@retronew/toast-core` skill's "Default position" section for the full mechanism). Call `store.setDefaultPosition()` and read it back reactively instead.
 
 ## Wiring `@height-update` is not optional
 
@@ -164,3 +174,5 @@ Don't add `swipeDismiss`/`escapeDismiss` to `ToastOptions` in `toast-core` itsel
 ## Positions and directions
 
 `ToastPosition` is one of `top-left | top-center | top-right | bottom-left | bottom-center | bottom-right`. `calculateOffset`'s `reverseOrder` option controls stack direction (newest-on-top vs. newest-at-bottom) within a position group — most UIs want `reverseOrder: false` for top positions and may want `true` for bottom ones so newer toasts don't require the older ones to shift.
+
+For toasts that don't specify their own `position`, see "Default position comes from core too" above — don't reinvent it with app-level state.

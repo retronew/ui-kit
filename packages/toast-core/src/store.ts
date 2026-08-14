@@ -5,6 +5,7 @@ import type {
   ToastEffect,
   ToastOptions,
   ToastPauseReason,
+  ToastPosition,
   ToastSubscriptionOptions,
   ToastType,
   ToasterState,
@@ -40,6 +41,13 @@ export interface ToasterConfig<T = unknown> {
    * Equal keys reuse the existing toast and emit a shake effect.
    */
   errorDedupeKey?: ToastDedupeKey<T>
+  /**
+   * Fallback `position` for toasts created without an explicit one. Resolved
+   * once at creation time, so it's baked into `toast.position` — `max` and
+   * `errorDedupeKey` bucket by it like any explicit position, instead of
+   * every default-position toast sharing one `'__default__'` bucket.
+   */
+  defaultPosition?: ToastPosition
 }
 
 type Listener<T> = (state: ToasterState<T>) => void
@@ -182,7 +190,8 @@ export class ToastStore<T = unknown> {
   private readonly timers = new Map<string, TimerRecord>()
   private readonly removalTimers = new Map<string, ReturnType<typeof setTimeout>>()
   private readonly pauseReasons = new Map<string, Set<ToastPauseReason>>()
-  private readonly config: Required<ToasterConfig<T>>
+  private readonly config: Required<Omit<ToasterConfig<T>, 'defaultPosition'>>
+  private defaultPosition: ToastPosition | undefined
   private tickHandle: ReturnType<typeof setInterval> | undefined
   private destroyed = false
   private visibilityPaused = false
@@ -211,6 +220,7 @@ export class ToastStore<T = unknown> {
       removeDelay: assertRemoveDelay(config.removeDelay ?? 1000),
       viewportOffset: assertViewportOffset(config.viewportOffset ?? DEFAULT_VIEWPORT_OFFSET),
     }
+    this.defaultPosition = config.defaultPosition
     if (typeof document !== 'undefined') {
       this.visibilityPaused = document.hidden
       document.addEventListener('visibilitychange', this.handleVisibilityChange)
@@ -224,6 +234,7 @@ export class ToastStore<T = unknown> {
       toasts: this.toasts.map((toast) =>
         cloneToast(toast, this.getRemainingFromRecord(this.timers.get(toast.id), now)),
       ),
+      defaultPosition: this.defaultPosition,
       viewportOffset: this.config.viewportOffset,
     }
   }
@@ -272,10 +283,11 @@ export class ToastStore<T = unknown> {
     const id = options.id ?? genId()
     const type = options.type ?? 'blank'
     const duration = assertDuration(options.duration ?? this.config.durations[type] ?? 4000)
+    const position = options.position ?? this.defaultPosition
     const existing = this.toasts.find((toast) => toast.id === id)
 
     if (existing) {
-      this.update(id, { ...options, duration, message, type })
+      this.update(id, { ...options, duration, message, position, type })
       return id
     }
 
@@ -283,7 +295,7 @@ export class ToastStore<T = unknown> {
       const dedupeKey = this.config.errorDedupeKey({
         message,
         meta: options.meta,
-        position: options.position,
+        position,
         type,
       })
       const existingError = this.toasts.find(
@@ -302,7 +314,13 @@ export class ToastStore<T = unknown> {
       )
       if (existingError) {
         this.clearTimer(existingError.id)
-        const changed = this.update(existingError.id, { ...options, duration, message, type })
+        const changed = this.update(existingError.id, {
+          ...options,
+          duration,
+          message,
+          position,
+          type,
+        })
         if (!changed) {
           const current = this.toasts.find((toast) => toast.id === existingError.id)
           if (current) this.syncTimer(current)
@@ -326,7 +344,7 @@ export class ToastStore<T = unknown> {
       message,
       meta: options.meta ? cloneMetadata(options.meta) : undefined,
       paused: this.visibilityPaused || this.isPaused(id),
-      position: options.position,
+      position,
       stacked: false,
       status: 'visible',
       type,
@@ -339,7 +357,11 @@ export class ToastStore<T = unknown> {
     return id
   }
 
-  /** Patch an existing toast. `null` clears optional presentation fields. */
+  /**
+   * Patch an existing toast. `null` clears optional presentation fields —
+   * except `position`, which falls back to `defaultPosition` like an unset
+   * `position` does anywhere else, rather than going fully unset.
+   */
   update(id: string, patch: ToastUpdateOptions<T>): boolean {
     this.assertActive()
     const index = this.toasts.findIndex((toast) => toast.id === id)
@@ -356,7 +378,7 @@ export class ToastStore<T = unknown> {
     const next: Toast<T> = {
       ...current,
       ...('message' in patch ? { message: patch.message as T } : {}),
-      ...('position' in patch ? { position: patch.position ?? undefined } : {}),
+      ...('position' in patch ? { position: patch.position ?? this.defaultPosition } : {}),
       ...('meta' in patch ? { meta: patch.meta ? cloneMetadata(patch.meta) : undefined } : {}),
       ...('action' in patch ? { action: patch.action ? { ...patch.action } : undefined } : {}),
       ...('cancel' in patch ? { cancel: patch.cancel ? { ...patch.cancel } : undefined } : {}),
@@ -522,6 +544,23 @@ export class ToastStore<T = unknown> {
     return true
   }
 
+  getDefaultPosition(): ToastPosition | undefined {
+    return this.defaultPosition
+  }
+
+  /**
+   * Change the fallback `position` for toasts created without an explicit
+   * one. Resolved once per toast at creation/update time — existing toasts
+   * keep whatever position they already resolved to.
+   */
+  setDefaultPosition(position: ToastPosition | undefined): boolean {
+    this.assertActive()
+    if (this.defaultPosition === position) return false
+    this.defaultPosition = position
+    this.emit()
+    return true
+  }
+
   /** Dispose all work. A destroyed store cannot be reused. */
   destroy(): boolean {
     if (this.destroyed) return false
@@ -543,6 +582,8 @@ export class ToastStore<T = unknown> {
     const activeCounts = new Map<string, number>()
     this.toasts = this.toasts.map((toast) => {
       if (toast.status !== 'visible') return toast.stacked ? { ...toast, stacked: false } : toast
+      // Toasts without a `position` were already resolved through `defaultPosition` at
+      // creation, so '__default__' only groups toasts made before any default was set.
       const key = toast.position ?? '__default__'
       const count = activeCounts.get(key) ?? 0
       const stacked = this.config.max > 0 && count >= this.config.max

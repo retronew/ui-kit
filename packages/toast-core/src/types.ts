@@ -81,6 +81,7 @@ export interface ToastUpdateOptions<T = unknown> {
   type?: ToastType
   message?: T
   duration?: number
+  /** `null` falls back to the store's `defaultPosition`, not to unset. */
   position?: ToastPosition | null
   meta?: Record<string, unknown> | null
   action?: ToastAction<T> | null
@@ -104,6 +105,8 @@ export type ToastDedupeKey<T = unknown> = (toast: ToastDedupeContext<T>) => Prop
 /** Snapshot of the store, handed to subscribers on every change. */
 export interface ToasterState<T = unknown> {
   readonly toasts: readonly Toast<T>[]
+  /** Fallback `position` for toasts created without an explicit one. */
+  readonly defaultPosition?: ToastPosition
   /** Global layout hint for the distance from the viewport edge. */
   readonly viewportOffset: ViewportOffset
 }

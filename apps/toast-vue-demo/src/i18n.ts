@@ -108,7 +108,6 @@ const messages = {
       direction: 'direction',
     },
     position: {
-      default: 'sets the default for every toast',
       override: 'fires once with this position',
     },
     dedup: {
@@ -232,7 +231,6 @@ const messages = {
       direction: '方向',
     },
     position: {
-      default: '设置所有 toast 的默认值',
       override: '单条触发，使用此位置',
     },
     dedup: {
