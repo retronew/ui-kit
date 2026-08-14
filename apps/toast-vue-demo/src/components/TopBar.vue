@@ -39,8 +39,8 @@ function toggleLocale() {
   <div
     :class="
       cn(
-        'sticky top-3 z-40 flex h-15 items-center justify-between rounded-full border border-border bg-surface pl-6 pr-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-[filter,opacity,scale] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.35)]',
-        hasVisibleToast ? 'scale-[0.97] blur-[2px] opacity-70' : 'scale-100 blur-none opacity-100',
+        'sticky top-3 z-40 flex h-15 items-center justify-between rounded-full border border-border bg-surface pl-6 pr-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-[filter,scale] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.35)]',
+        hasVisibleToast ? 'scale-[0.97] blur-[2px]' : 'scale-100 blur-none',
       )
     "
   >
