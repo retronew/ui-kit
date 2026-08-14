@@ -108,8 +108,8 @@ const messages = {
       direction: 'direction',
     },
     position: {
-      useGlobal: 'Use Global',
-      override: 'per-toast override',
+      default: 'sets the default for every toast',
+      override: 'fires once with this position',
     },
     dedup: {
       sameError: 'Same Error ×5',
@@ -232,8 +232,8 @@ const messages = {
       direction: '方向',
     },
     position: {
-      useGlobal: '使用全局',
-      override: '单条覆盖',
+      default: '设置所有 toast 的默认值',
+      override: '单条触发，使用此位置',
     },
     dedup: {
       sameError: '相同错误 ×5',

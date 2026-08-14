@@ -107,13 +107,17 @@ describe(useToasts, () => {
     }
   })
 
-  it('routes new toasts to a per-toast position override once one is set', () => {
-    const { handleSuccessClick, handlePerToastPositionChange } = useToasts()
+  it('fires a one-off toast at the override position without changing the global default', () => {
+    const { handleSuccessClick, handlePerToastPositionChange, position } = useToasts()
     handlePerToastPositionChange('bottom-left')
+
+    // Newest toast is unshifted to the front — see `store.ts`'s `[toast, ...this.toasts]`.
+    expect(toastStore.getState().toasts[0]).toMatchObject({ position: 'bottom-left' })
+    expect(position.value).not.toBe('bottom-left')
 
     handleSuccessClick()
 
-    expect(toastStore.getState().toasts[0]).toMatchObject({ position: 'bottom-left' })
+    expect(toastStore.getState().toasts[0]).toMatchObject({ position: position.value })
   })
 
   it('toggles pop motion, updates its code sample, and announces the change', () => {
