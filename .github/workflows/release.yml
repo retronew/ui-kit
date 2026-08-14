@@ -1,10 +1,12 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency: ${{ github.workflow }}-main
 
 permissions:
   contents: write
@@ -13,10 +15,13 @@ permissions:
 jobs:
   release:
     name: Release
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up pnpm and Node.js
         uses: pnpm/setup@v1
@@ -34,17 +39,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Chromium
-        run: pnpm e2e:install
-
       - name: Verify release artifacts
-        run: pnpm ready
+        run: pnpm release-verify
 
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level high
