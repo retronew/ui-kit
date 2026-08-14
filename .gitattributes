@@ -1,0 +1,13 @@
+# Normalize all text files to LF, regardless of each contributor's core.autocrlf setting.
+* text=auto eol=lf
+
+# Common binary types — never subject to line-ending conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
