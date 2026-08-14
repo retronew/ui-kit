@@ -72,6 +72,24 @@ describe(useToaster, () => {
     expect(wrapper.text()).toBe('24')
   })
 
+  it('reactively reflects the core default position', async () => {
+    const { store } = createToaster<string>({ defaultPosition: 'top-center' })
+
+    const Comp = defineComponent({
+      setup() {
+        const { defaultPosition } = useToaster(store)
+        return () => h('div', String(defaultPosition.value))
+      },
+    })
+
+    const wrapper = mount(Comp)
+    expect(wrapper.text()).toBe('top-center')
+
+    store.setDefaultPosition('bottom-right')
+    await nextTick()
+    expect(wrapper.text()).toBe('bottom-right')
+  })
+
   it('unsubscribes when the component unmounts', () => {
     const { store } = createToaster<string>()
     const spy = vi.spyOn(store, 'subscribe')
@@ -199,6 +217,27 @@ describe('ToasterProvider (renderless)', () => {
 
     await nextTick()
     expect(wrapper.text()).toContain('hi:2rem')
+  })
+
+  it('exposes defaultPosition via slot props', async () => {
+    const { store, toast } = createToaster({ defaultPosition: 'top-center' })
+    toast('hi')
+
+    const wrapper = mount(ToasterProvider, {
+      props: { store },
+      slots: {
+        default: (props: {
+          toasts: readonly { id: string; message: unknown }[]
+          defaultPosition?: string
+        }) =>
+          props.toasts.map((t) =>
+            h('span', { key: t.id }, `${String(t.message)}:${props.defaultPosition}`),
+          ),
+      },
+    })
+
+    await nextTick()
+    expect(wrapper.text()).toContain('hi:top-center')
   })
 
   it('resubscribes when the store prop changes', async () => {

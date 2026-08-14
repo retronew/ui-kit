@@ -1,4 +1,10 @@
-import type { Toast, ToastPauseReason, ToastStore, ViewportOffset } from '@retronew/toast-core'
+import type {
+  Toast,
+  ToastPauseReason,
+  ToastPosition,
+  ToastStore,
+  ViewportOffset,
+} from '@retronew/toast-core'
 import { defineComponent, toRef } from 'vue'
 import type { PropType, SlotsType } from 'vue'
 import { toastStore } from './toast'
@@ -11,6 +17,8 @@ export interface ToasterProviderSlotProps<T = VueToastMessage> {
   toasts: readonly Toast<T>[]
   /** Distance from the toast outlet to the viewport edge. Numbers are pixels. */
   viewportOffset: ViewportOffset
+  /** Fallback `position` for toasts created without an explicit one. */
+  defaultPosition?: ToastPosition
   dismiss: (id?: string) => boolean
   remove: (id?: string) => boolean
   pause: (id?: string, reason?: ToastPauseReason) => boolean
@@ -58,10 +66,12 @@ export const ToasterProvider = defineComponent({
       getRemaining,
       getProgress,
       viewportOffset,
+      defaultPosition,
     } = useToaster(toRef(props, 'store'), { progress: toRef(props, 'progress') })
     return () =>
       slots.default?.({
         calculateOffset,
+        defaultPosition: defaultPosition.value,
         dismiss,
         getRemaining,
         getProgress,

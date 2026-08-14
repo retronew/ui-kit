@@ -90,12 +90,8 @@ describe(useToasts, () => {
     expect(motion.stackOpacity).toBe(0)
   })
 
-  it('groups toasts fired without a per-toast override under the currently shown position, not a separate default bucket', () => {
-    // `toast-core` caps `max` per distinct `position` value — an unset position
-    // silently drops a toast into its own `'__default__'` bucket, uncoupled from
-    // whatever position is actually being shown, so overflow limits stop being
-    // shared with position-explicit toasts (e.g. from the position picker).
-    const { handleSuccessClick, handleHeroClick, position } = useToasts()
+  it('resolves toasts fired without an explicit position through toastStore.defaultPosition', () => {
+    const { handleSuccessClick, handleHeroClick } = useToasts()
 
     handleSuccessClick()
     handleHeroClick()
@@ -103,21 +99,24 @@ describe(useToasts, () => {
     const toasts = toastStore.getState().toasts
     expect(toasts).toHaveLength(2)
     for (const t of toasts) {
-      expect(t.position).toBe(position.value)
+      expect(t.position).toBe(toastStore.getDefaultPosition())
     }
   })
 
   it('fires a one-off toast at the override position without changing the global default', () => {
-    const { handleSuccessClick, handlePerToastPositionChange, position } = useToasts()
+    const { handleSuccessClick, handlePerToastPositionChange } = useToasts()
+    const defaultPosition = toastStore.getDefaultPosition()
+    expect(defaultPosition).not.toBe('bottom-left')
+
     handlePerToastPositionChange('bottom-left')
 
     // Newest toast is unshifted to the front — see `store.ts`'s `[toast, ...this.toasts]`.
     expect(toastStore.getState().toasts[0]).toMatchObject({ position: 'bottom-left' })
-    expect(position.value).not.toBe('bottom-left')
+    expect(toastStore.getDefaultPosition()).toBe(defaultPosition)
 
     handleSuccessClick()
 
-    expect(toastStore.getState().toasts[0]).toMatchObject({ position: position.value })
+    expect(toastStore.getState().toasts[0]).toMatchObject({ position: defaultPosition })
   })
 
   it('toggles pop motion, updates its code sample, and announces the change', () => {

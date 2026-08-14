@@ -83,8 +83,12 @@ import { ToasterProvider, toViewportOffsetCss } from '@retronew/toast-vue'
 Prefer a composable instead of the component? Use `useToaster()`:
 
 ```ts
-const { toasts, viewportOffset, dismiss, pause, resume } = useToaster()
+const { toasts, viewportOffset, defaultPosition, dismiss, pause, resume } = useToaster()
 ```
+
+`defaultPosition` reactively mirrors the store's fallback `position` for
+toasts created without an explicit one — see `@retronew/toast-core`'s
+`setDefaultPosition()`.
 
 Want a fuller, styled reference implementation — icons, dark mode, action/cancel/dismiss buttons, stack-vs-queue modes — instead of writing one from scratch? Read `apps/toast-vue-demo/src/composables/useToasts.ts` and `apps/toast-vue-demo/src/components/ToastOutlet.vue`/`ToastBar.vue` in this monorepo and adapt them; this package intentionally ships no default styling of its own.
 

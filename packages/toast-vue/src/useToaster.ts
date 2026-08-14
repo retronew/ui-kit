@@ -42,6 +42,7 @@ export interface StackMetrics {
 export interface UseToaster<T> {
   toasts: ShallowRef<readonly Toast<T>[]>
   viewportOffset: ShallowRef<ViewportOffset>
+  defaultPosition: ShallowRef<ToastPosition | undefined>
   dismiss: (id?: string) => boolean
   remove: (id?: string) => boolean
   pause: (id?: string, reason?: ToastPauseReason) => boolean
@@ -66,12 +67,14 @@ export function useToaster<T = VueToastMessage>(
   const initialState = toValue(store).getState()
   const toasts = shallowRef<readonly Toast<T>[]>(initialState.toasts)
   const viewportOffset = shallowRef<ViewportOffset>(initialState.viewportOffset)
+  const defaultPosition = shallowRef<ToastPosition | undefined>(initialState.defaultPosition)
   let layoutSource: readonly Toast<T>[] | undefined
   const layoutCaches = new Map<string, LayoutCache>()
 
   function applyState(state: ToasterState<T>): void {
     toasts.value = state.toasts
     viewportOffset.value = state.viewportOffset
+    defaultPosition.value = state.defaultPosition
   }
 
   const stopWatching = watch(
@@ -158,6 +161,7 @@ export function useToaster<T = VueToastMessage>(
 
   return {
     calculateOffset,
+    defaultPosition,
     dismiss: (id) => currentStore().dismiss(id),
     getProgress: (id) => currentStore().getProgress(id),
     getRemaining: (id) => currentStore().getRemaining(id),
