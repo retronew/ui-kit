@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import HeroSection from './components/HeroSection.vue'
 import AnimationSection from './components/sections/AnimationSection.vue'
 import DedupSection from './components/sections/DedupSection.vue'
+import DismissSection from './components/sections/DismissSection.vue'
 import DurationSection from './components/sections/DurationSection.vue'
 import InstallSection from './components/sections/InstallSection.vue'
 import OffsetSection from './components/sections/OffsetSection.vue'
@@ -32,6 +33,7 @@ const { t } = useI18n()
     <DurationSection />
     <AnimationSection />
     <PopSection />
+    <DismissSection />
     <OffsetSection />
     <DedupSection />
 

@@ -3,6 +3,19 @@ import type { Toast } from '@retronew/toast-vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { useToasts } from '../src/composables/useToasts.ts'
 
+/** Minimal `Toast` fixture — only the fields `resolveSwipeDismiss`/`resolveEscapeDismiss` read. */
+const baseToast: Toast = {
+  createdAt: 0,
+  duration: 4000,
+  id: 't1',
+  message: 'hi',
+  paused: false,
+  stacked: false,
+  status: 'visible',
+  type: 'blank',
+  updatedAt: 0,
+}
+
 describe(useToasts, () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -115,5 +128,98 @@ describe(useToasts, () => {
     expect(popMotion.value).toBe(false)
     expect(sectionCodes.pop).toContain('pop="false"')
     expect(toastStore.getState().toasts[0]).toMatchObject({ message: 'Pop motion → off' })
+  })
+
+  it('resolves pop from a toast’s own meta, falling back to the global toggle', () => {
+    const { resolvePop, handlePopMotionChange } = useToasts()
+
+    expect(resolvePop({ ...baseToast, meta: undefined })).toBe(false)
+    expect(resolvePop({ ...baseToast, meta: { pop: true } })).toBe(true)
+
+    handlePopMotionChange(true)
+    expect(resolvePop({ ...baseToast, meta: undefined })).toBe(true)
+    expect(resolvePop({ ...baseToast, meta: { pop: false } })).toBe(false)
+    handlePopMotionChange(false)
+  })
+
+  it('fires a toast with the opposite pop setting via meta, regardless of the global toggle', () => {
+    const { handlePopOverrideDemo, handlePopMotionChange, popMotion, sectionCodes, resolvePop } =
+      useToasts()
+
+    expect(popMotion.value).toBe(false)
+    handlePopOverrideDemo()
+    const fired = toastStore.getState().toasts[0]!
+    expect(fired).toMatchObject({ meta: { pop: true } })
+    expect(resolvePop(fired)).toBe(true)
+    expect(sectionCodes.pop).toContain('meta: { pop: true }')
+
+    handlePopMotionChange(true)
+    handlePopOverrideDemo()
+    const secondFired = toastStore.getState().toasts[0]!
+    expect(secondFired).toMatchObject({ meta: { pop: false } })
+    handlePopMotionChange(false)
+  })
+
+  it('toggles swipe dismiss independently of escape dismiss, updating the shared code sample', () => {
+    const { handleSwipeDismissChange, swipeDismissEnabled, escapeDismissEnabled, sectionCodes } =
+      useToasts()
+
+    handleSwipeDismissChange(false)
+    expect(swipeDismissEnabled.value).toBe(false)
+    expect(escapeDismissEnabled.value).toBe(true)
+    expect(sectionCodes.dismiss).toContain('swipe-dismiss="false"')
+    expect(sectionCodes.dismiss).toContain('escape-dismiss="true"')
+    expect(toastStore.getState().toasts[0]).toMatchObject({ message: 'Swipe dismiss → off' })
+
+    handleSwipeDismissChange(true)
+    expect(swipeDismissEnabled.value).toBe(true)
+    expect(sectionCodes.dismiss).toContain('swipe-dismiss="true"')
+  })
+
+  it('toggles escape dismiss independently of swipe dismiss, updating the shared code sample', () => {
+    const { handleEscapeDismissChange, escapeDismissEnabled, swipeDismissEnabled, sectionCodes } =
+      useToasts()
+
+    handleEscapeDismissChange(false)
+    expect(escapeDismissEnabled.value).toBe(false)
+    expect(swipeDismissEnabled.value).toBe(true)
+    expect(sectionCodes.dismiss).toContain('escape-dismiss="false"')
+    expect(sectionCodes.dismiss).toContain('swipe-dismiss="true"')
+    expect(toastStore.getState().toasts[0]).toMatchObject({ message: 'Escape dismiss → off' })
+
+    handleEscapeDismissChange(true)
+    expect(escapeDismissEnabled.value).toBe(true)
+    expect(sectionCodes.dismiss).toContain('escape-dismiss="true"')
+  })
+
+  it('resolves swipe/escape dismiss from a toast’s own meta, falling back to the global toggle', () => {
+    const { resolveSwipeDismiss, resolveEscapeDismiss, handleSwipeDismissChange } = useToasts()
+
+    // No meta override: follows the global toggle.
+    const plain: Toast = { ...baseToast, meta: undefined }
+    expect(resolveSwipeDismiss(plain)).toBe(true)
+    expect(resolveEscapeDismiss(plain)).toBe(true)
+
+    // Meta override wins regardless of the global toggle's value.
+    const locked: Toast = { ...baseToast, meta: { escapeDismiss: false, swipeDismiss: false } }
+    expect(resolveSwipeDismiss(locked)).toBe(false)
+    expect(resolveEscapeDismiss(locked)).toBe(false)
+
+    handleSwipeDismissChange(false)
+    expect(resolveSwipeDismiss(plain)).toBe(false)
+    expect(resolveSwipeDismiss({ ...baseToast, meta: { swipeDismiss: true } })).toBe(true)
+    handleSwipeDismissChange(true)
+  })
+
+  it('fires an infinite-duration toast locked against both dismiss gestures via meta', () => {
+    const { handleUndismissableDemo, sectionCodes } = useToasts()
+
+    handleUndismissableDemo()
+
+    expect(toastStore.getState().toasts[0]).toMatchObject({
+      duration: Number.POSITIVE_INFINITY,
+      meta: { escapeDismiss: false, swipeDismiss: false },
+    })
+    expect(sectionCodes.dismiss).toContain('meta: { swipeDismiss: false, escapeDismiss: false }')
   })
 })

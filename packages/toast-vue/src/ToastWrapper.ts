@@ -59,7 +59,8 @@ const SWIPE_FLING_MAX_MS = 320
 /**
  * The single per-toast DOM element: measures its own height for stacking
  * offsets, drives stacking/enter/exit through one `transform`, plays a
- * one-shot shake on error dedup, and supports swipe-to-dismiss.
+ * one-shot shake on error dedup, and supports swipe-to-dismiss (toggle via
+ * `swipeDismiss`) alongside `Escape`-to-dismiss (toggle via `escapeDismiss`).
  */
 export const ToastWrapper = defineComponent({
   name: 'ToastWrapper',
@@ -128,6 +129,19 @@ export const ToastWrapper = defineComponent({
       default: () => toastStore,
       type: Object as PropType<ToastStore>,
     },
+    /**
+     * Enable pointer-drag swipe-to-dismiss. Reactive — flipping to `false`
+     * mid-drag cancels the in-progress gesture and springs the toast back.
+     */
+    swipeDismiss: {
+      default: true,
+      type: Boolean,
+    },
+    /** Enable `Escape`-to-dismiss while the toast is focused. Reactive. */
+    escapeDismiss: {
+      default: true,
+      type: Boolean,
+    },
   },
   setup(props, { slots, emit }) {
     const wrapperRef = ref<HTMLDivElement | null>(null)
@@ -141,6 +155,7 @@ export const ToastWrapper = defineComponent({
     let shakeAnimation: Animation | null = null
 
     // Swipe-to-dismiss: 1:1 pointer tracking past `SWIPE_HYSTERESIS_PX` so taps aren't intercepted.
+    // Gated by the `swipeDismiss` prop (see `onPointerdown`).
     const dragX = ref(0)
     const dragY = ref(0)
     const dragging = ref(false)
@@ -198,6 +213,9 @@ export const ToastWrapper = defineComponent({
     }
 
     function onPointerdown(event: PointerEvent): void {
+      if (!props.swipeDismiss) {
+        return
+      }
       // Left-click only for a mouse; any touch/pen point is fine.
       if (event.pointerType === 'mouse' && event.button !== 0) {
         return
@@ -339,9 +357,11 @@ export const ToastWrapper = defineComponent({
       endDrag(event.timeStamp)
     }
 
-    function onPointercancel(event: PointerEvent): void {
-      if (event.pointerId !== pointerId) {
-        return
+    /** Resets in-progress drag state without emitting a dismiss. */
+    function cancelDrag(): void {
+      const capturedPointer = pointerId
+      if (capturedPointer !== null && wrapperRef.value?.hasPointerCapture?.(capturedPointer)) {
+        wrapperRef.value.releasePointerCapture(capturedPointer)
       }
       dragX.value = 0
       dragY.value = 0
@@ -350,6 +370,22 @@ export const ToastWrapper = defineComponent({
       pointerId = null
       clearClickSuppression()
     }
+
+    function onPointercancel(event: PointerEvent): void {
+      if (event.pointerId !== pointerId) {
+        return
+      }
+      cancelDrag()
+    }
+
+    // `swipeDismiss` toggled off mid-drag: spring back instead of leaving the
+    // gesture half-committed with no way to complete or cancel it.
+    watch(
+      () => props.swipeDismiss,
+      (enabled) => {
+        if (!enabled && dragging.value) cancelDrag()
+      },
+    )
 
     function onLostPointerCapture(event: PointerEvent): void {
       if (event.pointerId === pointerId) endDrag(event.timeStamp)
@@ -440,8 +476,9 @@ export const ToastWrapper = defineComponent({
       const originX = props.centerAlign || isCenter ? 'center' : isRight ? 'right' : 'left'
       const originY = props.centerAlign ? 'center' : isTop ? 'top' : 'bottom'
       const transformOrigin = `${originX} ${originY}`
-      // 'none' so a touch drag never competes with native panning.
-      const touchAction = isCenter ? 'pan-x' : 'none'
+      // 'none' so a touch drag never competes with native panning; skipped
+      // entirely when swipe-to-dismiss is off, so touch scrolling behaves normally.
+      const touchAction = !props.swipeDismiss ? 'auto' : isCenter ? 'pan-x' : 'none'
 
       if (reduceMotion.value) {
         const opacity = isVisible ? props.stackOpacity : 0
@@ -501,7 +538,7 @@ export const ToastWrapper = defineComponent({
     })
 
     function onKeydown(event: KeyboardEvent): void {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && props.escapeDismiss) {
         // Let page-level Escape handlers (e.g. modals) still see the event.
         emit('dismiss-request', props.id)
         restoreFocus()

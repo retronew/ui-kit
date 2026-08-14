@@ -42,6 +42,7 @@ const sectionCodes = reactive({
   duration: `toast('Hello', { duration: 3000 })`,
   animation: `:root {\n  --toast-motion-duration: 300ms;\n}`,
   pop: `<ToastWrapper :pop="false" ... />`,
+  dismiss: `<ToastWrapper :swipe-dismiss="true" :escape-dismiss="true" ... />`,
   offset: `toastStore.setViewportOffset(16)`,
   dedup: `toast.error('Network request failed')\n// identical errors shake & reset, never stack`,
 })
@@ -86,12 +87,78 @@ function handleMotionDurationChange(d: number) {
 
 // `pop` opts a toast into the react-hot-toast-style scale pop instead of the default subtle slide + fade.
 // Shares `--toast-motion-duration`/`motionDuration` with the default motion — only the distance/opacity/easing differ.
+// Global default; a single toast can override via `meta.pop` (see `resolvePop`),
+// same convention as `swipeDismiss`/`escapeDismiss` below.
 const popMotion = ref(false)
 
 function handlePopMotionChange(enabled: boolean) {
   popMotion.value = enabled
   sectionCodes.pop = `<ToastWrapper :pop="${enabled}" ... />`
   toast(`Pop motion → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+}
+
+/** Per-toast override for `pop`, read from `meta`. Falls back to the global toggle above. */
+function resolvePop(t: Toast): boolean {
+  const override = t.meta?.pop
+  return typeof override === 'boolean' ? override : popMotion.value
+}
+
+/** Fires a toast with the opposite of the current global default, proving `meta.pop` wins regardless of the toggle above. */
+function handlePopOverrideDemo() {
+  const override = !popMotion.value
+  sectionCodes.pop = `toast('...', { meta: { pop: ${override} } })\n// overrides the global toggle above, for just this one toast`
+  toast(`This one always uses pop: ${override} — try the toggle above, it won't change`, {
+    meta: { pop: override },
+    position: resolvedPosition(),
+  })
+}
+
+// Global defaults for the two dismiss gestures `<ToastWrapper>` wires up itself.
+// A single toast can override either one via `meta.swipeDismiss`/`meta.escapeDismiss`
+// (see `resolveSwipeDismiss`/`resolveEscapeDismiss`) — these refs are only the
+// fallback used when a toast doesn't specify its own value.
+const swipeDismissEnabled = ref(true)
+const escapeDismissEnabled = ref(true)
+
+function syncDismissCode() {
+  sectionCodes.dismiss = `<ToastWrapper :swipe-dismiss="${swipeDismissEnabled.value}" :escape-dismiss="${escapeDismissEnabled.value}" ... />`
+}
+
+function handleSwipeDismissChange(enabled: boolean) {
+  swipeDismissEnabled.value = enabled
+  syncDismissCode()
+  toast(`Swipe dismiss → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+}
+
+function handleEscapeDismissChange(enabled: boolean) {
+  escapeDismissEnabled.value = enabled
+  syncDismissCode()
+  toast(`Escape dismiss → ${enabled ? 'on' : 'off'}`, { position: resolvedPosition() })
+}
+
+/**
+ * Per-toast override for `swipeDismiss`, read from `meta` (set at `toast()`
+ * call time — e.g. `toast('msg', { meta: { swipeDismiss: false } })`).
+ * Falls back to the global toggle above when the toast doesn't specify one.
+ */
+function resolveSwipeDismiss(t: Toast): boolean {
+  const override = t.meta?.swipeDismiss
+  return typeof override === 'boolean' ? override : swipeDismissEnabled.value
+}
+
+/** Per-toast override for `escapeDismiss`, same convention as `resolveSwipeDismiss`. */
+function resolveEscapeDismiss(t: Toast): boolean {
+  const override = t.meta?.escapeDismiss
+  return typeof override === 'boolean' ? override : escapeDismissEnabled.value
+}
+
+function handleUndismissableDemo() {
+  sectionCodes.dismiss = `toast('...', { meta: { swipeDismiss: false, escapeDismiss: false } })\n// overrides the global toggles above, for just this one toast`
+  toast('Cannot swipe or Escape this one — only the button below closes it', {
+    duration: Number.POSITIVE_INFINITY,
+    meta: { escapeDismiss: false, swipeDismiss: false },
+    position: resolvedPosition(),
+  })
 }
 
 // The gap between the toast stack and the screen edge is owned by toast-core; exposed here as `inset`.
@@ -662,6 +729,15 @@ export function useToasts() {
     handleMotionDurationChange,
     popMotion,
     handlePopMotionChange,
+    resolvePop,
+    handlePopOverrideDemo,
+    swipeDismissEnabled,
+    escapeDismissEnabled,
+    handleSwipeDismissChange,
+    handleEscapeDismissChange,
+    resolveSwipeDismiss,
+    resolveEscapeDismiss,
+    handleUndismissableDemo,
     offsetPresets,
     formatOffset,
     handleOffsetChange,
