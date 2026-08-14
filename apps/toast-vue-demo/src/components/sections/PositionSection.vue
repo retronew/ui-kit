@@ -8,7 +8,7 @@ const { t } = useI18n()
 const {
   position,
   positions,
-  perToastPosition,
+  lastOverridePosition,
   formatPositionName,
   handlePositionChange,
   handlePerToastPositionChange,
@@ -18,36 +18,39 @@ const {
 
 <template>
   <DemoSection :title="t('sections.position.title')" :description="t('sections.position.desc')">
-    <template #buttons>
-      <button
-        v-for="pos in positions"
-        :key="pos"
-        class="demo-btn"
-        :data-active="position === pos"
-        @click="handlePositionChange(pos)"
-      >
-        {{ formatPositionName(pos) }}
-      </button>
-      <span class="inline-flex basis-full items-center px-0.5 text-xs font-medium text-fg-muted">{{
+    <div class="mt-3.5">
+      <span class="inline-flex items-center px-0.5 text-xs font-medium text-fg-muted">{{
+        t('position.default')
+      }}</span>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button
+          v-for="pos in positions"
+          :key="pos"
+          class="demo-btn"
+          :data-active="position === pos"
+          @click="handlePositionChange(pos)"
+        >
+          {{ formatPositionName(pos) }}
+        </button>
+      </div>
+      <CodeBlock :code="sectionCodes.position" />
+    </div>
+    <div class="mt-5">
+      <span class="inline-flex items-center px-0.5 text-xs font-medium text-fg-muted">{{
         t('position.override')
       }}</span>
-      <button
-        class="demo-btn"
-        :data-active="perToastPosition === null"
-        @click="handlePerToastPositionChange(null)"
-      >
-        {{ t('position.useGlobal') }}
-      </button>
-      <button
-        v-for="pos in positions"
-        :key="`override-${pos}`"
-        class="demo-btn"
-        :data-active="perToastPosition === pos"
-        @click="handlePerToastPositionChange(pos)"
-      >
-        {{ formatPositionName(pos) }}
-      </button>
-    </template>
-    <template #code><CodeBlock :code="sectionCodes.position" /></template>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button
+          v-for="pos in positions"
+          :key="`override-${pos}`"
+          class="demo-btn"
+          :data-active="lastOverridePosition === pos"
+          @click="handlePerToastPositionChange(pos)"
+        >
+          {{ formatPositionName(pos) }}
+        </button>
+      </div>
+      <CodeBlock :code="sectionCodes.positionOverride" />
+    </div>
   </DemoSection>
 </template>

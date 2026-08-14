@@ -37,7 +37,8 @@ function clearScheduledTimers(): void {
 
 const sectionCodes = reactive({
   types: `toast.success('Operation completed successfully!')`,
-  position: `toast('Hello', { position: 'top-center' })`,
+  position: `toast(msg, { position: 'top-center' }) // pass this to every call below`,
+  positionOverride: `toast('Hello', { position: 'bottom-left' })`,
   stacking: `toastStore.setMax(3)`,
   duration: `toast('Hello', { duration: 3000 })`,
   animation: `:root {\n  --toast-motion-duration: 300ms;\n}`,
@@ -56,7 +57,9 @@ const positions: ToastPosition[] = [
   'bottom-right',
 ]
 const position = ref<ToastPosition>('top-center')
-const perToastPosition = ref<ToastPosition | null>(null)
+// Highlights the last override button clicked — purely cosmetic, never feeds into
+// resolvedPosition(). An override is a one-off `{ position }` argument, not a mode.
+const lastOverridePosition = ref<ToastPosition | null>(null)
 const direction = ref(true)
 
 function formatPositionName(pos: string) {
@@ -330,7 +333,7 @@ function handlePointerLeave(
 // per distinct `position` value, so leaving it unset here would silently drop the toast
 // into its own `'__default__'` bucket, uncoupled from whatever position is actually shown.
 function resolvedPosition(): ToastPosition {
-  return perToastPosition.value ?? position.value
+  return position.value
 }
 
 function toastOptions() {
@@ -630,17 +633,16 @@ function handleDurationChange(d: number) {
 
 function handlePositionChange(pos: ToastPosition) {
   position.value = pos
-  sectionCodes.position = `toast('Hello', { position: '${pos}' })`
+  // toast-core has no "default position" setting — every call takes its own `position`.
+  // This is this demo's own convenience: pass the same value to every toast() below.
+  sectionCodes.position = `toast(msg, { position: '${pos}' }) // pass this to every call below`
   toast('Hello', { position: pos, duration: duration.value })
 }
 
-function handlePerToastPositionChange(pos: ToastPosition | null) {
-  perToastPosition.value = pos
-  sectionCodes.position =
-    pos === null
-      ? `toast('Hello') // uses the global position`
-      : `toast('Hello', { position: '${pos}' })`
-  toast('Hello', toastOptions())
+function handlePerToastPositionChange(pos: ToastPosition) {
+  lastOverridePosition.value = pos
+  sectionCodes.positionOverride = `toast('Hello', { position: '${pos}' })`
+  toast('Hello', { position: pos, duration: duration.value })
 }
 
 function handleDirectionChange(newDirection: boolean) {
@@ -717,7 +719,7 @@ export function useToasts() {
     sectionCodes,
     positions,
     position,
-    perToastPosition,
+    lastOverridePosition,
     direction,
     formatPositionName,
     durationPresets,
