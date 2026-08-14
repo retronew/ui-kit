@@ -3,8 +3,9 @@ import { join } from 'node:path'
 
 const budgets = [
   { label: 'toast-core JavaScript', path: 'packages/toast-core/dist/index.mjs', bytes: 22 * 1024 },
-  // 23 KiB (up from 22): the `pop` entrance/exit preset on <ToastWrapper> added ~1 KiB.
-  { label: 'toast-vue JavaScript', path: 'packages/toast-vue/dist/index.mjs', bytes: 23 * 1024 },
+  // 24 KiB (up from 23): the `swipeDismiss`/`escapeDismiss` props on <ToastWrapper>
+  // (drag-cancel handling + prop-toggle watcher) added a few hundred bytes.
+  { label: 'toast-vue JavaScript', path: 'packages/toast-vue/dist/index.mjs', bytes: 24 * 1024 },
 ]
 
 async function findAsset(directory, extension) {
