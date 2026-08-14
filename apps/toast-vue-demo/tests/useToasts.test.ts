@@ -145,21 +145,22 @@ describe(useToasts, () => {
     handlePopMotionChange(false)
   })
 
-  it('fires a toast with the opposite pop setting via meta, regardless of the global toggle', () => {
+  it('fires a toast with an explicit pop override via meta, regardless of the global toggle', () => {
     const { handlePopOverrideDemo, handlePopMotionChange, popMotion, sectionCodes, resolvePop } =
       useToasts()
 
     expect(popMotion.value).toBe(false)
-    handlePopOverrideDemo()
+    handlePopOverrideDemo(true)
     const fired = toastStore.getState().toasts[0]!
     expect(fired).toMatchObject({ meta: { pop: true } })
     expect(resolvePop(fired)).toBe(true)
     expect(sectionCodes.popOverride).toContain('meta: { pop: true }')
 
     handlePopMotionChange(true)
-    handlePopOverrideDemo()
+    handlePopOverrideDemo(false)
     const secondFired = toastStore.getState().toasts[0]!
     expect(secondFired).toMatchObject({ meta: { pop: false } })
+    expect(sectionCodes.popOverride).toContain('meta: { pop: false }')
     handlePopMotionChange(false)
   })
 
@@ -214,17 +215,27 @@ describe(useToasts, () => {
     handleSwipeDismissChange(true)
   })
 
-  it('fires an infinite-duration toast locked against both dismiss gestures via meta', () => {
-    const { handleUndismissableDemo, sectionCodes } = useToasts()
+  it('fires an infinite-duration toast that ignores swipe via meta, independent of escape', () => {
+    const { handleSwipeOverrideDemo, sectionCodes } = useToasts()
 
-    handleUndismissableDemo()
+    handleSwipeOverrideDemo()
 
     expect(toastStore.getState().toasts[0]).toMatchObject({
       duration: Number.POSITIVE_INFINITY,
-      meta: { escapeDismiss: false, swipeDismiss: false },
+      meta: { swipeDismiss: false },
     })
-    expect(sectionCodes.dismissOverride).toContain(
-      'meta: { swipeDismiss: false, escapeDismiss: false }',
-    )
+    expect(sectionCodes.dismissOverride).toContain('meta: { swipeDismiss: false }')
+  })
+
+  it('fires an infinite-duration toast that ignores Escape via meta, independent of swipe', () => {
+    const { handleEscapeOverrideDemo, sectionCodes } = useToasts()
+
+    handleEscapeOverrideDemo()
+
+    expect(toastStore.getState().toasts[0]).toMatchObject({
+      duration: Number.POSITIVE_INFINITY,
+      meta: { escapeDismiss: false },
+    })
+    expect(sectionCodes.dismissOverride).toContain('meta: { escapeDismiss: false }')
   })
 })
