@@ -5,7 +5,7 @@ import CodeBlock from '../CodeBlock.vue'
 import DemoSection from '../DemoSection.vue'
 
 const { t } = useI18n()
-const { popMotion, handlePopMotionChange, sectionCodes } = useToasts()
+const { popMotion, handlePopMotionChange, handlePopOverrideDemo, sectionCodes } = useToasts()
 </script>
 
 <template>
@@ -16,6 +16,12 @@ const { popMotion, handlePopMotionChange, sectionCodes } = useToasts()
       </button>
       <button class="demo-btn" :data-active="popMotion" @click="handlePopMotionChange(true)">
         {{ t('sections.pop.on') }}
+      </button>
+      <span class="inline-flex basis-full items-center px-0.5 text-xs font-medium text-fg-muted">{{
+        t('sections.pop.perToast')
+      }}</span>
+      <button class="demo-btn" @click="handlePopOverrideDemo">
+        {{ t('sections.pop.perToastDemo') }}
       </button>
     </template>
     <template #code><CodeBlock :code="sectionCodes.pop" /></template>

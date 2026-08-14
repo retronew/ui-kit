@@ -103,3 +103,118 @@ test('dismisses a toast with an outward touch swipe', async ({ page }, testInfo)
 
   await expect(page.locator('[data-toast-wrapper][data-toast-status="visible"]')).toHaveCount(0)
 })
+
+test('ignores a swipe once swipe-dismiss is turned off, and resumes once back on', async ({
+  page,
+}) => {
+  const dismissSection = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Dismiss gestures' }),
+  })
+  // Toggling fires its own announcement toast, so scope every later
+  // assertion to this toast's own id rather than a plain `.first()`.
+  await dismissSection.getByRole('button', { name: 'Off' }).first().click()
+
+  await page.getByRole('button', { name: 'Render a toast' }).click()
+  const id = await page.locator('[data-toast-wrapper]').first().getAttribute('data-toast-wrapper')
+  const testToast = page.locator(`[data-toast-wrapper="${id}"]`)
+  await expect(testToast).toBeVisible()
+  const box = await testToast.boundingBox()
+  expect(box).not.toBeNull()
+  if (!box) return
+  const x = box.x + box.width / 2
+  const startY = box.y + box.height / 2
+
+  await testToast.dispatchEvent('pointerdown', {
+    button: 0,
+    clientX: x,
+    clientY: startY,
+    pointerId: 1,
+    pointerType: 'touch',
+  })
+  await testToast.dispatchEvent('pointermove', { clientX: x, clientY: startY - 120, pointerId: 1 })
+  await testToast.dispatchEvent('pointerup', { clientX: x, clientY: startY - 120, pointerId: 1 })
+
+  await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
+  await expect(testToast).toHaveCSS('touch-action', 'auto')
+
+  await dismissSection.getByRole('button', { name: 'On' }).first().click()
+  await testToast.dispatchEvent('pointerdown', {
+    button: 0,
+    clientX: x,
+    clientY: startY,
+    pointerId: 2,
+    pointerType: 'touch',
+  })
+  // Two incremental moves (matching the baseline swipe test) give the
+  // gesture a measurable velocity instead of one instantaneous jump.
+  await testToast.dispatchEvent('pointermove', { clientX: x, clientY: startY - 45, pointerId: 2 })
+  await testToast.dispatchEvent('pointermove', { clientX: x, clientY: startY - 120, pointerId: 2 })
+  await testToast.dispatchEvent('pointerup', { clientX: x, clientY: startY - 120, pointerId: 2 })
+
+  await expect(testToast).toHaveCount(0)
+})
+
+test('ignores Escape once escape-dismiss is turned off, and resumes once back on', async ({
+  page,
+}) => {
+  const dismissSection = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Dismiss gestures' }),
+  })
+  await dismissSection.getByRole('button', { name: 'Off' }).nth(1).click()
+
+  const trigger = page.getByRole('button', { name: 'Render a toast' })
+  await trigger.click()
+  await page.keyboard.press('Alt+t')
+  // Alt+T focuses the frontmost toast — the one just rendered, not the
+  // toggle's own announcement toast (older, so no longer frontmost).
+  const testToast = page.locator('[data-toast-wrapper]').first()
+  await expect(testToast).toBeFocused()
+  const id = await testToast.getAttribute('data-toast-wrapper')
+  const scopedToast = page.locator(`[data-toast-wrapper="${id}"]`)
+
+  await page.keyboard.press('Escape')
+  await expect(scopedToast).toHaveAttribute('data-toast-status', 'visible')
+
+  await dismissSection.getByRole('button', { name: 'On' }).nth(1).click()
+  await scopedToast.focus()
+  await page.keyboard.press('Escape')
+  await expect(scopedToast).toHaveCount(0)
+})
+
+test('locks an individual toast against both dismiss gestures via meta, independent of the global toggles', async ({
+  page,
+}) => {
+  const dismissSection = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Dismiss gestures' }),
+  })
+  // Global toggles stay at their default `on` — the per-toast override should
+  // win regardless.
+  await dismissSection.getByRole('button', { name: 'Fire an undismissable toast' }).click()
+  const testToast = page.locator('[data-toast-wrapper]').first()
+  await expect(testToast).toBeVisible()
+
+  await testToast.focus()
+  await page.keyboard.press('Escape')
+  await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
+
+  const box = await testToast.boundingBox()
+  expect(box).not.toBeNull()
+  if (!box) return
+  const x = box.x + box.width / 2
+  const startY = box.y + box.height / 2
+  await testToast.dispatchEvent('pointerdown', {
+    button: 0,
+    clientX: x,
+    clientY: startY,
+    pointerId: 1,
+    pointerType: 'touch',
+  })
+  await testToast.dispatchEvent('pointermove', { clientX: x, clientY: startY - 45, pointerId: 1 })
+  await testToast.dispatchEvent('pointermove', { clientX: x, clientY: startY - 120, pointerId: 1 })
+  await testToast.dispatchEvent('pointerup', { clientX: x, clientY: startY - 120, pointerId: 1 })
+  await expect(testToast).toHaveAttribute('data-toast-status', 'visible')
+
+  // Only the toast's own dismiss button can close it.
+  await testToast.getByRole('button', { name: 'Dismiss' }).click()
+  await expect(testToast).toHaveCount(0)
+})

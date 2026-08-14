@@ -560,6 +560,90 @@ describe(ToastWrapper, () => {
     expect(wrapper.emitted('dismiss-request')).toBeUndefined()
   })
 
+  it('ignores Escape when escapeDismiss is false', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, escapeDismiss: false },
+      slots: { default: 'Oops' },
+    })
+    await nextTick()
+
+    await wrapper.trigger('keydown', { key: 'Escape' })
+
+    expect(wrapper.emitted('dismiss-request')).toBeUndefined()
+  })
+
+  it('resumes responding to Escape once escapeDismiss is toggled back on', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, escapeDismiss: false },
+      slots: { default: 'Oops' },
+    })
+    await nextTick()
+    await wrapper.setProps({ escapeDismiss: true })
+
+    await wrapper.trigger('keydown', { key: 'Escape' })
+
+    expect(wrapper.emitted('dismiss-request')).toEqual([['t1']])
+  })
+
+  it('ignores pointer gestures when swipeDismiss is false', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: {
+        id: 't1',
+        status: 'visible',
+        store,
+        toastPosition: 'top-right',
+        swipeDismiss: false,
+      },
+      slots: { default: 'Oops' },
+    })
+    await nextTick()
+
+    firePointerEvent(wrapper.element, 'pointerdown', {
+      clientX: 0,
+      clientY: 0,
+      pointerId: 1,
+      pointerType: 'touch',
+    })
+    firePointerEvent(wrapper.element, 'pointermove', { clientX: 40, clientY: 0, pointerId: 1 })
+    firePointerEvent(wrapper.element, 'pointermove', { clientX: 120, clientY: 0, pointerId: 1 })
+    firePointerEvent(wrapper.element, 'pointerup', { clientX: 120, clientY: 0, pointerId: 1 })
+    await nextTick()
+
+    expect(animateMock).not.toHaveBeenCalled()
+    expect(wrapper.emitted('dismiss-request')).toBeUndefined()
+    expect(wrapper.attributes('style')).toContain('touch-action: auto')
+  })
+
+  it('springs a mid-drag gesture back to rest when swipeDismiss is toggled off', async () => {
+    const { store } = createToaster()
+    const wrapper = mount(ToastWrapper, {
+      props: { id: 't1', status: 'visible', store, toastPosition: 'top-right', swipeDismiss: true },
+      slots: { default: 'Oops' },
+    })
+    await nextTick()
+
+    firePointerEvent(wrapper.element, 'pointerdown', {
+      clientX: 0,
+      clientY: 0,
+      pointerId: 1,
+      pointerType: 'touch',
+    })
+    firePointerEvent(wrapper.element, 'pointermove', { clientX: 40, clientY: 0, pointerId: 1 })
+    await nextTick()
+    expect(wrapper.attributes('style')).toContain('translateX(40px)')
+
+    await wrapper.setProps({ swipeDismiss: false })
+    // Committing the now-cancelled gesture should not dismiss.
+    firePointerEvent(wrapper.element, 'pointerup', { clientX: 120, clientY: 0, pointerId: 1 })
+    await nextTick()
+
+    expect(wrapper.attributes('style')).toContain('translateX(0px)')
+    expect(wrapper.emitted('dismiss-request')).toBeUndefined()
+  })
+
   it('commits and emits dismiss-request after dragging past the distance threshold', async () => {
     const finished = Promise.resolve()
     animateMock.mockReturnValue({ cancel: vi.fn(), finished })

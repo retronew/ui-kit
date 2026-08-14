@@ -72,7 +72,7 @@ Stacking offset and enter/exit live on one `<ToastWrapper>` element with one com
 
 **`centerAlign` prop** (default `false`): controls where the stack-depth `scale` (piled-up background cards) anchors. Off, it anchors to the edge implied by `toastPosition` — correct when your toasts have variable width (a corner toast's content-fit width), since a center anchor would make its outer edge visibly recede as it scales down. On, it anchors to center, matching Sonner's own model — but Sonner gets away with center anchoring because **all its toasts share one fixed width**; if your toasts don't too, turn this on and you'll still see misaligned edges between piled cards of different widths, just for a different reason (mismatched centers instead of mismatched edges). Pick one: either leave this off with variable-width content, or turn it on *and* give every toast the same width.
 
-**`pop` prop** (default `false`): swaps the default subtle slide + fade for a more pronounced entrance/exit — a bigger scale pop (`0.6 → 1`), asymmetric enter/exit distance and opacity, and distinct enter/exit easing curves (not mirror images of each other). `transform`/`opacity` duration still reads `--toast-motion-duration`, same as the default motion, so one speed control governs both; `filter` (the blur) intentionally runs 1.4x longer so it stays legible against the bigger, faster motion, and defaults to a stronger `6px` (vs. the default motion's `2px`) via the same `--toast-motion-blur` custom property. Toggle it per-instance from your outlet (e.g. `:pop="popMotion"` bound to a ref) — it's not global state.
+**`pop` prop** (default `false`): swaps the default subtle slide + fade for a more pronounced entrance/exit — a bigger scale pop (`0.6 → 1`), asymmetric enter/exit distance and opacity, and distinct enter/exit easing curves (not mirror images of each other). `transform`/`opacity` duration still reads `--toast-motion-duration`, same as the default motion, so one speed control governs both; `filter` (the blur) intentionally runs 1.4x longer so it stays legible against the bigger, faster motion, and defaults to a stronger `6px` (vs. the default motion's `2px`) via the same `--toast-motion-blur` custom property. Like `swipeDismiss`/`escapeDismiss` below, it's a `<ToastWrapper>` prop, not a `Toast` field — bind a single ref for a global default (`:pop="popMotion"`), or read `t.meta?.pop ?? popMotion.value` per instance for a per-toast override set at `toast()` call time.
 
 ## `useToaster()` — the composable form
 
@@ -138,9 +138,26 @@ The fling-out speed on commit continues at roughly the release velocity (clamped
 
 Corner toasts use `touch-action: none` because they support both outward horizontal and vertical swipes. Center toasts use `touch-action: pan-x`, preserving native horizontal panning while reserving their vertical dismiss gesture. Do not override this on the content root.
 
+**`swipeDismiss` prop** (default `true`): turns the pointer gesture off when `false` — `touch-action` falls back to `auto` so native scrolling/panning works normally. Reactive: flipping it off mid-drag springs the toast back to rest instead of leaving the gesture half-committed. Use this for toasts that must stay put (e.g. one requiring an explicit button click) or where swipe would conflict with the surrounding page's own gestures.
+
 ## Keyboard accessibility
 
 `<ToastWrapper>` is `tabindex="0"` and emits `dismiss-request` on `Escape` — wire `@dismiss-request="dismiss(t.id)"` next to `@height-update`. This is the keyboard-only equivalent of hover-to-pause/click-to-dismiss: a mouse user can hover and click; a keyboard user needs to Tab to a toast and press Escape instead.
+
+**`escapeDismiss` prop** (default `true`): turns off the `Escape` handler when `false`. Reactive, same as `swipeDismiss`. Turning both off means the only way to dismiss that toast is whatever action/cancel button or click handler you render inside it — make sure one exists, or the toast becomes undismissable.
+
+**Global vs. per-toast**: `swipeDismiss`/`escapeDismiss` are `<ToastWrapper>` props, not `ToastOptions` fields — they don't live on the `Toast` record, so whether they're "global" or "per-toast" is entirely up to what you bind in your outlet. Binding a single ref to every instance (`:swipe-dismiss="swipeDismissEnabled"`) makes it global. For a per-toast override set at `toast()` call time, read it out of `meta` (the field `toast-core` already reserves for arbitrary user data) with the ref as fallback:
+
+```ts
+// outlet
+:swipe-dismiss="t.meta?.swipeDismiss ?? swipeDismissEnabled"
+:escape-dismiss="t.meta?.escapeDismiss ?? escapeDismissEnabled"
+
+// call site
+toast('Cannot be swiped away', { meta: { swipeDismiss: false } })
+```
+
+Don't add `swipeDismiss`/`escapeDismiss` to `ToastOptions` in `toast-core` itself — they're a Vue-side gesture detail with no effect on store/stacking logic (unlike `position`, which core needs for grouping), so `meta` is the right boundary, not a new core field.
 
 `useToastHotkey({ keys? })` is a separate composable (call it once, e.g. alongside your outlet) that focuses the frontmost `[data-toast-wrapper]` element on a global combo — default `Alt+T`, matching Sonner's `hotkey`. It's the on-ramp: without it, a keyboard user has no way to discover or reach the toast stack at all short of tabbing through the whole page.
 

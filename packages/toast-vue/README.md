@@ -14,7 +14,7 @@ rendering is yours. Built on the framework-agnostic
 
 - 🎯 **Renderless** — `<ToasterProvider>` outlet + `useToaster()` composable; you own all markup and CSS
 - 🧲 **One-transform motion** — stacking offset, per-depth scale, and enter/exit all live on a single `<ToastWrapper>` `transform`/`transition`
-- 🫳 **Swipe-to-dismiss** — 1:1 pointer tracking with velocity-based commit and a Web Animations fling
+- 🫳 **Swipe-to-dismiss** — 1:1 pointer tracking with velocity-based commit and a Web Animations fling; toggle live via `swipeDismiss`/`escapeDismiss` props
 - 🫨 **Shake-on-dedup** — a visual nudge when a duplicate error re-emphasizes instead of stacking
 - 🎛️ **Two motion presets** — a subtle slide + fade by default, or opt into a bigger `pop` entrance/exit
 - ⌨️ **Keyboard accessible** — Tab to reach a toast, `Escape` to dismiss, focus restored on close
