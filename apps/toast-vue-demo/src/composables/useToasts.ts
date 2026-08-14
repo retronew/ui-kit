@@ -40,10 +40,13 @@ const sectionCodes = reactive({
   position: `toastStore.setDefaultPosition('top-center')`,
   positionOverride: `toast('Hello', { position: 'bottom-left' })`,
   stacking: `toastStore.setMax(3)`,
+  stackingDirection: `calculateOffset(toast, { reverseOrder: true })`,
   duration: `toast('Hello', { duration: 3000 })`,
   animation: `:root {\n  --toast-motion-duration: 300ms;\n}`,
   pop: `<ToastWrapper :pop="false" ... />`,
+  popOverride: `toast('...', { meta: { pop: true } })`,
   dismiss: `<ToastWrapper :swipe-dismiss="true" :escape-dismiss="true" ... />`,
+  dismissOverride: `toast('...', { meta: { swipeDismiss: false, escapeDismiss: false } })`,
   offset: `toastStore.setViewportOffset(16)`,
   dedup: `toast.error('Network request failed')\n// identical errors shake & reset, never stack`,
 })
@@ -111,7 +114,7 @@ function resolvePop(t: Toast): boolean {
 /** Fires a toast with the opposite of the current global default, proving `meta.pop` wins regardless of the toggle above. */
 function handlePopOverrideDemo() {
   const override = !popMotion.value
-  sectionCodes.pop = `toast('...', { meta: { pop: ${override} } })\n// overrides the global toggle above, for just this one toast`
+  sectionCodes.popOverride = `toast('...', { meta: { pop: ${override} } })`
   toast(`This one always uses pop: ${override} — try the toggle above, it won't change`, {
     meta: { pop: override },
   })
@@ -157,7 +160,7 @@ function resolveEscapeDismiss(t: Toast): boolean {
 }
 
 function handleUndismissableDemo() {
-  sectionCodes.dismiss = `toast('...', { meta: { swipeDismiss: false, escapeDismiss: false } })\n// overrides the global toggles above, for just this one toast`
+  sectionCodes.dismissOverride = `toast('...', { meta: { swipeDismiss: false, escapeDismiss: false } })`
   toast('Cannot swipe or Escape this one — only the button below closes it', {
     duration: Number.POSITIVE_INFINITY,
     meta: { escapeDismiss: false, swipeDismiss: false },
@@ -640,7 +643,7 @@ function handlePerToastPositionChange(pos: ToastPosition) {
 
 function handleDirectionChange(newDirection: boolean) {
   direction.value = newDirection
-  sectionCodes.stacking = `calculateOffset(toast, { reverseOrder: ${newDirection} })`
+  sectionCodes.stackingDirection = `calculateOffset(toast, { reverseOrder: ${newDirection} })`
   toast(`Stack direction → ${newDirection ? 'ltr' : 'rtl'}`)
 }
 

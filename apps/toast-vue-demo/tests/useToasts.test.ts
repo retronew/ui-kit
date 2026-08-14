@@ -154,7 +154,7 @@ describe(useToasts, () => {
     const fired = toastStore.getState().toasts[0]!
     expect(fired).toMatchObject({ meta: { pop: true } })
     expect(resolvePop(fired)).toBe(true)
-    expect(sectionCodes.pop).toContain('meta: { pop: true }')
+    expect(sectionCodes.popOverride).toContain('meta: { pop: true }')
 
     handlePopMotionChange(true)
     handlePopOverrideDemo()
@@ -223,6 +223,8 @@ describe(useToasts, () => {
       duration: Number.POSITIVE_INFINITY,
       meta: { escapeDismiss: false, swipeDismiss: false },
     })
-    expect(sectionCodes.dismiss).toContain('meta: { swipeDismiss: false, escapeDismiss: false }')
+    expect(sectionCodes.dismissOverride).toContain(
+      'meta: { swipeDismiss: false, escapeDismiss: false }',
+    )
   })
 })

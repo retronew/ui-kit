@@ -10,20 +10,25 @@ const { popMotion, handlePopMotionChange, handlePopOverrideDemo, sectionCodes } 
 
 <template>
   <DemoSection :title="t('sections.pop.title')" :description="t('sections.pop.desc')">
-    <template #buttons>
+    <div class="mt-3.5 flex flex-wrap gap-2">
       <button class="demo-btn" :data-active="!popMotion" @click="handlePopMotionChange(false)">
         {{ t('sections.pop.off') }}
       </button>
       <button class="demo-btn" :data-active="popMotion" @click="handlePopMotionChange(true)">
         {{ t('sections.pop.on') }}
       </button>
-      <span class="inline-flex basis-full items-center px-0.5 text-xs font-medium text-fg-muted">{{
+    </div>
+    <CodeBlock :code="sectionCodes.pop" />
+    <div class="mt-5">
+      <span class="inline-flex items-center px-0.5 text-xs font-medium text-fg-muted">{{
         t('sections.pop.perToast')
       }}</span>
-      <button class="demo-btn" @click="handlePopOverrideDemo">
-        {{ t('sections.pop.perToastDemo') }}
-      </button>
-    </template>
-    <template #code><CodeBlock :code="sectionCodes.pop" /></template>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button class="demo-btn" @click="handlePopOverrideDemo">
+          {{ t('sections.pop.perToastDemo') }}
+        </button>
+      </div>
+      <CodeBlock :code="sectionCodes.popOverride" />
+    </div>
   </DemoSection>
 </template>
