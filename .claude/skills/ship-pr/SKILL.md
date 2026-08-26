@@ -64,7 +64,7 @@ disable-model-invocation: false
    )"
    ```
 
-6. **Watch CI** (use the Monitor tool, not manual polling):
+6. **Watch CI** (use the Monitor tool, not manual polling). Use `gh`'s **built-in** `--jq` flag (bundled, no external binary) for every JSON query below — do **not** pipe `gh`/`jq` output to a standalone `jq` command. This environment (Windows/Git Bash) does not have `jq` on PATH, and piping to a missing `jq` fails silently inside `$(...)` (empty string, no error), which makes a polling loop's exit condition never become true and hangs the Monitor forever instead of erroring:
    ```
    prev=""
    while true; do
@@ -76,7 +76,11 @@ disable-model-invocation: false
      sleep 30
    done
    ```
-   **Known gap:** if the PR's HEAD commit was pushed by `github-actions[bot]` (e.g. a changesets "Version Packages" PR), GitHub does *not* auto-run workflows triggered off a `GITHUB_TOKEN`-authored push — `gh pr checks` will show `no checks reported` / `action_required` forever. Fix by manually dispatching CI on that branch: `gh workflow run ci.yml --ref <branch>`, then poll `gh run view <run-id>` the same way. The checks eventually attach to the PR's head commit once that run completes.
+   If you ever need `gh run view <id> --json ...` processed further, chain another `gh ... --jq` / `--json` call, or use plain shell (`grep`/`cut`/`case`) — never `| jq`. Before writing any ad-hoc one-off check (e.g. inspecting a single run's jobs), first confirm the command has no bare `jq` in it.
+
+   **Known gap #1:** if the PR's HEAD commit was pushed by `github-actions[bot]` (e.g. a changesets "Version Packages" PR), GitHub does *not* auto-run workflows triggered off a `GITHUB_TOKEN`-authored push — `gh pr checks` will show `no checks reported` / `action_required` forever. Fix by manually dispatching CI on that branch: `gh workflow run ci.yml --ref <branch>`.
+
+   **Known gap #2 (also seen from a normal, non-bot push):** a `pull_request`-triggered CI run can simply fail to fire at all for a given push — not only for bot-authored commits — leaving `gh run list --branch <branch>` with no run for that HEAD SHA. Manually dispatching with `gh workflow run ci.yml --ref <branch>` (gap #1's fix) does *not* reliably resolve this: the resulting `workflow_dispatch` run can show every job green via `gh run view <id>` and even via `gh api repos/<owner>/<repo>/commits/<sha>/check-runs` (with its check-suite's `pull_requests` field correctly listing the PR), while `gh pr checks`, `gh pr view --json statusCheckRollup`, and `mergeStateStatus` (`BLOCKED`) still don't reflect it — evaluated separately, on a real, minutes-plus delay for `workflow_dispatch`-originated suites, if it clears at all in a reasonable window. Prefer getting a genuine `pull_request`-event run instead of trusting the dispatch: push a trivial follow-up commit (or re-push the same tree with `git commit --amend --no-edit && git push --force-with-lease`, if the branch is solely yours) to generate a fresh `pull_request` event, then confirm with `gh run list --branch <branch> --json event,headSha,conclusion` that a `pull_request`-event run (not `workflow_dispatch`) exists for the current HEAD SHA before treating checks as satisfied.
 
 7. **Never merge without asking.** Use `AskUserQuestion` to confirm once all required checks pass — even if you're confident, even for infra-only changes. Then:
    ```
@@ -92,3 +96,5 @@ disable-model-invocation: false
 - A repo's default "Allow GitHub Actions to create and approve pull requests" setting can silently block `changesets/action` from opening its release PR (`HttpError: GitHub Actions is not permitted to create or approve pull requests`). Check `gh api repos/<owner>/<repo>/actions/permissions/workflow`; fix with `gh api -X PUT repos/<owner>/<repo>/actions/permissions/workflow -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true`.
 - Don't assume a "checks pass" result from a `workflow_dispatch` rerun means the PR is mergeable — check `gh pr checks <N>` directly; the PR's required-status-check state is tied to check runs on its exact HEAD commit, not to any run you happened to trigger.
 - If a fix touches uncovered branches, re-run `vp run -r test:coverage` — this repo enforces per-package coverage thresholds in each `vite.config.ts`, and a purely-defensive `if` you add can drop coverage below the gate even when all assertions still pass.
+- Never pipe to a bare `jq` in a polling/Monitor command on this machine — it isn't installed (Windows/Git Bash), and `cmd | jq ...` inside `$(...)` fails silently (empty output, exit captured but unchecked), so a loop's exit condition never flips true and the Monitor hangs indefinitely instead of erroring visibly. Use `gh ... --jq '...'` (bundled in the `gh` binary itself) for every JSON query instead.
+- Two apps' `vite.config.ts` (`toast-vue-demo`, `call-vue-demo`) route their `defineConfig(...)` argument through `as unknown as Parameters<typeof defineConfig>[0]` — this is not stylistic. The workspace has two structurally-similar `Plugin`/`UserConfig` types in scope (vite-plus's aliased `vite` vs. the real `vite` pulled in transitively by unocss/@vitejs/plugin-vue), and `tsgo` times out ("Excessive stack depth") comparing them once `plugins` is populated directly. Don't "clean up" that cast without re-running `vp -C <app> check` first.
