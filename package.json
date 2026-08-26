@@ -12,7 +12,7 @@
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
     "lint": "vp lint",
-    "packcheck": "vp exec pnpm --filter @retronew/toast-core pack --dry-run --json && vp exec pnpm --filter @retronew/toast-vue pack --dry-run --json",
+    "packcheck": "vp exec pnpm --filter @retronew/toast-core pack --dry-run --json && vp exec pnpm --filter @retronew/toast-vue pack --dry-run --json && vp exec pnpm --filter @retronew/call-vue pack --dry-run --json",
     "perfcheck": "node --expose-gc scripts/benchmark-toast-store.mjs",
     "prepare": "vp config",
     "ready": "pnpm run check && pnpm run test:coverage && pnpm run build && pnpm run sizecheck && pnpm run perfcheck && pnpm run e2e && pnpm run packcheck",

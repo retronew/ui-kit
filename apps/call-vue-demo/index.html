@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Call & await Vue components like async functions, powered by @retronew/call-vue."
+    />
+    <meta name="theme-color" content="#fafafa" />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem('call-vue:theme')
+        const dark =
+          savedTheme === 'dark' ||
+          ((savedTheme === 'system' || (savedTheme !== 'dark' && savedTheme !== 'light')) &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+      } catch {
+        // Theme initialization falls back to the application runtime.
+      }
+    </script>
+    <title>Call Vue · @retronew/call-vue</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

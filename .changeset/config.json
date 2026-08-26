@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["toast-vue-demo"]
+  "ignore": ["toast-vue-demo", "call-vue-demo"]
 }
