@@ -5,30 +5,30 @@ packages:
 catalogMode: prefer
 
 catalog:
-  '@types/node': ^26.2.0
+  '@types/node': ^26.3.0
   typescript: ^7.0.2
   '@typescript/native-preview': 7.0.0-dev.20260707.2
   vite: npm:@voidzero-dev/vite-plus-core@latest
-  vitest: 4.1.10
-  vite-plus: ^0.2.9
+  vitest: 4.1.11
+  vite-plus: ^0.3.0
   vue: ^3.5.41
   '@vue/test-utils': ^2.4.11
   '@vitejs/plugin-vue': ^6.0.8
   jsdom: ^30.0.1
   unocss: ^66.7.5
-  oxlint: ^1.78.0
-  oxfmt: ^0.63.0
+  oxlint: ^1.80.0
+  oxfmt: ^0.65.0
   '@configurajs/vite-plus': ^0.2.6
   yace: ^1.1.0
   vue-i18n: ^11.4.8
   '@iconify-json/lucide': ^1.2.123
   cnfast: ^0.1.0
-  '@commitlint/cli': ^21.2.1
-  '@commitlint/config-conventional': ^21.2.0
-  '@changesets/cli': ^3.0.0
+  '@commitlint/cli': ^21.2.2
+  '@commitlint/config-conventional': ^21.2.2
+  '@changesets/cli': ^3.0.1
   '@playwright/test': ^1.62.1
   '@axe-core/playwright': ^4.13.0
-  '@vitest/coverage-v8': ^4.1.10
+  '@vitest/coverage-v8': ^4.1.11
 overrides:
   nanoid: 3.3.18
   vite: 'catalog:'
