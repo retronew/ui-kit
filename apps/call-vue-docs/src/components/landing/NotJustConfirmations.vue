@@ -94,7 +94,7 @@ async function run(card: Card, event: MouseEvent) {
     if (card.slug === 'progress-toast') {
       Progress.upsert({
         message:
-          props.locale === 'zh-cn' ? '正在开始…' : props.locale === 'ja' ? '開始中…' : 'Starting…',
+          props.locale === 'zh-cn' ? '正在启动…' : props.locale === 'ja' ? '開始中…' : 'Starting…',
         percent: 0,
       })
       for (let percent = 20; percent <= 100; percent += 20) {

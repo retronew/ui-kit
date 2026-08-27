@@ -54,7 +54,7 @@ const copy = {
     byHand: '手动协调',
     withCall: '使用 call-vue',
     dependencyTitle: '“为什么还要增加一个依赖？”',
-    stateUseTitle: '什么时候 Vue 状态仍然是正确选择',
+    stateUseTitle: '什么时候普通 Vue 状态才是合适选择',
     examples: '查看真实示例',
     concepts: '或了解它如何工作 →',
   },
@@ -87,13 +87,13 @@ const copy = {
     <h2>{copy.imperativeTitle}</h2>
     <p>
       {locale === 'en' && <>A confirm, prompt, or picker is <strong>imperative by nature</strong>: ask, wait, receive an answer, continue. Vue rendering stays <strong>declarative</strong> inside the Root; <code>await Confirm.call()</code> gives the caller an imperative boundary that matches the problem.</>}
-      {locale === 'zh-cn' && <>确认框、输入框和选择器本质上都是“提问、等待、得到答案、继续”的<strong>命令式</strong>流程。Vue 仍在 Root 内负责<strong>声明式</strong>渲染；<code>await Confirm.call()</code> 则为调用方提供与问题形状一致的命令式边界。</>}
+      {locale === 'zh-cn' && <>确认框、输入框和选择器本质上都是“提问、等待、得到答案、继续”的<strong>命令式</strong>流程。Vue 仍在 Root 内负责<strong>声明式</strong>渲染；<code>await Confirm.call()</code> 则为调用方提供贴合问题本身的命令式边界。</>}
       {locale === 'ja' && <>確認、入力、選択は「問い、待ち、答えを受け、続ける」という<strong>命令的</strong>な流れです。Vue の描画は Root 内で<strong>宣言的</strong>なままにし、<code>await Confirm.call()</code> が呼び出し側に問題の形に合う命令的な境界を与えます。</>}
     </p>
     <h2>{copy.stateTitle}</h2>
     <p>
       {locale === 'en' && <>A <code>ref</code> can keep the dialog visible, but returning its answer typically splits the consequence across an emit handler, callback prop, or resolver stored elsewhere. The code that asks and the code that acts drift apart.</>}
-      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但返回结果通常会分散到 emit 处理器、回调 prop 或其他地方保存的 resolver。提问的代码与执行后续业务的代码因此逐渐分离。</>}
+      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但返回结果通常会分散到 emit 处理器、回调 prop 或存放在别处的 resolver 里。发起提问的代码与处理后续业务的代码因此逐渐分离。</>}
       {locale === 'ja' && <><code>ref</code> でダイアログを表示したままにはできますが、答えを返すには emit ハンドラー、callback prop、別の場所に保持した resolver に処理が分かれがちです。尋ねるコードと後続の処理が離れていきます。</>}
     </p>
     <div class="grid gap-4 md:grid-cols-2 md:gap-6">
@@ -103,7 +103,7 @@ const copy = {
     <h2>{copy.dependencyTitle}</h2>
     <p>
       {locale === 'en' && <>You can hand-roll a <code>Promise</code> resolver. Once it also handles strict typing, SSR-safe roots, concurrent calls, targeted updates, singleton <code>upsert</code>s, and delayed removal, that wrapper has become a small library. call-vue keeps those mechanics headless and tested.</>}
-      {locale === 'zh-cn' && <>你当然可以手写 <code>Promise</code> resolver。但当它还要处理严格类型、SSR 安全的 Root、并发调用、定向更新、单例 <code>upsert</code> 和延迟卸载时，这个封装已经成为一个小型库。call-vue 把这些机制保持为 headless，并提供测试保障。</>}
+      {locale === 'zh-cn' && <>你当然可以手写 <code>Promise</code> resolver。但当它还要处理严格类型、SSR 安全的 Root、并发调用、定向更新、单例 <code>upsert</code> 和延迟卸载时，这个封装已经成为一个小型库。call-vue 以 headless 的形式提供这些机制，并附带完整的测试保障。</>}
       {locale === 'ja' && <><code>Promise</code> resolver を手書きすることはできます。しかし strict な型、SSR 安全な Root、同時 Call、対象を絞った更新、単一インスタンスの <code>upsert</code>、遅延アンマウントまで扱うなら、それは小さなライブラリです。call-vue はその仕組みを headless に保ち、テスト済みで提供します。</>}
     </p>
     <h2>{copy.stateUseTitle}</h2>

@@ -1,26 +1,47 @@
 ---
 import Base from './Base.astro'
+import { localizePath, shellMessages } from '~/i18n'
+import type { Locale } from '~/i18n'
+import { localizedDocs } from '~/localized-docs'
 
 interface Props {
   title: string
   intro: string
+  locale?: Locale
 }
 
-const { title, intro } = Astro.props
-const sections = [
-  { href: '/concepts/root-and-stack', label: 'Root & Stack' },
-  { href: '/concepts/call-and-end', label: 'Call & End' },
-  { href: '/concepts/upsert-and-update', label: 'Upsert & Update' },
-  { href: '/concepts/mutation-flow', label: 'Mutation flow' },
-  { href: '/concepts/exit-lifecycle', label: 'Exit lifecycle' },
-]
+const { title, intro, locale = 'en' } = Astro.props
+
+const conceptSlugs = [
+  'concepts/root-and-stack',
+  'concepts/call-and-end',
+  'concepts/upsert-and-update',
+  'concepts/mutation-flow',
+  'concepts/exit-lifecycle',
+] as const
+
+const englishLabels: Record<(typeof conceptSlugs)[number], string> = {
+  'concepts/root-and-stack': 'Root & Stack',
+  'concepts/call-and-end': 'Call & End',
+  'concepts/upsert-and-update': 'Upsert & Update',
+  'concepts/mutation-flow': 'Mutation flow',
+  'concepts/exit-lifecycle': 'Exit lifecycle',
+}
+
+const sections = conceptSlugs.map((slug) => ({
+  href: localizePath(`/${slug}`, locale),
+  label: locale === 'en' ? englishLabels[slug] : localizedDocs[locale][slug].title,
+}))
+
+const conceptsHref = localizePath('/concepts', locale)
+const conceptsLabel = shellMessages[locale].nav.concepts
 const current = Astro.url.pathname.replace(/\/$/, '')
 ---
 
 <Base title={`${title} — call-vue`} description={intro} type="article">
   <div class="mx-auto max-w-5xl px-6 py-12 md:py-16">
     <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb">
-      <a href="/" class="underline-offset-2 transition-colors hover:text-[var(--color-fg-muted)] hover:underline">Home</a><span class="px-2">/</span><a href="/concepts" class="text-[var(--color-fg-muted)] underline-offset-2 hover:underline">Concepts</a>
+      <a href={localizePath('/', locale)} class="underline-offset-2 transition-colors hover:text-[var(--color-fg-muted)] hover:underline">Home</a><span class="px-2">/</span><a href={conceptsHref} class="text-[var(--color-fg-muted)] underline-offset-2 hover:underline">{conceptsLabel}</a>
     </nav>
     <header class="mb-10">
       <h1 class="text-3xl leading-[1.1] font-medium tracking-[-0.025em] text-[var(--color-fg)] md:text-5xl">{title}</h1>
@@ -33,7 +54,7 @@ const current = Astro.url.pathname.replace(/\/$/, '')
     </nav>
     <div class="grid gap-12 md:grid-cols-[200px_1fr]">
       <aside class="hidden md:block">
-        <p class="mb-3 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">Concepts</p>
+        <p class="mb-3 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{conceptsLabel}</p>
         <ul class="space-y-1">
           {sections.map((section) => <li><a href={section.href} class={current === section.href ? 'block rounded px-2 py-1 text-sm text-[var(--color-accent)]' : 'block rounded px-2 py-1 text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]'}>{section.label}</a></li>)}
         </ul>

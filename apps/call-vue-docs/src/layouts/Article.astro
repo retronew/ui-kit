@@ -1,19 +1,24 @@
 ---
 import Base from './Base.astro'
+import { localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
 
 interface Props {
   title?: string
   description?: string
   frontmatter?: { title?: string; description?: string }
+  locale?: Locale
 }
 
 const title = Astro.props.title ?? Astro.props.frontmatter?.title ?? 'Guide'
 const description = Astro.props.description ?? Astro.props.frontmatter?.description ?? ''
+const locale = Astro.props.locale ?? 'en'
+const docsLabel = { en: 'Docs', 'zh-cn': '文档', ja: 'ドキュメント' }[locale]
 ---
 
 <Base title={`${title} — call-vue`} description={description} type="article">
   <div class="mx-auto max-w-3xl px-6 py-12 md:py-16">
-    <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href="/" class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">Docs</span></nav>
+    <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href={localizePath('/', locale)} class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{docsLabel}</span></nav>
     <header class="mb-10"><h1 class="text-3xl leading-[1.1] font-medium tracking-[-0.025em] text-[var(--color-fg)] md:text-5xl">{title}</h1>{description && <p class="mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">{description}</p>}</header>
     <article class="prose-call-vue max-w-[70ch] space-y-6 text-[var(--color-fg-muted)]"><slot /></article>
   </div>

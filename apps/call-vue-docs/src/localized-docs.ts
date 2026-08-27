@@ -2,9 +2,13 @@ import type { Locale } from './i18n'
 
 export interface LocalizedSection {
   heading: string
+  /** Wrap the heading in `<code>` — used for literal API/error-message headings like `No <Root> found!`. */
+  codeHeading?: boolean
   paragraphs: string[]
   bullets?: string[]
   code?: string
+  /** Syntax-highlighting language for `code`. Defaults to `'ts'`. */
+  lang?: 'ts' | 'vue'
 }
 
 export interface LocalizedDoc {
@@ -20,7 +24,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     why: {
       title: '为什么选择 call-vue？',
       description:
-        '当一个界面需要把答案交回调用它的代码时，await 比跨组件的 ref、emit 与回调更贴合问题本身。',
+        '当 UI 需要把答案交回发起调用的代码时，比起跨组件传递 ref、emit 和回调，await 更贴合问题本身。',
       sections: [
         {
           heading: '命令式流程与声明式渲染',
@@ -46,7 +50,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     examples: {
       title: '可运行示例',
       description:
-        '首页已经提供命令面板、底部面板、向导、颜色选择器、上下文菜单和进度通知六种真实 Callable。',
+        '首页内置了六种可运行的 Callable：命令面板、底部面板、多步骤向导、颜色选择器、上下文菜单和进度通知。',
       sections: [
         {
           heading: '从返回值开始建模',
@@ -107,6 +111,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'createCallable 的返回值既是 Vue 组件，也是 call、upsert、end、update 方法的命名空间。组件角色负责监听与渲染，方法负责发送调用。',
           ],
           code: '<RouterView />\n<Confirm /> <!-- 唯一 Root -->',
+          lang: 'vue',
         },
         {
           heading: '并发是默认行为',
@@ -118,6 +123,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: '唯一 Root 规则',
           paragraphs: [
             '同一个 Callable 必须恰好挂载一次。未挂载会抛出 No <Root> found!；重复挂载会在调用时抛出 Multiple instances of <Root> found!。',
+          ],
+        },
+        {
+          heading: '可以拥有任意多个 Callable',
+          paragraphs: [
+            '规则是每个 Callable 一个 Root，而不是整个应用一个。Confirm、Toast、Drawer、Picker 可以各自拥有独立的 Stack，并排挂载。',
           ],
         },
       ],
@@ -140,9 +151,15 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向与广播',
           paragraphs: [
-            '传入 call 返回的 Promise 可以只 end/update 某一项；省略 Promise 则作用于当前所有活动项。',
+            '把 call 返回的 Promise 作为第一个参数传入，即可精确 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
           code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
+        },
+        {
+          heading: '解析与移除是两回事',
+          paragraphs: [
+            'end 会立即解析 Promise 并把 call.ended 置为 true；真正的物理移除会等到配置的 unmountingDelay，让退出动画有时间播放，而不会拖慢调用方的异步流程。',
+          ],
         },
       ],
     },
@@ -185,7 +202,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '由 handler 决定结果',
           paragraphs: [
-            'MutationFn 只收到 { end }。调用 end 才会关闭当前 Call；正常返回或抛出而没有调用 end 时，pending 会清除，Call 保持打开以供重试。错误不会被吞掉。',
+            'MutationFn 只会收到 { end }：只有调用了 end，当前的 Call 才会关闭；若正常返回或抛出异常时都没有调用 end，则只清除 pending，Call 保持打开以供重试。错误不会被吞掉。',
           ],
         },
         {
@@ -220,7 +237,13 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '竞态安全',
           paragraphs: [
-            '广播 end 后在同一个 tick 新建的 Call 不会被旧计时器删除；清理以 Promise 身份为边界。',
+            '广播 end 之后，即使同一个 tick 内新建了 Call，也不会被旧的计时器误删；清理始终以单个 Promise 的生命周期为边界。',
+          ],
+        },
+        {
+          heading: 'Reduced motion',
+          paragraphs: [
+            '呈现效果由你的组件掌控。在 prefers-reduced-motion 下禁用或缩短过渡即可，库本身仍会遵循已配置的生命周期约定。',
           ],
         },
       ],
@@ -274,13 +297,27 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '创建时保持同一组泛型',
           paragraphs: [
-            'createCallable 的泛型必须与 SFC 契约一致，这样 call 的参数和 Promise 结果会被端到端推断。',
+            'createCallable 的泛型必须与 SFC 契约一致，这样 call 的参数和 Promise 结果会被端到端推断。传入的 Props 或 Response 一旦不匹配，都会在类型检查阶段直接失败。',
+          ],
+          code: 'export const Confirm = createCallable<{ message: string }, boolean>(ConfirmDialog)',
+        },
+        {
+          heading: 'Root props',
+          paragraphs: [
+            '用第三个泛型声明由已挂载 Root 持有的值。它们会通过 call.root 到达每一次 Call，并随 Root 属性变化保持响应式。',
+          ],
+          code: 'type RootProps = { accent: string }\nexport const Toast = createCallable<ToastProps, void, RootProps>(ToastCard)',
+        },
+        {
+          heading: 'Void 响应',
+          paragraphs: [
+            'void 组件内部使用 call.end() 即可，无需参数；广播结束是 Toast.end()。要从调用方定向结束某个 Promise<void>，使用 Toast.end(promise, undefined)。',
           ],
         },
         {
-          heading: 'Void 与异步组件',
+          heading: '异步组件',
           paragraphs: [
-            'void 组件内部使用 call.end()；定向外部结束使用 Callable.end(promise, undefined)。defineAsyncComponent 可以直接传给 createCallable。',
+            "把 defineAsyncComponent(() => import('./HeavyDialog.vue')) 传给 createCallable。加载器在被某次活跃 Call 触发渲染前保持空闲；loading 与 error 组件按 Vue 原生异步组件选项提供即可。",
           ],
         },
       ],
@@ -302,15 +339,28 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           ],
         },
         {
+          heading: 'Hydration 顺序',
+          paragraphs: [
+            '把 Callable 挂载在足够高的位置，确保事件处理器触发它之前 hydration 已经完成。同一个已 hydrate 应用内的点击处理器是安全的；模块级调用或更早、独立 hydrate 的 island 则不是。',
+          ],
+        },
+        {
           heading: '懒加载',
           paragraphs: [
-            '空 Stack 不会渲染异步组件，因此不会触发 loader。第一次 Call 才开始加载；加载期间从调用方结束也不会在 loader 完成后复活该项。',
+            '空 Stack 不会渲染异步组件，因此不会触发 loader。第一次 Call 才开始加载；后续 Call 复用 Vue 缓存的异步组件。',
+          ],
+          code: "const HeavyDialog = defineAsyncComponent({\n  loader: () => import('./HeavyDialog.vue'),\n  loadingComponent: LoadingDialog,\n  errorComponent: FailedDialog,\n  delay: 0,\n})\n\nexport const Editor = createCallable<EditorProps, EditorResult>(HeavyDialog)",
+        },
+        {
+          heading: '加载期间结束',
+          paragraphs: [
+            '组件 chunk 仍在加载时，也可以从调用方作用域结束这个 Promise。一旦从 Stack 移除，之后姗姗来迟的 loader resolve 不会让这一项复活。',
           ],
         },
         {
           heading: '能力边界',
           paragraphs: [
-            '@retronew/call-vue/mutation-flow 已发布；Vite HMR transform 与多预览 host 子路径仍未发布，文档不会把上游 React 专用入口伪装成 Vue 能力。',
+            '已发布的子路径只有 @retronew/call-vue/mutation-flow；Vite HMR transform 与多预览 host 子路径尚未提供，文档也不会把上游 React 专有的入口包装成 Vue 能力。',
           ],
         },
       ],
@@ -321,12 +371,14 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
       sections: [
         {
           heading: 'No <Root> found!',
+          codeHeading: true,
           paragraphs: [
-            '在首次 call 前挂载 Callable 本身，并等待客户端 onMounted。不要使用已经移除的 .Root 别名。',
+            '在首次 call 前挂载 Callable 本身——比如 <Confirm />。不要使用已经移除的 <Confirm.Root /> 别名。SSR 期间，把调用移到客户端事件中。',
           ],
         },
         {
           heading: 'Multiple instances of <Root> found!',
+          codeHeading: true,
           paragraphs: [
             '同一个 Callable 出现在两个活动 Vue 树或预览中。为它保留一个 Root；不同 Callable 可以各自挂载。',
           ],
@@ -334,17 +386,37 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'Promise 一直不结束',
           paragraphs: [
-            '隐藏 UI 不会解析 Promise。成功、取消、Escape 和遮罩点击路径都必须显式调用 end。',
+            '一个 Call 只能通过 call.end(response) 或 Callable.end(...) 结束。用本地状态或 CSS 隐藏对话框并不会解析 Promise。取消、遮罩点击、Escape 和成功路径都必须显式调用 end。',
           ],
         },
         {
-          heading: 'Void 定向结束',
-          paragraphs: ['使用 Callable.end(promise, undefined) 定向结束；Callable.end() 是广播。'],
+          heading: '定向 end 关错了对象',
+          paragraphs: [
+            '保留住你想定向的那次 call 返回的 Promise。只传入 response 会触发广播重载。对于 void，用 Callable.end(promise, undefined) 定向结束，用 Callable.end() 广播。',
+          ],
         },
         {
-          heading: 'call-vue 会处理可访问性吗？',
+          heading: '组件里看不到声明的 Root props',
           paragraphs: [
-            '不会。它是 headless 生命周期工具。语义、焦点、Escape、Teleport、样式与 reduced motion 由你的组件或 UI 层负责。',
+            'Root props 通过 call.root 到达，而不是作为顶层 Call props。提供 createCallable 的第三个泛型，并把值传给已挂载的 Root。',
+          ],
+        },
+        {
+          heading: '退场动画被截断',
+          paragraphs: [
+            '把 createCallable 的第二个参数设置为不小于 CSS 退场时长的值，并把离场样式绑定到 call.ended。Promise 会按设计先于组件移除完成 resolve。',
+          ],
+        },
+        {
+          heading: '可以同时存在多个活跃的 call 吗？',
+          paragraphs: [
+            '可以。普通 call 会形成并发的 Stack；如果需要的是一个持续演进的单一实例，改用 upsert()。',
+          ],
+        },
+        {
+          heading: 'call-vue 会渲染 UI 吗？',
+          paragraphs: [
+            '不会。它只负责 Stack 与 Promise 的生命周期。语义、焦点管理、Teleport、样式与动画仍是你的 Vue 组件或 headless UI 层的职责。',
           ],
         },
       ],
@@ -443,6 +515,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'createCallable の戻り値は Vue コンポーネントであり、call・upsert・end・update の名前空間でもあります。',
           ],
           code: '<RouterView />\n<Confirm /> <!-- 唯一の Root -->',
+          lang: 'vue',
         },
         {
           heading: '並行動作が標準',
@@ -454,6 +527,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: 'Root は一つ',
           paragraphs: [
             '同じ Callable は一度だけマウントします。未マウントと複数マウントは call 時に明確なエラーになります。',
+          ],
+        },
+        {
+          heading: 'Callable はいくつでも持てる',
+          paragraphs: [
+            'ルールはアプリ全体に一つではなく、Callable ごとに Root が一つというものです。Confirm、Toast、Drawer、Picker はそれぞれ独立した Stack を持ち、並べてマウントできます。',
           ],
         },
       ],
@@ -479,6 +558,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'Promise を渡すと一つだけ、Response だけを渡すと現在の全 Call を終了します。',
           ],
           code: 'Confirm.end(firstPromise, false) // 対象指定\nConfirm.end(false)               // 一括',
+        },
+        {
+          heading: '解決と削除は別のタイミング',
+          paragraphs: [
+            'end は即座に Promise を解決し call.ended を true にします。実際の削除は設定した unmountingDelay まで待つため、呼び出し元の非同期フローを遅らせずに終了アニメーションの時間を確保できます。',
+          ],
         },
       ],
     },
@@ -557,6 +642,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             '一括 end と同じ tick で作られた新しい Call は、古い削除タイマーの対象になりません。',
           ],
         },
+        {
+          heading: 'Reduced motion',
+          paragraphs: [
+            '見た目はコンポーネント側が管理します。prefers-reduced-motion では遷移を無効化または短縮してください。ライブラリ自体は設定されたライフサイクル契約に従い続けます。',
+          ],
+        },
       ],
     },
     api: {
@@ -608,13 +699,27 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '作成時も同じジェネリクス',
           paragraphs: [
-            'createCallable と SFC の契約を揃えると、call 引数と Promise 結果が一貫して推論されます。',
+            'createCallable と SFC の契約を揃えると、call 引数と Promise 結果が一貫して推論されます。Props や Response が一致しなければ型チェックの時点で失敗します。',
+          ],
+          code: 'export const Confirm = createCallable<{ message: string }, boolean>(ConfirmDialog)',
+        },
+        {
+          heading: 'Root props',
+          paragraphs: [
+            '第三のジェネリクスで、マウントされた Root が持つ値を宣言します。各 Call には call.root として渡され、Root の属性が変わると反応的に更新されます。',
+          ],
+          code: 'type RootProps = { accent: string }\nexport const Toast = createCallable<ToastProps, void, RootProps>(ToastCard)',
+        },
+        {
+          heading: 'Void の戻り値',
+          paragraphs: [
+            'void な Callable の内部では call.end() に引数は不要です。一括終了は Toast.end()。呼び出し元から特定の Promise<void> を対象にするには Toast.end(promise, undefined) を使います。',
           ],
         },
         {
-          heading: 'Void と非同期コンポーネント',
+          heading: '非同期コンポーネント',
           paragraphs: [
-            'void の内部終了は call.end()、外部の対象指定は Callable.end(promise, undefined) です。defineAsyncComponent も直接渡せます。',
+            "defineAsyncComponent(() => import('./HeavyDialog.vue')) を createCallable に渡します。ローダーはアクティブな Call が Root に描画されるまで待機し、loading・error コンポーネントは Vue 標準の非同期コンポーネントオプションで指定します。",
           ],
         },
       ],
@@ -636,9 +741,22 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           ],
         },
         {
+          heading: 'Hydration の順序',
+          paragraphs: [
+            'イベントハンドラーから呼ばれる前に hydration が完了する高さに Callable をマウントしてください。同じ hydrate 済みアプリ内のクリックハンドラーは安全です。モジュールレベルの呼び出しや、先に独立して hydrate された island からの呼び出しは安全ではありません。',
+          ],
+        },
+        {
           heading: '遅延読み込み',
           paragraphs: [
-            '空 Stack は非同期コンポーネントを描画しないため、最初の Call まで loader は動きません。',
+            '空 Stack は非同期コンポーネントを描画しないため、最初の Call まで loader は動きません。以降の Call は Vue がキャッシュした非同期コンポーネントを再利用します。',
+          ],
+          code: "const HeavyDialog = defineAsyncComponent({\n  loader: () => import('./HeavyDialog.vue'),\n  loadingComponent: LoadingDialog,\n  errorComponent: FailedDialog,\n  delay: 0,\n})\n\nexport const Editor = createCallable<EditorProps, EditorResult>(HeavyDialog)",
+        },
+        {
+          heading: '読み込み中の終了',
+          paragraphs: [
+            'コンポーネントの chunk が読み込み中でも、呼び出し元のスコープから Promise を終了できます。Stack から削除された後に loader が遅れて解決しても、その Call は復活しません。',
           ],
         },
         {
@@ -655,32 +773,52 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
       sections: [
         {
           heading: 'No <Root> found!',
+          codeHeading: true,
           paragraphs: [
-            '最初の call より前に Callable 自身をマウントし、クライアント onMounted を待ちます。削除済みの .Root エイリアスは使いません。',
+            '最初の call より前に、戻り値の Callable 自身（例: <Confirm />）をマウントします。削除済みの <Confirm.Root /> エイリアスは使いません。SSR 中はクライアントのイベントに呼び出しを移してください。',
           ],
         },
         {
           heading: 'Multiple instances of <Root> found!',
+          codeHeading: true,
           paragraphs: [
-            '同じ Callable が二つの有効な Vue ツリーにあります。一つだけ残してください。',
+            '同じ Callable が二つの有効な Vue ツリーやプレビューにマウントされています。一つの Callable につき Root は一つだけ残してください。別の Callable はそれぞれ独自の Root を持てます。',
           ],
         },
         {
           heading: 'Promise が解決しない',
           paragraphs: [
-            'UI を隠すだけでは解決しません。成功、キャンセル、Escape、背景クリックの各経路で end を明示します。',
+            'Call は call.end(response) または Callable.end(...) を通じてのみ終了します。ローカル state や CSS でダイアログを隠しても解決しません。キャンセル、背景クリック、Escape、成功の各経路ですべて明示的に end を呼んでください。',
           ],
         },
         {
-          heading: 'Void の対象指定',
+          heading: '対象指定の end が違う項目を閉じる',
           paragraphs: [
-            'Callable.end(promise, undefined) は対象指定、Callable.end() は一括終了です。',
+            '対象にしたい call が返した Promise をそのまま保持してください。response だけを渡すと一括終了のオーバーロードが呼ばれます。void の場合、対象指定は Callable.end(promise, undefined)、一括終了は Callable.end() です。',
           ],
         },
         {
-          heading: 'アクセシビリティ',
+          heading: 'コンポーネントで Root props が宣言されていないように見える',
           paragraphs: [
-            'call-vue はヘッドレスです。意味付け、フォーカス、Escape、Teleport、スタイル、reduced motion は UI 側で実装します。',
+            'Root props は call.root として届き、トップレベルの Call props ではありません。createCallable の第三ジェネリクスを指定し、その値をマウント済みの Root に渡してください。',
+          ],
+        },
+        {
+          heading: '終了アニメーションが途中で切れる',
+          paragraphs: [
+            'createCallable の第二引数を、CSS の終了アニメーション時間以上に設定し、離脱用のクラスを call.ended に紐づけてください。Promise は仕様どおり削除より先に解決します。',
+          ],
+        },
+        {
+          heading: '複数の Call を同時にアクティブにできますか？',
+          paragraphs: [
+            'できます。通常の call は並行な Stack を形成します。代わりに一つの進化するインスタンスが必要なら upsert() を使ってください。',
+          ],
+        },
+        {
+          heading: 'call-vue は UI を描画しますか？',
+          paragraphs: [
+            'いいえ。Stack と Promise のライフサイクルだけを管理します。意味付け、フォーカス管理、Teleport、スタイル、アニメーションはあなたの Vue コンポーネントまたは headless UI 層の責務のままです。',
           ],
         },
       ],
