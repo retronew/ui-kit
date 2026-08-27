@@ -142,7 +142,7 @@ export const landingMessages = {
       skill: '🤖 AI 技能',
       title: '你的组件也可以',
       description:
-        '把任意 Vue 组件变成可以用 await 调用的交互。确认框、对话框、通知、选择器、菜单——凡是需要向调用方返回结果的 UI，都可以这样建模。',
+        '把任意 Vue 组件变成能用 await 等到结果的交互。确认框、对话框、通知、选择器、菜单——只要界面需要向调用方返回结果，就适合用它。',
       browser: '浏览器原生',
       component: '你的组件',
       run: '运行',
@@ -154,8 +154,7 @@ export const landingMessages = {
     showcase: {
       eyebrow: '不只适用于确认框',
       title: '任何组件都可以被 await。',
-      description:
-        '下面每个交互都调用 workspace 里真实的 Callable，徽标会显示对应 Promise 实际 resolve 出的值。',
+      description: '下面的每个交互都是一次真实运行的组件调用，旁边的徽标会显示它最终返回了什么。',
       try: '试一试 →',
       code: '查看代码 ↗',
       browse: '浏览全部示例',
@@ -164,8 +163,8 @@ export const landingMessages = {
         ['抽屉', '底部面板', '从屏幕底部滑出，以你点按的操作作为返回值。'],
         ['流程', '多步骤向导', '多步填写，一次 await 返回整份表单。'],
         ['选择器', '颜色选择器', '点击色块，返回对应的十六进制颜色。'],
-        ['菜单', '上下文菜单', '把光标坐标转发给自带定位能力的 Callable。'],
-        ['通知', '进度 Toast', '任务进行中通过 upsert() 持续更新同一个通知。'],
+        ['菜单', '上下文菜单', '在点击处弹出，并把鼠标位置传给负责定位的组件。'],
+        ['通知', '进度 Toast', '任务推进时，用 upsert() 持续刷新同一条通知。'],
       ],
     },
     flow: {
@@ -193,8 +192,8 @@ export const landingMessages = {
       eyebrow: 'Mutation flow',
       title: '失败时保持打开，成功时关闭。',
       first:
-        'composable 会帮你管理 pending；对话框是否关闭，取决于 mutationFn 有没有调用 call.end()。',
-      second: '失败被妥善处理后，pending 随之清除，Call 保持打开，用户可以在原地重试。',
+        '组合式函数会帮你维护 pending 状态；对话框是否关闭，取决于 mutationFn 有没有调用 call.end()。',
+      second: '失败被妥善处理后，pending 随之清除，对话框保持打开，用户可以就地重试。',
       broadcast: '模拟失败',
       run: '打开保存对话框',
       running: '对话框已打开…',
@@ -205,7 +204,7 @@ export const landingMessages = {
     },
     cta: {
       title: '准备好让组件也能被 await 了吗？',
-      description: 'Headless、Vue 原生、支持 SSR，除 Vue 外无运行时依赖。',
+      description: '不捆绑任何 UI、为 Vue 而生、支持 SSR——除 Vue 以外没有任何运行时依赖。',
       ai: '🤖 正在使用 AI 助手开发？',
       skill: '了解这个技能 ↗',
       examples: '浏览示例',
