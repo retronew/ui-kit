@@ -93,7 +93,7 @@ const copy = {
     <h2>{copy.stateTitle}</h2>
     <p>
       {locale === 'en' && <>A <code>ref</code> can keep the dialog visible, but returning its answer typically splits the consequence across an emit handler, callback prop, or resolver stored elsewhere. The code that asks and the code that acts drift apart.</>}
-      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但用户给出的答案却很难直接传回调用处：结果往往要经 emit 抛给父组件、回调 prop 接住，或者靠提前塞在别处的 resolve 函数接力。“提问”和“根据答案行事”就这样渐渐分了家。</>}
+      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但用户给出的答案却很难直接传回调用处：结果往往要通过 emit 抛给父组件、回调 prop 接住，或者靠提前塞在别处的 resolve 函数接力。“提问”和“根据答案行事”就这样渐渐分了家。</>}
       {locale === 'ja' && <><code>ref</code> でダイアログを表示したままにはできますが、答えを返すには emit ハンドラー、callback prop、別の場所に保持した resolver に処理が分かれがちです。尋ねるコードと後続の処理が離れていきます。</>}
     </p>
     <div class="grid gap-4 md:grid-cols-2 md:gap-6">

@@ -36,7 +36,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '状态能显示界面，却不能返回答案',
           paragraphs: [
-            '用 ref 可以控制对话框显示与否，但用户给出的答案却很难直接传回调用处：结果往往要经 emit 抛给父组件，或靠事先存好的一个 resolve 函数接力。“提问”和“根据答案行事”就这样被拆到了不同的地方。而 call() 返回的 Promise 能把它们重新放回同一个函数里。',
+            '用 ref 可以控制对话框显示与否，但用户给出的答案却很难直接传回调用处：结果往往要通过 emit 抛给父组件，或靠事先存好的一个 resolve 函数接力。“提问”和“根据答案行事”就这样被拆到了不同的地方。而 call() 返回的 Promise 能把它们重新放回同一个函数里。',
           ],
         },
         {
@@ -80,7 +80,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'Root 与 Stack',
           paragraphs: [
-            'createCallable 创建出来的 Callable，本身就是要挂载的根组件（Root）。每执行一次 call()，都会往它自己的调用堆叠（Stack）里压入一个独立条目。',
+            'createCallable 创建出来的 Callable，本身就是要挂载的根组件（Root）。每执行一次 call()，都会往它自己的 Stack 里压入一个独立条目。',
           ],
         },
         {
@@ -98,7 +98,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '退出生命周期',
           paragraphs: [
-            '调用 end 时，Promise 立即敲定、ended 标记立即置真；组件则会按 unmountingDelay 推迟一段时间再移除，给退出动画留足时间。',
+            '调用 end 时，Promise 立即敲定、ended 标记立即置为 true；组件则会按 unmountingDelay 推迟一段时间再移除，给退出动画留足时间。',
           ],
         },
       ],
@@ -109,7 +109,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         '一个根组件（Root）挂载一个 Callable；多次 Call 可以同时存在，并按先后顺序渲染。',
       sections: [
         {
-          heading: '同一个值，两种角色',
+          heading: '一个组件，两种角色',
           paragraphs: [
             'createCallable 返回的同一个对象身兼两职：作为 Vue 组件，它负责挂载和渲染，这次挂载就是 Root；作为方法集合，它提供 call、upsert、end、update 这些用来发起和控制调用的入口。Root 负责监听，这些方法负责发起。',
           ],
@@ -157,7 +157,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向与广播',
           paragraphs: [
-            '把 call 返回的 Promise 作为第一个参数传入，即可精确 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
+            '把 call 返回的 Promise 作为第一个参数传入，即可定向 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
           code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
         },
@@ -176,7 +176,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '第一次创建，之后更新',
           paragraphs: [
-            '第一次 upsert 会创建这条单例条目。在它结束之前，后续的 upsert 只会替换 props，并且返回的是同一个 Promise。',
+            '第一次 upsert 会创建这条单例条目。在它结束之前，后续的 upsert 只会把新的 props 合并进这条已有条目，并且返回的是同一个 Promise。',
           ],
           code: "const a = Toast.upsert({ text: '开始' })\nconst b = Toast.upsert({ text: '进行中' })\nconsole.log(a === b) // true",
         },
@@ -433,7 +433,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向 end 关错了对象',
           paragraphs: [
-            '想精确结束哪一次调用，就把它当时返回的那个 Promise 存下来。如果只传 response，就会走到广播的分支。Response 为 void 时同理：Callable.end(promise, undefined) 是定点结束，Callable.end() 是广播。',
+            '想精确结束哪一次调用，就把它当时返回的那个 Promise 存下来。如果只传 response，就会走到广播的分支。Response 为 void 时同理：Callable.end(promise, undefined) 是定向结束，Callable.end() 是广播。',
           ],
         },
         {
@@ -551,7 +551,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
       description: '一つの Root が Callable をマウントし、複数の Call を挿入順に描画します。',
       sections: [
         {
-          heading: '一つの値、二つの役割',
+          heading: '一つのコンポーネント、二つの役割',
           paragraphs: [
             'createCallable の戻り値は Vue コンポーネントであり、そのマウントが Root になります。同時に call・upsert・end・update という命令的なメソッドの名前空間でもあります。Root が Call を監視し、これらのメソッドが Call を発します。',
           ],
