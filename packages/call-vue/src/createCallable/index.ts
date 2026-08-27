@@ -171,7 +171,7 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     RootProps
   >
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (import.meta.env.DEV) {
     let displayName: string | undefined
     let registered = false
     Object.defineProperty(callable, 'displayName', {

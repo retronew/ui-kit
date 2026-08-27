@@ -75,6 +75,22 @@ describe('upsert()', () => {
     expect(second).not.toBe(first)
   })
 
+  it('clears the pending upsert when the component ends its own call', async () => {
+    function Confirmable(props: PropsWithCall<Props, Response, Record<string, never>>) {
+      return h('button', { class: 'toast', onClick: () => props.call.end(true) }, props.text)
+    }
+    const Toaster = createCallable<Props, Response>(Confirmable)
+    const wrapper = mount(Toaster)
+
+    const first = Toaster.upsert({ text: 'a' })
+    await nextTick()
+    await wrapper.find('.toast').trigger('click')
+    await expect(first).resolves.toBe(true)
+
+    const second = Toaster.upsert({ text: 'b' })
+    expect(second).not.toBe(first)
+  })
+
   it('targets a void-response call when undefined is passed explicitly', async () => {
     const Toaster = createCallable<Props, void>(VoidToast)
     mount(Toaster)

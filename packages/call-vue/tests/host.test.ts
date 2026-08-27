@@ -89,6 +89,14 @@ describe('mount()', () => {
     expect(document.querySelector('[data-testid="second"]')).not.toBeNull()
   })
 
+  it('mounts a pre-built VNode as-is, ignoring props', async () => {
+    const vnode = h('div', { 'data-testid': 'direct-vnode' }, 'static')
+    mount(vnode, { props: { ignored: true } as never })
+    await nextTick()
+
+    expect(document.querySelector('[data-testid="direct-vnode"]')?.textContent).toBe('static')
+  })
+
   it('uses an explicitly supplied container', async () => {
     const Confirm = createConfirm()
     const container = document.createElement('aside')
