@@ -13,14 +13,19 @@ const props = defineProps({
   },
 })
 
+// Cap how far back a card visibly recedes: past this depth every further
+// card sits at the same offset, so a long stack still fits the container
+// instead of climbing out its top edge.
+const MAX_VISIBLE_DEPTH = 3
 const depthFromTop = () => props.call.stackSize - 1 - props.call.index
+const visualDepth = () => Math.min(depthFromTop(), MAX_VISIBLE_DEPTH)
 </script>
 
 <template>
   <div
     class="stack-card"
     :style="{
-      transform: `translateY(${depthFromTop() * -12}px) scale(${1 - depthFromTop() * 0.04})`,
+      transform: `translateY(${visualDepth() * -10}px) scale(${1 - visualDepth() * 0.04})`,
       zIndex: call.index,
       borderColor: call.root.accent,
     }"
@@ -34,7 +39,7 @@ const depthFromTop = () => props.call.stackSize - 1 - props.call.index
 <style scoped>
 .stack-card {
   position: absolute;
-  inset: 12px 12px auto 12px;
+  inset: 34px 12px auto 12px;
   display: flex;
   align-items: center;
   gap: 10px;
