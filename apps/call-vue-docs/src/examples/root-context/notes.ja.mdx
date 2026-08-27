@@ -1,0 +1,33 @@
+## 二種類の props
+
+Call には**呼び出しごとの props**（`GreeterCall.call({ message })` で渡す）と
+**Root props**（マウント時に渡す `<GreeterCall userName="Ada Lovelace" />`）
+の二種類があります。`createCallable<Props, Response, RootProps>` の三つ目の
+ジェネリクスが後者を型付けし、各 Call は `call.root` を通じてそれを読み取り
+ます。
+
+```vue-html
+<p>Signed in as {{ call.root.userName }}</p>
+```
+
+呼び出し側がユーザー名を転送する必要は一切ありません——毎回のコールサイトで
+ノイズになるだけです。Root がそれを一度だけ保持し、各 Call がそれを映し出し
+ます。
+
+## Root props を使うべきとき
+
+- **すべての Call に一つの値を共有したいとき**——現在のユーザー、テナント、
+  ロケール、機能フラグなど。Root に設定し、`call.root` から読み取ります。
+- **Root の親だけが持つものを公開したいとき**——テーマオブジェクト、ルーター
+  など、`<GreeterCall />` をマウントするスコープにはあるが、呼び出すスコープ
+  にはないもの。
+- **ライブなデータを開いている Call に送り込みたいとき。** Root props は
+  リアクティブです。Root が新しい `userName` で再レンダリングされると、
+  アクティブなすべての Call もそれとともに再レンダリングされます——`update()`
+  は不要です。なぜならそれは呼び出しごとの prop ではないからです。
+
+## 呼び出しごとの prop か、Root prop か
+
+値が呼び出しごとに変わるもの（メッセージ、対象となる項目）であれば**呼び出し
+ごとの prop** です。それが環境的なもの——すべての Call で同じで、周囲のアプリ
+が所有しているもの——であれば**Root prop** です。

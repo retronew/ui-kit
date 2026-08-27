@@ -1,0 +1,35 @@
+## promise こそが Call である
+
+`Approval.call(...)` が返す promise は、await されるレスポンスであると同時に、
+その特定の開いている Call へのハンドルでもあります。それを `Approval.end(promise,
+value)` に渡せば、どこからでもその Call を確定できます——ここではユーザーが
+反応しないまま一定時間が経つと自動的に拒否する `setTimeout` を使っています。
+
+```ts
+const promise = Approval.call({ action: 'Deploy to production' })
+setTimeout(() => Approval.end(promise, false), 4000)
+const approved = await promise // ユーザーとタイムアウト、先に解決した方が勝つ
+```
+
+ユーザーがボタンをクリックしても（内部の `call.end`）、タイムアウトが発火しても
+（外部の `Approval.end`）、同じ promise が解決してダイアログが閉じます。
+
+## ターゲット指定 vs. 全体
+
+promise を渡すと**一つ**の Call だけに届きます。省略すると、開いている**すべて**
+の Call を同じレスポンス値で一括終了します。
+
+```ts
+Approval.end(false) // 開いている承認をすべて拒否
+```
+
+ルート変更やログアウト、放棄された親フローなど、グローバルな「すべてキャンセル」
+に便利です。
+
+## 注意点
+
+- **すでに確定した Call を終了しても何も起きません。** ユーザーが先に答えた場合、
+  後から呼ばれる `Approval.end(promise, …)` は何もしません（正確性のためにタイマー
+  を止める必要はありませんが、カウントダウンを止めるために実際には止めています）。
+- これは[更新](/ja/examples/live-status)の逆のパターンです。あちらは呼び出し側が
+  開いている Call に新しい props を送り込みますが、こちらはそれを閉じます。

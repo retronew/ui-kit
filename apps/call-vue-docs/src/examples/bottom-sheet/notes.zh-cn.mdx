@@ -1,0 +1,16 @@
+## 关闭时向下滑出
+
+`call.end()` 一旦执行，面板本应立刻消失，根本来不及滑出去。给 `createCallable`
+传入第二个参数——**卸载延迟**——会让已结束的调用在这段毫秒数内继续挂载，并暴露
+`call.ended`，让你自己驱动退出动画：
+
+```ts
+const open = entered && !call.ended
+// open ? 'translate-y-0' : 'translate-y-full'
+```
+
+一个 `open` 标志驱动两段动画：挂载后的下一帧翻转为 `true`（滑入），`call.ended`
+变为 `true` 时再翻回 `false`（滑出）——就在 call-vue 把这个调用从 Stack 中移除之前。
+
+把延迟时间和 CSS 过渡时长保持一致——这里两者都是 `300ms`。横向滑动的同款写法
+可参考[设置抽屉](/zh-cn/examples/side-drawer)。

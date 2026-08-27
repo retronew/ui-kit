@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { examples as migratedExamples } from '~/examples/catalog'
-import { landingMessages, localizePath } from '~/i18n'
+import { exampleTranslations, landingMessages, localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 
 type Category = 'dialog' | 'picker' | 'notification' | 'menu' | 'drawer' | 'overlay' | 'flow'
@@ -140,13 +140,14 @@ const copy = computed(() => {
 
 const entries = computed<readonly Entry[]>(() => {
   const cards = landingMessages[props.locale].showcase.cards
+  const translated = props.locale === 'en' ? undefined : exampleTranslations[props.locale]
   return [
     ...migratedExamples.map(({ slug, meta }) => ({
       slug,
       category: meta.category,
       behaviors: meta.behaviors,
-      title: meta.title,
-      description: meta.description,
+      title: translated?.[slug]?.title ?? meta.title,
+      description: translated?.[slug]?.description ?? meta.description,
       detail: true,
     })),
     {

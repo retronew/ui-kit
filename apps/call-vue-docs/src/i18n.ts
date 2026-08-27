@@ -289,3 +289,326 @@ export const landingMessages = {
     },
   },
 } as const
+
+export const exampleCategoryLabels: Record<Locale, Record<string, string>> = {
+  en: {
+    dialog: 'Dialog',
+    picker: 'Picker',
+    notification: 'Notification',
+    menu: 'Menu',
+    drawer: 'Drawer',
+    overlay: 'Overlay',
+    flow: 'Flow',
+  },
+  'zh-cn': {
+    dialog: '对话框',
+    picker: '选择器',
+    notification: '通知',
+    menu: '菜单',
+    drawer: '抽屉',
+    overlay: '覆盖层',
+    flow: '流程',
+  },
+  ja: {
+    dialog: 'ダイアログ',
+    picker: 'ピッカー',
+    notification: '通知',
+    menu: 'メニュー',
+    drawer: 'ドロワー',
+    overlay: 'オーバーレイ',
+    flow: 'フロー',
+  },
+}
+
+export const exampleBehaviorLabels: Record<Locale, Record<string, string>> = {
+  en: {
+    update: 'Update',
+    upsert: 'Upsert',
+    'mutation-flow': 'Mutation flow',
+    stacking: 'Stacking',
+    nested: 'Nested',
+    'exit-animation': 'Exit animation',
+    'root-props': 'Root props',
+    'end-from-caller': 'End from caller',
+  },
+  'zh-cn': {
+    update: '更新',
+    upsert: 'Upsert',
+    'mutation-flow': 'Mutation flow',
+    stacking: '堆叠',
+    nested: '嵌套',
+    'exit-animation': '退出动画',
+    'root-props': 'Root 属性',
+    'end-from-caller': '由调用方结束',
+  },
+  ja: {
+    update: '更新',
+    upsert: 'Upsert',
+    'mutation-flow': 'Mutation flow',
+    stacking: 'スタック',
+    nested: 'ネスト',
+    'exit-animation': '終了アニメーション',
+    'root-props': 'Root props',
+    'end-from-caller': '呼び出し側で終了',
+  },
+}
+
+export const exampleDetailMessages: Record<
+  Locale,
+  {
+    theCallable: string
+    declaredOnce: string
+    theRoot: string
+    mountedOnce: string
+    theCaller: string
+    anywhereImperative: string
+    relatedExamples: string
+  }
+> = {
+  en: {
+    theCallable: 'The Callable',
+    declaredOnce: 'declared once, mounted in the Vue tree',
+    theRoot: 'The Root',
+    mountedOnce: 'mounted in your app tree, once',
+    theCaller: 'The caller',
+    anywhereImperative: 'anywhere in your app, imperative',
+    relatedExamples: 'Related examples',
+  },
+  'zh-cn': {
+    theCallable: 'Callable',
+    declaredOnce: '只声明一次，挂载在 Vue 组件树中',
+    theRoot: 'Root',
+    mountedOnce: '在应用树中挂载一次',
+    theCaller: '调用方',
+    anywhereImperative: '在应用任意位置，以命令式方式调用',
+    relatedExamples: '相关示例',
+  },
+  ja: {
+    theCallable: 'Callable',
+    declaredOnce: '一度だけ宣言し、Vue ツリーにマウント',
+    theRoot: 'Root',
+    mountedOnce: 'アプリのツリーに一度だけマウント',
+    theCaller: '呼び出し側',
+    anywhereImperative: 'アプリのどこからでも、命令的に呼び出す',
+    relatedExamples: '関連サンプル',
+  },
+}
+
+export interface ExampleTranslation {
+  title: string
+  description: string
+}
+
+export const exampleTranslations: Record<
+  Exclude<Locale, 'en'>,
+  Record<string, ExampleTranslation>
+> = {
+  'zh-cn': {
+    'confirm-dialog': {
+      title: '确认对话框',
+      description: '在执行破坏性操作前请用户确认。向调用方返回一个布尔值。',
+    },
+    'alert-dialog': {
+      title: '提示对话框',
+      description:
+        '只有一个按钮的通知。调用方等待用户确认；响应类型是 void——关闭这个动作本身就是返回值。',
+    },
+    'prompt-input': {
+      title: '输入提示框',
+      description:
+        '就是 window.prompt()，但换成了你自己的组件。返回输入的字符串，取消则返回 null。',
+    },
+    'nested-dialog': {
+      title: '嵌套对话框',
+      description:
+        '一个会打开自身的 Callable。每个打开的实例都可以在自己的模板里再次生成同一个 Callable——库会追踪整个 Stack，并独立解析每个 promise。',
+    },
+    'save-form': {
+      title: '带 mutation flow 的保存表单',
+      description:
+        '一个带异步提交的对话框。useMutationFlow 负责跟踪 pending；一旦抛出异常，调用会保持打开，方便用户重试而不丢失已填内容。',
+    },
+    'root-context': {
+      title: '感知账号信息的对话框',
+      description:
+        '向已登录用户问好，而调用方从不需要传递用户名。用户信息挂在 Root prop 上，每个调用通过 call.root 读取——与逐次传递的 props 完全分开。',
+    },
+    'optional-mutation': {
+      title: '可选异步的确认框',
+      description:
+        '同一个 Callable，两种调用方。不传 mutationFn 时，submit().orEnd(true) 立即用兜底响应关闭；传了则由异步处理函数决定何时关闭——同一个 Confirm 同时服务两种场景。',
+    },
+    'progress-toast': {
+      title: '进度 Toast',
+      description:
+        '一个会随任务进度自我更新的单例 Toast。使用 upsert()，让连续调用作用于同一个实例。',
+    },
+    'error-banner': {
+      title: '自动消失的错误提示',
+      description: '通过 setTimeout 自行关闭的短暂横幅。多次调用会堆叠——每个错误都拥有自己的横幅。',
+    },
+    'live-status': {
+      title: '实时状态更新',
+      description:
+        '一个固定的状态胶囊。随着任务推进，调用方持续向这个已打开的调用推送新的 props——同一个实例，通过 promise 引用从外部更新。',
+    },
+    'broadcast-update': {
+      title: '向所有调用广播',
+      description:
+        '同时堆叠着多个上传胶囊。一次不带 promise 的 Upload.update(props) 会合并进每一个打开的调用，一次连接状态变化就能同时翻转它们——同时各自保留自己的文件名。',
+    },
+    'item-picker': {
+      title: '列表选择器',
+      description: '展示一个列表并返回所选项。调用方取消返回 null；选中某一项则返回该对象本身。',
+    },
+    'color-picker': {
+      title: '颜色选择器',
+      description:
+        '一个色块网格。当前值作为 prop 传入，选择器据此渲染选中态；返回所选十六进制颜色或 null。',
+    },
+    'context-menu': {
+      title: '上下文菜单',
+      description:
+        '右键点击时打开的定位菜单。调用方把光标坐标传递过去，让 Callable 精确渲染在点击处。',
+    },
+    'command-palette': {
+      title: '命令面板（⌘K）',
+      description: '一个可搜索的操作列表。键盘驱动：方向键导航，Enter 执行，Esc 关闭。',
+    },
+    'bottom-sheet': {
+      title: '底部面板',
+      description: '从底部滑出、关闭时再滑回去——移动端原生的操作菜单与快捷选择模式。',
+    },
+    wizard: {
+      title: '多步骤向导',
+      description:
+        '一个三步的注册流程，支持前进/后退导航。状态保存在 Callable 内部；调用方只需 await 一次即可拿到结构化的完整结果。',
+    },
+    'permission-prompt': {
+      title: '权限授权',
+      description:
+        'OAuth 风格的“是否允许 X？”提示。返回 allow 或 deny——一个带标签的响应，而不是布尔值。',
+    },
+    'caller-resolve': {
+      title: '由调用方结束',
+      description:
+        'call() 返回的 promise 就是这次调用的身份标识。调用方内的超时逻辑可以从外部通过 Approval.end(promise, false) 结束那个具体的调用——无需在对话框内点击任何按钮即可给出响应。',
+    },
+    'side-drawer': {
+      title: '设置抽屉',
+      description:
+        '从边缘滑入、关闭时再滑出的面板。初始设置以纯数据形式通过 props 传入；Callable 自己管理表单状态，并返回保存后的值，用户关闭则返回 null。',
+    },
+    'image-lightbox': {
+      title: '图片灯箱',
+      description: '点击缩略图，以覆盖层形式打开原图。点击背景或按 Escape 可关闭 Callable。',
+    },
+  },
+  ja: {
+    'confirm-dialog': {
+      title: '確認ダイアログ',
+      description:
+        '破壊的な操作を実行する前にユーザーへ確認します。呼び出し側には真偽値が返ります。',
+    },
+    'alert-dialog': {
+      title: 'アラートダイアログ',
+      description:
+        'ボタンが一つだけの通知です。呼び出し側は確認を待ちます。レスポンスの型は void——閉じるという行為自体が値になります。',
+    },
+    'prompt-input': {
+      title: '入力プロンプト',
+      description:
+        'window.prompt() を自分のコンポーネントに置き換えたものです。入力された文字列を返し、キャンセル時は null を返します。',
+    },
+    'nested-dialog': {
+      title: 'ネストしたダイアログ',
+      description:
+        '自分自身を開く Callable です。開いている各インスタンスは自身のテンプレートの中から同じ Callable を生成でき、ライブラリが Stack を追跡してそれぞれの promise を独立して解決します。',
+    },
+    'save-form': {
+      title: 'Mutation flow を使った保存フォーム',
+      description:
+        '非同期送信を伴うダイアログです。useMutationFlow が pending を管理し、例外が投げられると Call は開いたままになるので、ユーザーは入力を失わずに再試行できます。',
+    },
+    'root-context': {
+      title: 'アカウント情報を反映するダイアログ',
+      description:
+        '呼び出し側がユーザー名を渡さなくても、ログイン中のユーザーに挨拶するダイアログです。ユーザー情報は Root prop に置かれ、各 Call は call.root から参照します——毎回渡す props とは別の仕組みです。',
+    },
+    'optional-mutation': {
+      title: '任意の非同期処理を持つ確認',
+      description:
+        '一つの Callable を二種類の呼び出し側が使います。mutationFn を省略すると submit().orEnd(true) が即座にフォールバック値で閉じ、渡した場合は非同期ハンドラーが閉じるタイミングを決めます——同じ Confirm が両方に対応します。',
+    },
+    'progress-toast': {
+      title: '進捗トースト',
+      description:
+        '作業の進行に合わせて自身を更新する単一のトーストです。upsert() を使い、連続した呼び出しが同じインスタンスを更新します。',
+    },
+    'error-banner': {
+      title: '自動的に消えるエラー',
+      description:
+        'setTimeout で自ら閉じる一時的なバナーです。複数回呼び出すと積み重なり、エラーごとに専用のバナーが表示されます。',
+    },
+    'live-status': {
+      title: 'ライブステータス更新',
+      description:
+        '固定表示のステータスピルです。作業が進むたびに、呼び出し側が開いている Call へ新しい props を送り込みます——同じインスタンスが、promise の参照を通じて外部から更新されます。',
+    },
+    'broadcast-update': {
+      title: 'すべての Call へブロードキャスト',
+      description:
+        '複数のアップロードピルが同時に積み重なっています。promise を渡さない Upload.update(props) は開いているすべての Call にマージされるので、一つの接続状態の変化ですべてを同時に切り替えられます——それぞれが自分のファイル名は保持します。',
+    },
+    'item-picker': {
+      title: 'アイテムピッカー',
+      description:
+        'リストを表示し、選ばれたアイテムを返します。呼び出し側でのキャンセルは null を返し、選択時はそのオブジェクト自体を返します。',
+    },
+    'color-picker': {
+      title: 'カラーピッカー',
+      description:
+        'スウォッチのグリッドです。現在の値が prop として渡され、ピッカーはそれを選択状態として表示します。選ばれた 16 進カラー、または null を返します。',
+    },
+    'context-menu': {
+      title: 'コンテキストメニュー',
+      description:
+        '右クリックで開く、位置指定されたメニューです。呼び出し側がカーソル座標を渡すことで、Callable がクリックした位置にレンダリングされます。',
+    },
+    'command-palette': {
+      title: 'コマンドパレット（⌘K）',
+      description:
+        '検索可能な操作リストです。キーボード操作に対応：矢印キーで移動、Enter で実行、Esc で閉じます。',
+    },
+    'bottom-sheet': {
+      title: 'ボトムシート',
+      description:
+        '下から現れ、閉じるときは下へ滑って戻ります——モバイルネイティブなアクションメニューやクイック選択のパターンです。',
+    },
+    wizard: {
+      title: 'マルチステップウィザード',
+      description:
+        '前後のナビゲーションを備えた 3 ステップのサインアップフローです。状態は Callable の内部で保持され、呼び出し側は一度の await で構造化されたレスポンスを受け取ります。',
+    },
+    'permission-prompt': {
+      title: '権限の同意',
+      description:
+        'OAuth 風の「X を許可しますか？」というプロンプトです。真偽値ではなく、allow か deny というタグ付きレスポンスを返します。',
+    },
+    'caller-resolve': {
+      title: '呼び出し側からの解決',
+      description:
+        'call() が返す promise がその Call の識別子そのものです。呼び出し側のタイムアウト処理は、Approval.end(promise, false) によって外部からその特定の Call を確定できます——ダイアログ内でクリックすることなくレスポンスを届けられます。',
+    },
+    'side-drawer': {
+      title: '設定ドロワー',
+      description:
+        '端から現れ、閉じるときはまた端へ戻るパネルです。初期設定はただのデータとして props で渡され、Callable 自身がフォームの状態を管理し、保存された値を返します。ユーザーが閉じた場合は null を返します。',
+    },
+    'image-lightbox': {
+      title: '画像ライトボックス',
+      description:
+        'サムネイルをクリックすると、元の画像がオーバーレイとして開きます。背景クリックまたは Escape キーで Callable が閉じます。',
+    },
+  },
+}

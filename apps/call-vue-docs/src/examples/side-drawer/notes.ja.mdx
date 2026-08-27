@@ -1,0 +1,32 @@
+## 退出アニメーションを成立させる
+
+通常、Call は `call.end()` が実行された瞬間にアンマウントされます——フェード
+なら問題ありませんが、スライドアウトには致命的です。再生される機会が一切ない
+からです。`createCallable` の第二引数はミリ秒単位の**アンマウント遅延**です。
+call-vue は終了した Call をその時間だけ Stack に残し、その間 `call.ended` を
+`true` にします。
+
+```ts
+const UNMOUNTING_DELAY = 300 // CSS のトランジション時間に合わせる
+
+export const SettingsDrawerCall = createCallable<Props, Settings | null>(
+  SettingsDrawer,
+  UNMOUNTING_DELAY,
+)
+```
+
+こうして一つの `open` フラグが二つのトランジションを駆動します。
+
+- **イン**——`entered` は `false` から始まり、次のアニメーションフレームで
+  切り替わるため、パネルは画面外でマウントされてからスライドインします。
+- **アウト**——`call.end(...)` が `call.ended` を設定し、`open` が `false`
+  になり、パネルはスライドアウトします。遅延が経過した時点で call-vue が実際
+  にアンマウントします。
+
+## 注意点
+
+- **遅延時間と CSS のトランジション時間を同期させてください。** 短すぎると
+  退出が途中で切れ、長すぎると Call が見えないまま居座ります。
+- `call.ended` は Call ごとのものです。外側のクリック、ボタン、外部からの
+  `SettingsDrawerCall.end(null)` のいずれも同じ経路を通るため、どの閉じ方でも
+  同じようにアニメーションします。

@@ -1,0 +1,30 @@
+## 让退出动画播放完
+
+调用通常在 `call.end()` 执行的瞬间就会卸载——这对淡入淡出没问题，但对滑出动画
+来说是致命的，因为它根本没有机会播放。`createCallable` 的第二个参数是以毫秒
+计的**卸载延迟**：call-vue 会让已结束的调用在这段时间内继续留在 Stack 里，
+并在此期间把 `call.ended` 置为 `true`。
+
+```ts
+const UNMOUNTING_DELAY = 300 // 与你的 CSS 过渡时长保持一致
+
+export const SettingsDrawerCall = createCallable<Props, Settings | null>(
+  SettingsDrawer,
+  UNMOUNTING_DELAY,
+)
+```
+
+于是由一个 `open` 标志驱动两段过渡：
+
+- **进入**——`entered` 初始为 `false`，在下一个动画帧翻转，面板先在屏幕外
+  挂载，再滑入。
+- **退出**——`call.end(...)` 设置 `call.ended`，`open` 变为 `false`，面板滑
+  回去，等延迟结束后 call-vue 才真正卸载它。
+
+## 注意事项
+
+- **延迟时间要和 CSS 过渡时长保持同步。** 太短会截断退出动画；太长则会让已
+  结束的调用隐形地滞留一段时间。
+- `call.ended` 是按调用维度的——无论是点击外部、按钮，还是外部调用
+  `SettingsDrawerCall.end(null)`，都走同一条路径，所以每一次关闭的动画表现
+  都一致。
