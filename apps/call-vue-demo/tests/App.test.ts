@@ -68,8 +68,11 @@ describe('App', () => {
     expect(dialog.attributes('aria-labelledby')).toBe(wrapper.find('.title').attributes('id'))
     expect(dialog.attributes('aria-describedby')).toBe(wrapper.find('.message').attributes('id'))
 
+    vi.useFakeTimers()
     await confirm.trigger('keydown', { key: 'Escape' })
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    // ConfirmDialog's exit transition keeps the dialog mounted for
+    // `unmountingDelay` (150ms) after `call.end()` before it's removed.
+    await vi.advanceTimersByTimeAsync(150)
     await nextTick()
 
     expect(wrapper.find('.dialog').exists()).toBe(false)

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CallContext } from '@retronew/call-vue'
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { PropType } from 'vue'
 import type { ConfirmProps, ConfirmResponse } from '../callables/confirm'
 
@@ -25,8 +25,22 @@ const previouslyFocused =
 const titleId = `confirm-title-${props.call.key}`
 const descriptionId = `confirm-description-${props.call.key}`
 
+// Starts closed so the entrance transition has something to animate from —
+// flips true one frame after mount. `call.ended` then drives the faster
+// close phase (see the CSS below); the Confirm callable's `unmountingDelay`
+// matches --modal-close-dur so the dialog stays mounted just long enough to
+// finish that close transition before being removed.
+const entered = ref(false)
+const phase = computed<'closed' | 'open' | 'closing'>(() => {
+  if (props.call.ended) return 'closing'
+  return entered.value ? 'open' : 'closed'
+})
+
 onMounted(async () => {
   await nextTick()
+  requestAnimationFrame(() => {
+    entered.value = true
+  })
   cancelButton.value?.focus()
 })
 
@@ -61,9 +75,15 @@ function handleKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div class="backdrop" @click.self="finish(false)" @keydown="handleKeydown">
+  <div
+    class="backdrop"
+    :class="{ 'is-open': phase === 'open', 'is-closing': phase === 'closing' }"
+    @click.self="finish(false)"
+    @keydown="handleKeydown"
+  >
     <div
       class="dialog"
+      :class="{ 'is-open': phase === 'open', 'is-closing': phase === 'closing' }"
       role="alertdialog"
       aria-modal="true"
       :aria-labelledby="titleId"
@@ -91,7 +111,24 @@ function handleKeydown(event: KeyboardEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgb(0 0 0 / 0%);
+  backdrop-filter: blur(0);
+  transition:
+    background-color var(--modal-open-dur) var(--modal-ease),
+    backdrop-filter var(--modal-open-dur) var(--modal-ease);
+}
+
+.backdrop.is-open {
   background: rgb(0 0 0 / 45%);
+  backdrop-filter: blur(var(--modal-blur));
+}
+
+.backdrop.is-closing {
+  background: rgb(0 0 0 / 0%);
+  backdrop-filter: blur(0);
+  transition:
+    background-color var(--modal-close-dur) var(--modal-ease),
+    backdrop-filter var(--modal-close-dur) var(--modal-ease);
 }
 
 .dialog {
@@ -101,6 +138,29 @@ function handleKeydown(event: KeyboardEvent) {
   background: var(--surface);
   padding: 20px;
   box-shadow: var(--dialog-shadow);
+  opacity: 0;
+  transform: scale(var(--modal-scale));
+  transition:
+    opacity var(--modal-open-dur) var(--modal-ease),
+    transform var(--modal-open-dur) var(--modal-ease);
+  will-change: transform, opacity;
+}
+
+.dialog.is-open {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Closing is deliberately faster than opening (transitions.dev's
+   open/close asymmetry: closes should get out of the way) — this rule
+   re-declares `transition` so the browser picks up --modal-close-dur for
+   this state change instead of continuing to use --modal-open-dur. */
+.dialog.is-closing {
+  opacity: 0;
+  transform: scale(var(--modal-scale));
+  transition:
+    opacity var(--modal-close-dur) var(--modal-ease),
+    transform var(--modal-close-dur) var(--modal-ease);
 }
 
 .title {

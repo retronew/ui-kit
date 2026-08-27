@@ -17,6 +17,13 @@
   --surface-strong-hover: #27272a;
   --surface-strong-fg: #ffffff;
   --dialog-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* transitions.dev modal tokens (github.com/Jakubantalik/transitions.dev) */
+  --modal-open-dur: 250ms;
+  --modal-close-dur: 150ms;
+  --modal-scale: 0.96;
+  --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --modal-blur: 4px;
 }
 
 .dark {
