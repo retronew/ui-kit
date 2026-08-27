@@ -8,7 +8,7 @@ import type { ToastCardProps, ToastCardResponse } from '../callables/toast'
 defineProps({
   text: { type: String, required: true },
   call: {
-    type: Object as PropType<CallContext<ToastCardProps, ToastCardResponse, Record<string, never>>>,
+    type: Object as PropType<CallContext<ToastCardProps, ToastCardResponse, {}>>,
     required: true,
   },
 })
@@ -45,16 +45,37 @@ defineProps({
 }
 
 .dismiss {
+  display: inline-grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
   margin-left: auto;
   border: none;
+  border-radius: 8px;
   background: none;
   color: var(--fg-muted);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .dismiss:hover {
   color: var(--fg);
+  background: var(--surface-hover);
+}
+
+.dismiss:active {
+  transform: scale(0.96);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--fg-muted);
+  outline-offset: 2px;
 }
 </style>

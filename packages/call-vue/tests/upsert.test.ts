@@ -12,6 +12,10 @@ function Toast(props: PropsWithCall<Props, Response, Record<string, never>>) {
   return h('div', { class: 'toast' }, props.text)
 }
 
+function VoidToast(props: PropsWithCall<Props, void, Record<string, never>>) {
+  return h('div', { class: 'toast' }, props.text)
+}
+
 describe('upsert()', () => {
   it('reuses the same promise and call while no upsert is pending', async () => {
     const Toaster = createCallable<Props, Response>(Toast)
@@ -41,6 +45,24 @@ describe('upsert()', () => {
     expect(second).not.toBe(first)
   })
 
+  it('updates only the upsert item while ordinary calls coexist', async () => {
+    const Toaster = createCallable<Props, Response>(Toast)
+    const wrapper = mount(Toaster)
+
+    void Toaster.call({ text: 'normal-a' })
+    const first = Toaster.upsert({ text: 'upsert-a' })
+    void Toaster.call({ text: 'normal-b' })
+    const second = Toaster.upsert({ text: 'upsert-b' })
+    await nextTick()
+
+    expect(second).toBe(first)
+    expect(wrapper.findAll('.toast').map((toast) => toast.text())).toEqual([
+      'normal-a',
+      'upsert-b',
+      'normal-b',
+    ])
+  })
+
   it('untargeted end() also clears a pending upsert', async () => {
     const Toaster = createCallable<Props, Response>(Toast)
     mount(Toaster)
@@ -51,5 +73,27 @@ describe('upsert()', () => {
 
     const second = Toaster.upsert({ text: 'b' })
     expect(second).not.toBe(first)
+  })
+
+  it('targets a void-response call when undefined is passed explicitly', async () => {
+    const Toaster = createCallable<Props, void>(VoidToast)
+    mount(Toaster)
+
+    const first = Toaster.upsert({ text: 'a' })
+    const second: Promise<void> = Toaster.call({ text: 'b' })
+    let secondSettled = false
+    void second.then(() => {
+      secondSettled = true
+    })
+
+    Toaster.end(first, undefined)
+
+    await expect(first).resolves.toBeUndefined()
+
+    await nextTick()
+    expect(secondSettled).toBe(false)
+
+    Toaster.end(second, undefined)
+    await expect(second).resolves.toBeUndefined()
   })
 })

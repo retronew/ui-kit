@@ -1,4 +1,4 @@
-import type { Component, DefineComponent } from 'vue'
+import type { Component } from 'vue'
 
 /** Internal: the executor passed to `new Promise()` needs a typed `resolve`. */
 export type Resolve<Response> = (value: Response | PromiseLike<Response>) => void
@@ -51,19 +51,23 @@ export type UserComponent<Props, Response, RootProps> = Component<
   PropsWithCall<Props, Response, RootProps>
 >
 
+type EndFunction<Response> = ((
+  promise: Promise<Response>,
+  response: [Response] extends [void] ? undefined : Response,
+) => void) &
+  ([Response] extends [void] ? (response?: undefined) => void : (response: Response) => void)
+
 /**
  * What `createCallable` returns.
  *
  * The callable is the Root component itself — mount it with `<Confirm />`
- * (or `<Confirm.Root />`) and use the imperative methods (`call`, `upsert`,
- * `end`, `update`) as properties on the very same object.
+ * and use the imperative methods (`call`, `upsert`, `end`, `update`) as
+ * properties on the very same object.
  */
-export type Callable<Props, Response, RootProps> = DefineComponent<RootProps> & {
-  /** Alias for the callable itself — `Confirm.Root === Confirm`. */
-  Root: DefineComponent<RootProps>
+export type Callable<Props, Response, RootProps> = Component<RootProps> & {
   call: CallFunction<Props, Response>
   upsert: UpsertFunction<Props, Response>
-  end: ((promise: Promise<Response>, response: Response) => void) & ((response: Response) => void)
+  end: EndFunction<Response>
   update: ((promise: Promise<Response>, props: Partial<Props>) => void) &
     ((props: Partial<Props>) => void)
 }

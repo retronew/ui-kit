@@ -30,8 +30,8 @@ describe('update()', () => {
     const List = createCallable<Props, Response>(Item)
     const wrapper = mount(List)
 
-    List.call({ label: 'a', count: 1 })
-    List.call({ label: 'b', count: 1 })
+    void List.call({ label: 'a', count: 1 })
+    void List.call({ label: 'b', count: 1 })
     await nextTick()
 
     List.update({ count: 9 })
@@ -46,7 +46,7 @@ describe('update()', () => {
     const wrapper = mount(List)
 
     const first = List.call({ label: 'a', count: 1 })
-    List.call({ label: 'b', count: 1 })
+    void List.call({ label: 'b', count: 1 })
     await nextTick()
 
     List.update(first, { count: 5 })

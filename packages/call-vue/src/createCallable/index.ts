@@ -1,5 +1,5 @@
-import { defineComponent, h, onUnmounted } from 'vue'
-import type { DefineComponent } from 'vue'
+import { defineComponent, h, onMounted, onUnmounted } from 'vue'
+import type { Component } from 'vue'
 import { createStackStore } from './store'
 import type { Resolve } from './types'
 import type {
@@ -18,13 +18,9 @@ import type {
  *
  * This is a Vue-native port of react-call's `createCallable` — see
  * `skills/call-vue/SKILL.md` for the full mental model (stack, upsert,
- * mutation flow).
+ * lifecycle constraints).
  */
-export function createCallable<
-  Props = void,
-  Response = void,
-  RootProps extends Record<string, unknown> = Record<string, never>,
->(
+export function createCallable<Props = void, Response = void, RootProps extends object = {}>(
   UserComponent: UserComponentType<Props, Response, RootProps>,
   unmountingDelay = 0,
 ): Callable<Props, Response, RootProps> {
@@ -100,8 +96,7 @@ export function createCallable<
     return promise
   }
 
-  const end: ((promise: Promise<Response>, response: Response) => void) &
-    ((response: Response) => void) = (...args: [Promise<Response>, Response] | [Response]) => {
+  const end = ((...args: [Promise<Response>, Response] | [Response]) => {
     const targeted = args.length === 2
     const promise = targeted ? args[0] : null
     const response = targeted ? args[1] : args[0]
@@ -109,7 +104,7 @@ export function createCallable<
     if (!targeted || promise === store.getUpsertPromise()) store.setUpsertPromise(null)
 
     return createEnd(promise)(response)
-  }
+  }) as Callable<Props, Response, RootProps>['end']
 
   const update: ((promise: Promise<Response>, props: Partial<Props>) => void) &
     ((props: Partial<Props>) => void) = (
@@ -130,8 +125,15 @@ export function createCallable<
     name: 'CallableRoot',
     inheritAttrs: false,
     setup(_, { attrs }) {
-      const unmountRoot = store.mountRoot()
-      onUnmounted(unmountRoot)
+      let unmountRoot: (() => void) | undefined
+
+      // Vue executes setup() during SSR but does not run unmount hooks there.
+      // Count roots only after a client mount so server renders cannot leak
+      // root registrations into later requests.
+      onMounted(() => {
+        unmountRoot = store.mountRoot()
+      })
+      onUnmounted(() => unmountRoot?.())
 
       return () =>
         store.stack.value.map((item, index, stack) =>
@@ -149,13 +151,7 @@ export function createCallable<
           }),
         )
     },
-  }) as unknown as DefineComponent<RootProps>
+  }) as unknown as Component<RootProps>
 
-  return Object.assign(Root, {
-    Root,
-    call,
-    upsert,
-    end,
-    update,
-  })
+  return Object.assign(Root, { call, upsert, end, update })
 }

@@ -33,7 +33,7 @@ served by routing.
   `upsert`, `end`, `update`) attached to the same object. Don't call it a
   "modal/dialog/component".
 - **Root** — the mounting form of the Callable: the bare `<Confirm />`
-  (`Confirm.Root === Confirm`, kept as an alias). Not a "provider/portal".
+  itself. There is no separate `.Root` alias. Not a "provider/portal".
 - **Call** — one imperative invocation (`Confirm.call({...})`), resolves to a
   **Response**.
 - **Stack** — the ordered list of active Calls a Root renders (not a
@@ -53,7 +53,7 @@ type Props = { message: string }
 type Response = boolean
 
 // `call` is the special injected prop (the CallContext)
-defineProps<PropsWithCall<Props, Response, Record<string, never>>>()
+defineProps<PropsWithCall<Props, Response, {}>>()
 </script>
 
 <template>
@@ -86,7 +86,8 @@ const accepted = await Confirm.call({ message: 'Continue?' })
 ```
 
 Generics are `createCallable<Props, Response, RootProps>` (all optional,
-default to `void`/`void`/`Record<string, never>`).
+default to `void`/`void`/`{}`). `RootProps` accepts a normal interface without
+extending `Record<string, unknown>`.
 
 Plain functional components work too — `createCallable` accepts anything
 matching Vue's `Component<Props>` type, including a bare
@@ -109,6 +110,10 @@ tiny callable.
 - **End / update from the caller** — `Confirm.end(promise, value)` /
   `Confirm.update(promise, partialProps)` target one Call; omit the promise
   argument to affect every currently active Call instead.
+- **Void responses** — externally, use `Toast.end(promise, undefined)` to
+  target one Call and `Toast.end()` to end all Calls. Never write
+  `Toast.end(promise)`: a single argument is the broadcast response position.
+  Inside the component, `call.end()` is valid and ends only that instance.
 
 ## Hard rules (the common failures)
 
@@ -136,6 +141,16 @@ tiny callable.
   swap into an exit-animation state; the instance stays mounted for 200ms
   after `end()` so a CSS transition (or Vue `<Transition>` wrapping the
   Callable's stack render) has time to play before removal.
+- **SSR only registers on the client.** Repeated server renders do not count as
+  mounted Roots. `call()`/`upsert()` before client `onMounted` throw
+  *"No `<Root>` found!"*.
+- **Async components load on demand.** Pass `defineAsyncComponent()` directly
+  to `createCallable`; an empty stack does not invoke the loader. Prefer its
+  `loadingComponent` and `errorComponent` options for Calls inserted after an
+  already-resolved `<Suspense>` boundary.
+- **SFC types need Vue tooling.** Use `vue-tsc --noEmit` to validate cross-file
+  `.vue` props; a plain TypeScript shim cannot prove that the business props
+  and injected `call` prop match.
 
 ## Anti-patterns
 
@@ -146,9 +161,12 @@ tiny callable.
 - Treating the Callable as a plain component to render with data props — the
   props you pass to `<Confirm />` itself are **RootProps** (shared context),
   never the per-instance data; that always goes through `.call(props)`.
-- Reaching into `call.root` for data that changes per-Call — it's constant
-  for the Root's whole lifetime (whatever `<Confirm />` was mounted with);
-  put per-Call data in the component's own props instead.
+- Reaching into `call.root` for data that changes per-Call — Root props are
+  shared by every active Call (and react to Root prop updates); put data that
+  differs per Call in the component's own props instead.
+- Treating a dialog Callable as accessible by default — the library is
+  headless. The user component owns naming, initial focus, Tab trapping,
+  Escape behavior, focus restoration, and reduced motion.
 
 ## Quick reference
 

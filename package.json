@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vp run -r build",
     "changeset": "changeset",
-    "check": "vp check",
+    "check": "vp check && vp run call-vue-demo#typecheck:sfc",
     "commitlint": "commitlint",
     "dev": "vp run toast-vue-demo#dev",
     "e2e": "playwright test",
@@ -22,7 +22,7 @@
     "test": "vp run -r test",
     "test:coverage": "vp run -r test:coverage",
     "trace:motion": "node scripts/trace-toast-motion.mjs",
-    "typecheck": "vp check --no-fmt --no-lint",
+    "typecheck": "vp check --no-fmt --no-lint && vp run call-vue-demo#typecheck:sfc",
     "version-packages": "changeset version"
   },
   "devDependencies": {
