@@ -33,7 +33,11 @@ const demoAfterSection: Record<string, number> = {
 const demoIndex = demoAfterSection[slug]
 ---
 
-{slug === 'why' && <WhyContent locale={locale} />}
+{slug === 'why' && (
+  <Base title={`${doc.title} — call-vue`} description={doc.description} type="article">
+    <WhyContent locale={locale} />
+  </Base>
+)}
 {slug === 'concepts' && <ConceptsGrid locale={locale} />}
 {slug === 'examples' && <ExamplesGrid locale={locale} />}
 {slug === 'api' && <ApiContent locale={locale} />}
