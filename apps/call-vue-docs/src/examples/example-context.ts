@@ -24,4 +24,10 @@ export interface ExampleMeta {
    * props come from.
    */
   rootProps?: string
+  /**
+   * Sort key for the gallery, matching upstream react-call's per-example
+   * `order` values so both galleries list examples in the same sequence.
+   * Examples without one sort after all ordered ones, by title.
+   */
+  order?: number
 }

@@ -93,7 +93,7 @@ export interface ExampleEntry {
   callerSource: string
 }
 
-export const examples: readonly ExampleEntry[] = [
+const exampleEntries: readonly ExampleEntry[] = [
   {
     slug: 'error-banner',
     meta: {
@@ -104,6 +104,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['stacking'],
       tags: ['error', 'auto-dismiss', 'stack'],
       files: { callable: 'ErrorBanner.vue + callable.ts', caller: 'TriggerErrorButton.vue' },
+      order: 11,
     },
     component: ErrorBannerExample,
     componentSource: errorBannerComponentSource,
@@ -120,6 +121,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['mutation-flow'],
       tags: ['async', 'submit', 'retry'],
       files: { callable: 'SaveForm.vue + callable.ts', caller: 'NewItemButton.vue' },
+      order: 5,
     },
     component: SaveFormExample,
     componentSource: saveFormComponentSource,
@@ -136,6 +138,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['root-props'],
       tags: ['root-props', 'context', 'shared'],
       files: { callable: 'Greeter.vue + callable.ts', caller: 'AskButton.vue' },
+      order: 6,
       rootProps: 'userName="Ada Lovelace"',
     },
     component: RootContextExample,
@@ -153,6 +156,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['mutation-flow'],
       tags: ['optional', 'orEnd', 'fallback'],
       files: { callable: 'OptionalMutationConfirm.vue + callable.ts', caller: 'PublishButton.vue' },
+      order: 7,
     },
     component: OptionalMutationExample,
     componentSource: optionalMutationComponentSource,
@@ -169,6 +173,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['end-from-caller'],
       tags: ['timeout', 'external', 'promise'],
       files: { callable: 'ApprovalDialog.vue + callable.ts', caller: 'RequestApprovalButton.vue' },
+      order: 62,
     },
     component: CallerResolveExample,
     componentSource: callerResolveComponentSource,
@@ -185,6 +190,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['nested', 'stacking'],
       tags: ['recursion', 'stack'],
       files: { callable: 'NestedDialog.vue + callable.ts', caller: 'OpenNestedButton.vue' },
+      order: 4,
     },
     component: NestedDialogExample,
     componentSource: nestedDialogComponentSource,
@@ -201,6 +207,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['oauth', 'consent'],
       files: { callable: 'PermissionPrompt.vue + callable.ts', caller: 'ConnectButton.vue' },
+      order: 61,
     },
     component: PermissionPromptExample,
     componentSource: permissionPromptComponentSource,
@@ -217,6 +224,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['update', 'stacking'],
       tags: ['broadcast', 'status', 'stack'],
       files: { callable: 'UploadPill.vue + callable.ts', caller: 'UploadQueueButton.vue' },
+      order: 13,
     },
     component: BroadcastUpdateExample,
     componentSource: broadcastUpdateComponentSource,
@@ -233,6 +241,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['update'],
       tags: ['status', 'live', 'tracker'],
       files: { callable: 'LiveStatus.vue + callable.ts', caller: 'PlaceOrderButton.vue' },
+      order: 12,
     },
     component: LiveStatusExample,
     componentSource: liveStatusComponentSource,
@@ -249,6 +258,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['list', 'select'],
       files: { callable: 'ItemPicker.vue + callable.ts', caller: 'FruitPickerTrigger.vue' },
+      order: 20,
     },
     component: ItemPickerExample,
     componentSource: itemPickerComponentSource,
@@ -265,6 +275,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['color', 'grid'],
       files: { callable: 'ColorPicker.vue + callable.ts', caller: 'ColorSwatch.vue' },
+      order: 21,
     },
     component: ColorPickerExample,
     componentSource: colorPickerComponentSource,
@@ -281,6 +292,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['destructive', 'boolean'],
       files: { callable: 'ConfirmDialog.vue + callable.ts', caller: 'DeleteButton.vue' },
+      order: 1,
     },
     component: ConfirmDialogExample,
     componentSource: confirmComponentSource,
@@ -297,6 +309,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['info', 'one-button'],
       files: { callable: 'AlertDialog.vue + callable.ts', caller: 'ShowAlertButton.vue' },
+      order: 2,
     },
     component: AlertDialogExample,
     componentSource: alertComponentSource,
@@ -313,6 +326,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['text-input', 'string', 'rename'],
       files: { callable: 'PromptInput.vue + callable.ts', caller: 'RenameButton.vue' },
+      order: 3,
     },
     component: PromptInputExample,
     componentSource: promptComponentSource,
@@ -332,6 +346,7 @@ export const examples: readonly ExampleEntry[] = [
         callable: 'CommandPalette.vue + callable.ts',
         caller: 'CommandPaletteTrigger.vue',
       },
+      order: 31,
     },
     component: CommandPaletteExample,
     componentSource: commandPaletteComponentSource,
@@ -348,6 +363,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['exit-animation'],
       tags: ['mobile', 'actions'],
       files: { callable: 'BottomSheet.vue + callable.ts', caller: 'ShareButton.vue' },
+      order: 40,
     },
     component: BottomSheetExample,
     componentSource: bottomSheetComponentSource,
@@ -364,6 +380,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['multi-step', 'form', 'onboarding'],
       files: { callable: 'Wizard.vue + callable.ts', caller: 'StartWizardButton.vue' },
+      order: 60,
     },
     component: WizardExample,
     componentSource: wizardComponentSource,
@@ -380,6 +397,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['right-click', 'positioned'],
       files: { callable: 'ContextMenu.vue + callable.ts', caller: 'ContextMenuTrigger.vue' },
+      order: 30,
     },
     component: ContextMenuExample,
     componentSource: contextMenuComponentSource,
@@ -396,6 +414,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['upsert'],
       tags: ['progress', 'singleton'],
       files: { callable: 'ProgressToast.vue + callable.ts', caller: 'ProgressToastTrigger.vue' },
+      order: 10,
     },
     component: ProgressToastExample,
     componentSource: progressToastComponentSource,
@@ -412,6 +431,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: ['exit-animation'],
       tags: ['settings', 'panel', 'form'],
       files: { callable: 'SettingsDrawer.vue + callable.ts', caller: 'OpenSettingsButton.vue' },
+      order: 41,
     },
     component: SettingsDrawerExample,
     componentSource: sideDrawerComponentSource,
@@ -428,6 +448,7 @@ export const examples: readonly ExampleEntry[] = [
       behaviors: [],
       tags: ['gallery', 'image'],
       files: { callable: 'ImageLightbox.vue + callable.ts', caller: 'ImageGallery.vue' },
+      order: 50,
     },
     component: ImageLightboxExample,
     componentSource: imageLightboxComponentSource,
@@ -435,6 +456,13 @@ export const examples: readonly ExampleEntry[] = [
     callerSource: imageLightboxCallerSource,
   },
 ]
+
+// Matches upstream react-call's own gallery order (its meta.ts `order`
+// values), so both sites list examples in the same sequence.
+export const examples: readonly ExampleEntry[] = [...exampleEntries].sort((left, right) => {
+  const orderDifference = (left.meta.order ?? 100) - (right.meta.order ?? 100)
+  return orderDifference || left.meta.title.localeCompare(right.meta.title)
+})
 
 export function getExample(slug: string): ExampleEntry | undefined {
   return examples.find((example) => example.slug === slug)
