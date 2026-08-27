@@ -155,6 +155,10 @@ async function simulateUpload() {
 }
 
 .desc code {
+  border-radius: 4px;
+  background: var(--surface-hover);
+  padding: 0.1em 0.4em;
+  color: var(--fg);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
 }
