@@ -158,7 +158,8 @@ pnpm run typecheck
 pnpm run test:coverage
 pnpm run build
 pnpm run perfcheck
-pnpm run e2e
+pnpm run e2e:toast
+pnpm run e2e:docs
 ```
 
 Run `pnpm run e2e:install` once before the first local browser test. Pull
