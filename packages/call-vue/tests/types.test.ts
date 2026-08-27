@@ -29,6 +29,7 @@ const VoidDialog: UserComponent<DialogProps, void, {}> = (props) => h('p', props
 const VoidConfirm = createCallable<DialogProps>(VoidDialog)
 
 function assertDialogCalls() {
+  Confirm.displayName = 'Confirm'
   const promise = Confirm.call({ message: 'Delete?' })
   Confirm.end(promise, 'accept')
   Confirm.end('cancel')
@@ -80,6 +81,7 @@ describe('public types', () => {
       UserComponent<DialogProps, DialogResponse, DialogRootProps>
     >()
     expectTypeOf(Confirm).toMatchTypeOf<Callable<DialogProps, DialogResponse, DialogRootProps>>()
+    expectTypeOf(Confirm.displayName).toEqualTypeOf<string | undefined>()
   })
 
   it('accepts natural interface root props and rejects invalid calls', () => {

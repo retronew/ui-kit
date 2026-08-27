@@ -9,7 +9,7 @@ export default defineConfig({
     },
   },
   pack: {
-    entry: ['src/index.ts', 'src/mutation-flow/index.ts'],
+    entry: ['src/index.ts', 'src/mutation-flow/index.ts', 'src/vite/index.ts', 'src/host/index.ts'],
     dts: {
       tsgo: true,
     },

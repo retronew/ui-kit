@@ -10,6 +10,14 @@ import type {
   UserComponent as UserComponentType,
 } from './types'
 
+// A Callable's Vite transform assigns a stable displayName during module
+// evaluation. A refreshed module can then adopt the pre-refresh store, which
+// still belongs to the mounted Root. This registry is intentionally dev-only
+// at the call site below, so production consumers do not pay for HMR state.
+type RegisteredStore = ReturnType<typeof createStackStore<unknown, unknown>>
+
+const storeRegistry = /* @__PURE__ */ new Map<string, RegisteredStore>()
+
 /**
  * Turns a Vue component into a "callable": mount it once as `<Confirm />`
  * and then `await Confirm.call(props)` from anywhere to push an instance
@@ -24,7 +32,9 @@ export function createCallable<Props = void, Response = void, RootProps extends 
   UserComponent: UserComponentType<Props, Response, RootProps>,
   unmountingDelay = 0,
 ): Callable<Props, Response, RootProps> {
-  const store = createStackStore<Props, Response>()
+  const storeRef: { current: ReturnType<typeof createStackStore<Props, Response>> } = {
+    current: createStackStore<Props, Response>(),
+  }
 
   const createEnd = (promise: Promise<Response> | null) => (response: Response) => {
     // Capture exactly which calls this end() resolves now. `set` runs
@@ -34,16 +44,16 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     // those, so calls added later in the same tick (e.g. an end-all
     // immediately followed by call()) are never clobbered.
     const ending = new Set<Promise<Response>>()
-    store.set(promise, (call) => {
+    storeRef.current.set(promise, (call) => {
       call.resolve(response)
       ending.add(call.promise)
       return { ...call, ended: true }
     })
-    globalThis.setTimeout(() => store.remove(ending), unmountingDelay)
+    globalThis.setTimeout(() => storeRef.current.remove(ending), unmountingDelay)
   }
 
   const assertSingleRoot = () => {
-    const count = store.getRootCount()
+    const count = storeRef.current.getRootCount()
     if (!count) throw new Error('No <Root> found!')
     if (count > 1) throw new Error('Multiple instances of <Root> found!')
   }
@@ -56,7 +66,7 @@ export function createCallable<Props = void, Response = void, RootProps extends 
       resolve = res
     })
 
-    store.add({
+    storeRef.current.add({
       props,
       end: createEnd(promise),
       ended: false,
@@ -70,9 +80,9 @@ export function createCallable<Props = void, Response = void, RootProps extends 
   const upsert: UpsertFunction<Props, Response> = (props) => {
     assertSingleRoot()
 
-    const existing = store.getUpsertPromise()
+    const existing = storeRef.current.getUpsertPromise()
     if (existing) {
-      store.set(existing, (c) => ({ ...c, props }))
+      storeRef.current.set(existing, (c) => ({ ...c, props }))
       return existing
     }
 
@@ -80,12 +90,12 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     const promise = new Promise<Response>((res) => {
       resolve = res
     })
-    store.setUpsertPromise(promise)
+    storeRef.current.setUpsertPromise(promise)
 
-    store.add({
+    storeRef.current.add({
       props,
       end: (response: Response) => {
-        store.setUpsertPromise(null)
+        storeRef.current.setUpsertPromise(null)
         createEnd(promise)(response)
       },
       ended: false,
@@ -101,7 +111,9 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     const promise = targeted ? args[0] : null
     const response = targeted ? args[1] : args[0]
 
-    if (!targeted || promise === store.getUpsertPromise()) store.setUpsertPromise(null)
+    if (!targeted || promise === storeRef.current.getUpsertPromise()) {
+      storeRef.current.setUpsertPromise(null)
+    }
 
     return createEnd(promise)(response)
   }) as Callable<Props, Response, RootProps>['end']
@@ -111,7 +123,7 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     ...args: [Promise<Response>, Partial<Props>] | [Partial<Props>]
   ) => {
     const targeted = args.length === 2
-    store.set(targeted ? args[0] : null, (c) => ({
+    storeRef.current.set(targeted ? args[0] : null, (c) => ({
       ...c,
       props: { ...c.props, ...(targeted ? args[1] : args[0]) },
     }))
@@ -131,12 +143,12 @@ export function createCallable<Props = void, Response = void, RootProps extends 
       // Count roots only after a client mount so server renders cannot leak
       // root registrations into later requests.
       onMounted(() => {
-        unmountRoot = store.mountRoot()
+        unmountRoot = storeRef.current.mountRoot()
       })
       onUnmounted(() => unmountRoot?.())
 
       return () =>
-        store.stack.value.map((item, index, stack) =>
+        storeRef.current.stack.value.map((item, index, stack) =>
           h(UserComponent, {
             ...item.props,
             key: item.key,
@@ -153,5 +165,35 @@ export function createCallable<Props = void, Response = void, RootProps extends 
     },
   }) as unknown as Component<RootProps>
 
-  return Object.assign(Root, { call, upsert, end, update })
+  const callable = Object.assign(Root, { call, upsert, end, update }) as Callable<
+    Props,
+    Response,
+    RootProps
+  >
+
+  if (process.env.NODE_ENV !== 'production') {
+    let displayName: string | undefined
+    let registered = false
+    Object.defineProperty(callable, 'displayName', {
+      configurable: true,
+      enumerable: true,
+      get: () => displayName,
+      set: (value: string | undefined) => {
+        if (registered) return
+        displayName = value
+        if (!value) return
+        registered = true
+        const existing = storeRegistry.get(value)
+        if (existing) {
+          storeRef.current = existing as unknown as ReturnType<
+            typeof createStackStore<Props, Response>
+          >
+        } else {
+          storeRegistry.set(value, storeRef.current as unknown as RegisteredStore)
+        }
+      },
+    })
+  }
+
+  return callable
 }

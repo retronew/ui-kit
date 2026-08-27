@@ -1,6 +1,6 @@
 ---
 import { Code } from 'astro-expressive-code/components'
-import { localizePath, shellMessages } from '~/i18n'
+import { localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 import { localizedDocs } from '~/localized-docs'
 import ApiContent from '~/components/ApiContent.astro'
@@ -21,7 +21,6 @@ export function getStaticPaths() {
 const locale = Astro.params.locale as Exclude<Locale, 'en'>
 const slug = Astro.params.slug ?? ''
 const doc = localizedDocs[locale][slug]
-const shell = shellMessages[locale]
 if (!doc) throw new Error(`Missing localized document: ${locale}/${slug}`)
 
 // Index (0-based) of the section after which the English page embeds a live

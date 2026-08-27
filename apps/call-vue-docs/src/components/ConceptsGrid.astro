@@ -15,6 +15,7 @@ const conceptSlugs = [
   'concepts/call-and-end',
   'concepts/upsert-and-update',
   'concepts/mutation-flow',
+  'concepts/development-tools',
   'concepts/exit-lifecycle',
 ] as const
 
@@ -23,12 +24,13 @@ const english = {
   metaDescription: 'The core mental model behind call-vue.',
   heading: 'Concepts',
   intro:
-    'Five lenses on the mental model, from the single Root to async submission and the final delayed unmount.',
+    'Six lenses on the mental model, from the single Root to development tooling and delayed unmount.',
   items: [
     { title: 'Root & Stack', description: 'Where a Callable lives in the Vue tree and what happens when many calls are active at once.' },
     { title: 'Call & End', description: "How props enter a call, how its Promise resolves, and how targeted and broadcast ending differ." },
     { title: 'Upsert & Update', description: 'Singleton calls, stable Promise identity, and targeted or broadcast prop updates.' },
     { title: 'Mutation flow', description: 'Pending state, duplicate-submit protection, retries, and an explicit close on success.' },
+    { title: 'Development tools', description: 'Keep an open Call through supported Vite HMR and mount one Root for repeated preview apps.' },
     { title: 'Exit lifecycle', description: 'The ended flag, delayed unmounting, animation timing, and race-free cleanup.' },
   ],
 }

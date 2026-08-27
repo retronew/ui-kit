@@ -1,0 +1,30 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Concept from '~/layouts/Concept.astro'
+
+const vite = `// vite.config.ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import callVue from '@retronew/call-vue/vite'
+
+export default defineConfig({
+  plugins: [vue(), callVue()],
+})`
+
+const host = `// .storybook/preview.ts or a Histoire setup file
+import { mount } from '@retronew/call-vue/host'
+import { Confirm } from '../src/confirm'
+
+mount(Confirm, { wrapper: PreviewProviders })`
+---
+
+<Concept title="Development tools" intro="Preserve active Calls during supported Vite updates and mount one Root outside repeated preview apps.">
+  <h2>Vite HMR retains the Stack</h2>
+  <p>The optional Vite plugin appends a stable <code>displayName</code> in development for a direct, top-level <code>const</code> Callable declaration. When Vite re-evaluates that module, the new Callable adopts the mounted Root's existing Stack instead of losing active Calls.</p>
+  <Code code={vite} lang="ts" />
+  <p>Direct named imports of <code>createCallable</code> (including an alias) are supported. Namespace imports, default exports, nested declarations, and <code>let</code>/<code>var</code> are intentionally skipped; write <code>Confirm.displayName = 'Confirm'</code> yourself in those cases. A manual name is never overwritten. This behavior is development-only.</p>
+  <h2>One Root for preview platforms</h2>
+  <p>Storybook and Histoire can create multiple isolated Vue apps. Use the Host to mount exactly one Callable Root outside them, rather than adding the same Root to every preview decorator.</p>
+  <Code code={host} lang="ts" />
+  <p><code>mount()</code> is idempotent and creates one body-level host by default. It accepts a custom <code>container</code> and replaces the rendered Root when called again. Because it creates a separate Vue app, it does not inherit preview <code>provide</code> values or plugins; install those in its <code>wrapper</code>. Call it only in browser setup, not during SSR.</p>
+</Concept>

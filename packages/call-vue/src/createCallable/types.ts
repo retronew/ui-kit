@@ -65,6 +65,11 @@ type EndFunction<Response> = ((
  * properties on the very same object.
  */
 export type Callable<Props, Response, RootProps> = Component<RootProps> & {
+  /**
+   * A stable development-only key used by the Vite integration to retain an
+   * open Stack when the module that created this Callable is hot-reloaded.
+   */
+  displayName?: string
   call: CallFunction<Props, Response>
   upsert: UpsertFunction<Props, Response>
   end: EndFunction<Response>

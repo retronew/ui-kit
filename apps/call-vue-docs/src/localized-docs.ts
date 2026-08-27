@@ -75,7 +75,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     concepts: {
       title: '核心概念',
       description:
-        '用五个视角理解 call-vue：Root 与 Stack、Call 与 End、Upsert 与 Update、Mutation flow，以及退出生命周期。',
+        '用六个视角理解 call-vue：Root 与 Stack、Call 与 End、Upsert 与 Update、Mutation flow、开发工具，以及退出生命周期。',
       sections: [
         {
           heading: 'Root 与 Stack',
@@ -215,6 +215,38 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: '没提供 handler 时怎么办',
           paragraphs: [
             '如果你的处理函数是可选的，可以用 submit(payload).orEnd(value)：只在确实没传 handler 的情况下，才用 value 结束这一次调用。不写 orEnd、之后自己手动调用 end 也是完全受支持的做法。',
+          ],
+        },
+      ],
+    },
+    'concepts/development-tools': {
+      title: '开发工具',
+      description: '在支持的 Vite 热更新中保住已打开的 Call，并为多个预览应用只挂载一个 Root。',
+      sections: [
+        {
+          heading: 'Vite HMR 保留 Stack',
+          paragraphs: [
+            '可选的 Vite 插件会在开发期为顶层 const Callable 自动补上稳定的 displayName。模块被热更新重新执行时，新 Callable 会接管旧 Root 的 Stack，因此已经打开的 Call 不会消失。',
+          ],
+          code: "import callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
+        },
+        {
+          heading: '哪些声明会被自动处理',
+          paragraphs: [
+            "支持从 @retronew/call-vue 直接具名导入 createCallable（可改名）后写出的顶层 const 或 export const。命名空间导入、默认导出、嵌套声明、let/var 会被有意跳过；这些写法可自行添加 Confirm.displayName = 'Confirm'。手动名称不会被插件覆盖，且全部行为只发生在开发期。",
+          ],
+        },
+        {
+          heading: '预览环境只保留一个 Root',
+          paragraphs: [
+            'Storybook、Histoire 等工具会并行创建多棵独立 Vue 树。用 Host 在预览树外只挂一次 Callable，而不要在每个 decorator 中重复挂载同一个 Root。mount 是幂等的，可指定 container；重复调用会复用同一个 Host。',
+          ],
+          code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
+        },
+        {
+          heading: '独立应用的边界',
+          paragraphs: [
+            'Host 创建的是独立 Vue 应用，不会继承预览应用的 provide、插件或全局组件。需要的依赖请在 wrapper 中安装；它只应从浏览器端预览设置调用，不能用于 SSR。',
           ],
         },
       ],
@@ -366,7 +398,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '能力边界',
           paragraphs: [
-            '目前发布的子路径入口只有 @retronew/call-vue/mutation-flow。Vite HMR transform 和多预览 host 等能力尚未发布，我们也不会把上游 React 版专有的东西包装成 Vue 的功能来介绍。',
+            '@retronew/call-vue/mutation-flow、@retronew/call-vue/vite 与 @retronew/call-vue/host 都已发布。后两者只服务浏览器开发环境：不要在服务端执行 Vite 集成，mount() 也只能从客户端入口调用。Host 是独立 Vue 应用，需要的 providers 请通过 wrapper 安装。',
           ],
         },
       ],
@@ -483,7 +515,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     concepts: {
       title: 'コアコンセプト',
       description:
-        'Root と Stack、Call と End、Upsert と Update、Mutation flow、終了ライフサイクルの五つで理解します。',
+        'Root と Stack、Call と End、Upsert と Update、Mutation flow、開発ツール、終了ライフサイクルの六つで理解します。',
       sections: [
         {
           heading: 'Root と Stack',
@@ -617,6 +649,39 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: 'optional handler のフォールバック',
           paragraphs: [
             'handler が optional のとき、submit(payload).orEnd(value) は handler がない場合だけ value で閉じます。orEnd を省略するのはサポートされた手動クローズ経路です。',
+          ],
+        },
+      ],
+    },
+    'concepts/development-tools': {
+      title: '開発ツール',
+      description:
+        '対応する Vite HMR で開いている Call を保ち、複数のプレビューアプリには Root を一つだけ置きます。',
+      sections: [
+        {
+          heading: 'Vite HMR で Stack を保持',
+          paragraphs: [
+            '任意の Vite プラグインは、開発中のトップレベル const Callable に安定した displayName を追加します。モジュールが再評価されると、新しい Callable が既存 Root の Stack を引き継ぐため、開いている Call を失いません。',
+          ],
+          code: "import callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
+        },
+        {
+          heading: '自動処理される宣言',
+          paragraphs: [
+            "@retronew/call-vue から createCallable を直接名前付き import（別名も可）し、トップレベル const または export const に書いた形を扱います。namespace import、default export、ネストした宣言、let/var は意図的に対象外です。その場合は Confirm.displayName = 'Confirm' を自分で設定してください。手動名は上書きされず、動作は開発時だけです。",
+          ],
+        },
+        {
+          heading: 'プレビューでは Root を一つにする',
+          paragraphs: [
+            'Storybook や Histoire は独立した Vue ツリーを並行して作成します。各 decorator に同じ Root を置く代わりに、Host でプレビューの外に Callable を一度だけマウントします。mount は冪等で、container を指定でき、二回目以降も同じ Host を再利用します。',
+          ],
+          code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
+        },
+        {
+          heading: '独立アプリの境界',
+          paragraphs: [
+            'Host は独立した Vue アプリを作るため、プレビュー側の provide、プラグイン、グローバルコンポーネントを継承しません。必要な設定は wrapper に入れ、SSR ではなくブラウザーのプレビュー設定からだけ呼んでください。',
           ],
         },
       ],
@@ -768,7 +833,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '機能境界',
           paragraphs: [
-            '@retronew/call-vue/mutation-flow は公開済みです。Vite HMR transform と複数プレビュー host はまだ公開していません。React のサブパスを Vue の機能として案内しません。',
+            '@retronew/call-vue/mutation-flow、@retronew/call-vue/vite、@retronew/call-vue/host は公開済みです。後者二つはブラウザー開発向けです。サーバーで Vite 連携を実行せず、mount() はクライアントエントリからだけ呼んでください。Host は独立した Vue アプリなので、必要な provider は wrapper に入れます。',
           ],
         },
       ],
