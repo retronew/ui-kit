@@ -19,7 +19,7 @@ const copy: Record<
     call: '调用 upsert()',
     end: 'end()',
     fired: '触发次数',
-    active: '是否活跃',
+    active: '活跃状态',
     yes: '是',
     no: '否',
   },

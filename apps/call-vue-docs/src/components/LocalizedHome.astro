@@ -9,17 +9,25 @@ import StateComparison from '~/components/landing/StateComparison.astro'
 import type { Locale } from '~/i18n'
 import Base from '~/layouts/Base.astro'
 
-export function getStaticPaths() {
-  return [{ params: { locale: 'zh-cn' } }, { params: { locale: 'ja' } }]
+interface Props {
+  locale: Locale
 }
 
-const locale = Astro.params.locale as Locale
-const meta = locale === 'zh-cn'
-  ? { title: 'call-vue — 让你的组件也能被 await', description: '把任意 Vue 组件变成可 await 的交互：确认框、对话框、通知、选择器和菜单。' }
-  : { title: 'call-vue — コンポーネントを await', description: 'あらゆる Vue コンポーネントを await できる操作に変えます。' }
+const { locale } = Astro.props
+const localizedMeta: Partial<Record<Locale, { title: string; description: string }>> = {
+  'zh-cn': {
+    title: 'call-vue — 让你的组件也能被 await',
+    description: '把任意 Vue 组件变成可 await 的交互：确认框、对话框、通知、选择器和菜单。',
+  },
+  ja: {
+    title: 'call-vue — コンポーネントを await',
+    description: 'あらゆる Vue コンポーネントを await できる操作に変えます。',
+  },
+}
+const meta = localizedMeta[locale]
 ---
 
-<Base title={meta.title} description={meta.description}>
+<Base title={meta?.title} description={meta?.description}>
   <Hero locale={locale} client:load />
   <NotJustConfirmations locale={locale} client:idle />
   <HowItLives locale={locale} client:visible />

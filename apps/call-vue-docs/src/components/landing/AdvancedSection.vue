@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { landingMessages } from '~/i18n'
+import { landingMessages, localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 import { AdvancedToast } from './advanced-callable'
 
@@ -73,7 +73,7 @@ async function run() {
               {{ busy ? t.running : t.run }}
             </button>
             <a
-              :href="`${locale === 'en' ? '' : `/${locale}`}/concepts/upsert-and-update`"
+              :href="localizePath('/concepts/upsert-and-update', locale)"
               class="font-mono text-xs text-[var(--color-fg-subtle)] underline-offset-2 hover:text-[var(--color-fg-muted)] hover:underline"
               >{{ t.code }}</a
             >

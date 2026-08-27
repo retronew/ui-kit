@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { landingMessages } from '~/i18n'
+import { landingMessages, localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 import { SaveDialogCallable } from './mutation-flow-callable'
 
@@ -109,7 +109,7 @@ function openSave() {
               {{ busy ? t.running : t.run }}
             </button>
             <a
-              :href="`${locale === 'en' ? '' : `/${locale}`}/concepts/mutation-flow`"
+              :href="localizePath('/concepts/mutation-flow', locale)"
               class="font-mono text-xs text-[var(--color-fg-subtle)] underline-offset-2 hover:text-[var(--color-fg-muted)] hover:underline"
               >{{ t.code }}</a
             >

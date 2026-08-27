@@ -9,8 +9,22 @@ interface Props {
 
 const { locale = 'en' } = Astro.props
 
+const meta: Record<Locale, { title: string; description: string }> = {
+  en: {
+    title: 'Examples — call-vue',
+    description: 'Real Callables you can interact with. Click into any example to see its full code and try it live.',
+  },
+  'zh-cn': {
+    title: '示例 — call-vue',
+    description: '可直接交互的真实 Callable。点击任意示例即可查看完整代码并亲自试用。',
+  },
+  ja: {
+    title: 'サンプル — call-vue',
+    description: '実際に操作できる Callable です。任意のサンプルをクリックすると、完全なコードを確認しながら実際に試せます。',
+  },
+}
 ---
 
-<Base title="Examples — call-vue" description="Runnable call-vue examples.">
+<Base title={meta[locale].title} description={meta[locale].description}>
   <ExamplesGallery client:load locale={locale} />
 </Base>

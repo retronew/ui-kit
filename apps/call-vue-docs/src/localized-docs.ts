@@ -36,7 +36,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '状态能显示界面，却不能返回答案',
           paragraphs: [
-            '用 ref 可以控制对话框显示与否，但用户给出的答案却很难直接传回调用处：结果往往要经 emit 抛给父组件，或靠事先存好的一个 resolve 函数接力。“提问”和“根据答案行事”就这样被拆到了不同的地方。而 call() 返回的 Promise 能把它们重新放回同一个函数里。',
+            '用 ref 可以控制对话框显示与否，但用户给出的答案却很难直接传回调用处：结果往往要通过 emit 抛给父组件，或靠事先存好的一个 resolve 函数接力。“提问”和“根据答案行事”就这样被拆到了不同的地方。而 call() 返回的 Promise 能把它们重新放回同一个函数里。',
           ],
         },
         {
@@ -80,7 +80,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'Root 与 Stack',
           paragraphs: [
-            'createCallable 创建出来的 Callable，本身就是要挂载的根组件（Root）。每执行一次 call()，都会往它自己的调用堆叠（Stack）里压入一个独立条目。',
+            'createCallable 创建出来的 Callable，本身就是要挂载的根组件（Root）。每执行一次 call()，都会往它自己的 Stack 里压入一个独立条目。',
           ],
         },
         {
@@ -98,7 +98,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '退出生命周期',
           paragraphs: [
-            '调用 end 时，Promise 立即敲定、ended 标记立即置真；组件则会按 unmountingDelay 推迟一段时间再移除，给退出动画留足时间。',
+            '调用 end 时，Promise 立即敲定、ended 标记立即置为 true；组件则会按 unmountingDelay 推迟一段时间再移除，给退出动画留足时间。',
           ],
         },
       ],
@@ -109,9 +109,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         '一个根组件（Root）挂载一个 Callable；多次 Call 可以同时存在，并按先后顺序渲染。',
       sections: [
         {
-          heading: '同一个值，两种角色',
+          heading: '一个组件，两种角色',
           paragraphs: [
-            'createCallable 返回的同一个对象身兼两职：作为 Vue 组件，它负责挂载和渲染；作为方法集合，它提供 call、upsert、end、update 这些用来发起和控制调用的入口。',
+            'createCallable 返回的同一个对象身兼两职：作为 Vue 组件，它负责挂载和渲染，这次挂载就是 Root；作为方法集合，它提供 call、upsert、end、update 这些用来发起和控制调用的入口。Root 负责监听，这些方法负责发起。',
           ],
           code: '<RouterView />\n<Confirm /> <!-- 唯一 Root -->',
           lang: 'vue',
@@ -138,12 +138,13 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     'concepts/call-and-end': {
       title: 'Call 与 End',
-      description: 'Props 进入 Stack，Response 通过 Promise 回到调用方。',
+      description:
+        'Props 通过 call() 压入 Stack，Response 经由 Promise 回到调用方；结束调用后，组件会按退出生命周期延迟移除。',
       sections: [
         {
           heading: 'Props 进入，Response 返回',
           paragraphs: [
-            'call(props) 会先确认 Root 已挂载，然后创建一个 Stack 条目并返回 Promise。你的组件既能拿到自己的 props，也能拿到注入的 call 上下文。',
+            'call(props) 会先确认 Root 已经挂载且只有一个，然后创建一个 Stack 条目并返回一个带类型的 Promise。你的组件既能拿到自己的 props，也能拿到注入的 call 上下文。',
           ],
           code: "const result = await Confirm.call({ message: '继续吗？' })",
         },
@@ -156,12 +157,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向与广播',
           paragraphs: [
-            '把 call 返回的 Promise 作为第一个参数传入，即可精确 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
+            '把 call 返回的 Promise 作为第一个参数传入，即可定向 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
           code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
         },
         {
-          heading: '解析与移除是两回事',
+          heading: '敲定与移除是两回事',
           paragraphs: [
             'end 会立即敲定 Promise 并把 call.ended 置为 true；组件真正的移除会等到配置的 unmountingDelay 之后。退场动画因此有足够的时间播完，也不会拖慢调用方的异步流程。',
           ],
@@ -175,7 +176,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '第一次创建，之后更新',
           paragraphs: [
-            '第一次 upsert 会创建这条单例条目。在它结束之前，后续的 upsert 只会替换 props，并且返回的是同一个 Promise。',
+            '第一次 upsert 会创建这条单例条目。在它结束之前，后续的 upsert 只会把新的 props 合并进这条已有条目，并且返回的是同一个 Promise。',
           ],
           code: "const a = Toast.upsert({ text: '开始' })\nconst b = Toast.upsert({ text: '进行中' })\nconsole.log(a === b) // true",
         },
@@ -239,7 +240,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '预览环境只保留一个 Root',
           paragraphs: [
-            'Storybook、Histoire 等工具会并行创建多棵独立 Vue 树。用 Host 在预览树外只挂一次 Callable，而不要在每个 decorator 中重复挂载同一个 Root。mount 是幂等的，可指定 container；重复调用会复用同一个 Host。',
+            'Storybook、Histoire 等工具会并行创建多棵独立 Vue 树。用 Host 在预览树外只挂一次 Callable，而不要在每个 decorator 中重复挂载同一个 Root。mount 是幂等的，可以指定 container；再次调用会复用同一个 Host，并替换掉上一次渲染的内容。',
           ],
           code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
         },
@@ -269,13 +270,13 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'Promise 立即敲定。',
             'call.ended 立即置为 true。',
             '延迟期间组件继续渲染。',
-            '计时结束后，只移除触发这次计时的那一个条目。',
+            '计时结束后，只移除这次 end() 实际结束的那些条目。',
           ],
         },
         {
           heading: '竞态安全',
           paragraphs: [
-            '广播 end 之后，即使在同一个 tick 里新建了 Call，也不会被旧的计时器误删；每次清理都只针对自己的那一次 Promise。',
+            '广播 end 之后，即使在同一个 tick 里新建了 Call，也不会被旧的计时器误删。移除范围严格限定在这次 end 真正结束的那些 Promise 身份上。',
           ],
         },
         {
@@ -362,7 +363,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     'guides/ssr-and-async': {
       title: 'SSR、Hydration 与异步组件',
-      description: '哪些操作可在服务端执行，哪些必须等到客户端 Root 挂载。',
+      description:
+        '哪些操作可在服务端安全执行，哪些必须等到客户端 Root 挂载，以及异步组件如何懒加载。',
       sections: [
         {
           heading: '创建与渲染支持 SSR',
@@ -373,7 +375,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'Call 是客户端行为',
           paragraphs: [
-            '不要在 SSR 期间运行 call 或 upsert。它们用于响应用户交互，并要求恰好一个已经挂载的客户端 Root。',
+            '不要在 SSR 期间运行 call 或 upsert。它们用于响应用户交互；如果这时还没有已挂载的客户端 Root，就会抛出 No <Root> found!。',
           ],
         },
         {
@@ -405,7 +407,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     troubleshooting: {
       title: '故障排查与 FAQ',
-      description: '定位 Root 错误、未结束 Promise、更新范围和动画时序问题。',
+      description:
+        '定位 Root 错误、一直不结束的 Promise、更新范围的意外情况，以及 SSR 时序和退场动画错位的问题。',
       sections: [
         {
           heading: 'No <Root> found!',
@@ -430,7 +433,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向 end 关错了对象',
           paragraphs: [
-            '想精确结束哪一次调用，就把它当时返回的那个 Promise 存下来。如果只传 response，就会走到广播的分支。Response 为 void 时同理：Callable.end(promise, undefined) 是定点结束，Callable.end() 是广播。',
+            '想精确结束哪一次调用，就把它当时返回的那个 Promise 存下来。如果只传 response，就会走到广播的分支。Response 为 void 时同理：Callable.end(promise, undefined) 是定向结束，Callable.end() 是广播。',
           ],
         },
         {
@@ -454,7 +457,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'call-vue 会渲染 UI 吗？',
           paragraphs: [
-            '不会。call-vue 只管两件事：调用的进出（Stack）和结果的交付（Promise）。至于可访问性语义、焦点管理、Teleport、样式和动画，仍然是你的 Vue 组件——或你选用的 headless UI 方案——的责任。',
+            '不会。call-vue 只管两件事：调用的进出（Stack）和结果的交付（Promise）。至于对话框语义、焦点管理、Teleport、样式和动画，仍然是你的 Vue 组件——或你选用的 headless UI 方案——的责任。',
           ],
         },
       ],
@@ -548,9 +551,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
       description: '一つの Root が Callable をマウントし、複数の Call を挿入順に描画します。',
       sections: [
         {
-          heading: '一つの値、二つの役割',
+          heading: '一つのコンポーネント、二つの役割',
           paragraphs: [
-            'createCallable の戻り値は Vue コンポーネントであり、call・upsert・end・update の名前空間でもあります。',
+            'createCallable の戻り値は Vue コンポーネントであり、そのマウントが Root になります。同時に call・upsert・end・update という命令的なメソッドの名前空間でもあります。Root が Call を監視し、これらのメソッドが Call を発します。',
           ],
           code: '<RouterView />\n<Confirm /> <!-- 唯一の Root -->',
           lang: 'vue',
@@ -577,11 +580,14 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     'concepts/call-and-end': {
       title: 'Call と End',
-      description: 'Props が Stack に入り、Response が Promise で呼び出し元へ戻ります。',
+      description:
+        'Props は call() で Stack に積まれ、Response は Promise で呼び出し元に戻ります。Call を終了すると、終了ライフサイクルに従って遅れて削除されます。',
       sections: [
         {
           heading: 'Props を渡し、Response を受け取る',
-          paragraphs: ['call(props) は Root を検証し、Stack 項目と型付き Promise を作ります。'],
+          paragraphs: [
+            'call(props) は Root がちょうど一つマウントされていることを検証し、Stack に項目を追加して、型付きの Promise を返します。コンポーネントはその props と、注入された call コンテキストを受け取ります。',
+          ],
           code: "const result = await Confirm.call({ message: '続けますか？' })",
         },
         {
@@ -674,7 +680,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'プレビューでは Root を一つにする',
           paragraphs: [
-            'Storybook や Histoire は独立した Vue ツリーを並行して作成します。各 decorator に同じ Root を置く代わりに、Host でプレビューの外に Callable を一度だけマウントします。mount は冪等で、container を指定でき、二回目以降も同じ Host を再利用します。',
+            'Storybook や Histoire は独立した Vue ツリーを並行して作成します。各 decorator に同じ Root を置く代わりに、Host でプレビューの外に Callable を一度だけマウントします。mount は冪等で、container を指定でき、再度呼び出すと同じ Host を再利用しつつ、直前にレンダリングした内容を置き換えます。',
           ],
           code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
         },
@@ -710,7 +716,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '競合を防ぐ',
           paragraphs: [
-            '一括 end と同じ tick で作られた新しい Call は、古い削除タイマーの対象になりません。',
+            '一括 end と同じ tick で作られた新しい Call は、古い削除タイマーの対象になりません。削除は、実際に終了した Promise の識別子だけに限定されます。',
           ],
         },
         {
@@ -797,7 +803,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     'guides/ssr-and-async': {
       title: 'SSR、Hydration、非同期コンポーネント',
-      description: 'サーバーで安全な操作と、クライアント Root のマウントを待つ操作。',
+      description:
+        'サーバーで安全な操作、クライアント Root のマウントを待つべき操作、そして非同期コンポーネントの遅延読み込みについて。',
       sections: [
         {
           heading: '作成と描画は SSR 対応',
@@ -808,7 +815,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'Call はクライアント専用',
           paragraphs: [
-            'SSR 中に call/upsert を実行しないでください。ユーザー操作から、マウント済み Root に対して呼びます。',
+            'SSR 中に call/upsert を実行しないでください。これらはユーザー操作に応答するためのもので、マウント済みのクライアント Root がなければ No <Root> found! がスローされます。',
           ],
         },
         {
@@ -840,7 +847,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     },
     troubleshooting: {
       title: 'トラブルシューティングと FAQ',
-      description: 'Root エラー、未解決 Promise、更新範囲、終了アニメーションを確認します。',
+      description:
+        'Root エラー、終わらない Promise、更新範囲の落とし穴、SSR のタイミング、終了アニメーションのずれを診断します。',
       sections: [
         {
           heading: 'No <Root> found!',
@@ -889,7 +897,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: 'call-vue は UI を描画しますか？',
           paragraphs: [
-            'いいえ。Stack と Promise のライフサイクルだけを管理します。意味付け、フォーカス管理、Teleport、スタイル、アニメーションはあなたの Vue コンポーネントまたは headless UI 層の責務のままです。',
+            'いいえ。Stack と Promise のライフサイクルだけを管理します。ダイアログのセマンティクス、フォーカス管理、Teleport、スタイル、アニメーションはあなたの Vue コンポーネントまたは headless UI 層の責務のままです。',
           ],
         },
       ],

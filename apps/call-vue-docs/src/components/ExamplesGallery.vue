@@ -55,7 +55,7 @@ const copy = computed(() => {
   if (props.locale === 'zh-cn') {
     return {
       title: '示例',
-      description: '可直接交互的 Callable。点击任意示例，即可在首页运行对应的真实 Vue 演示。',
+      description: '可直接交互的真实 Callable。点击任意示例即可查看完整代码并亲自试用。',
       search: '搜索示例…',
       all: '全部',
       none: '没有匹配当前筛选条件的示例。',
@@ -84,7 +84,7 @@ const copy = computed(() => {
     return {
       title: 'サンプル',
       description:
-        '実際に操作できる Callable です。任意のサンプルをクリックすると、ホームページで Vue デモを実行できます。',
+        '実際に操作できる Callable です。任意のサンプルをクリックすると、完全なコードを確認しながら実際に試せます。',
       search: 'サンプルを検索…',
       all: 'すべて',
       none: '現在のフィルターに一致するサンプルはありません。',
@@ -112,7 +112,7 @@ const copy = computed(() => {
   return {
     title: 'Examples',
     description:
-      'Real Callables you can interact with. Click into any example to run its live Vue demo on the homepage.',
+      'Real Callables you can interact with. Click into any example to see its full code and try it live.',
     search: 'Search examples…',
     all: 'All',
     none: 'No examples match the current filters.',
