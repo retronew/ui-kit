@@ -79,7 +79,7 @@ const copy = {
     <h1 class="text-3xl leading-[1.1] font-medium tracking-[-0.025em] text-[var(--color-fg)] md:text-5xl">{copy.title}</h1>
     <p class="mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)] md:text-lg">
       {locale === 'en' && <>For showing and hiding something, Vue state is perfect. The moment the interaction must <em>answer</em> the code that opened it, that model starts to strain.</>}
-      {locale === 'zh-cn' && <>对于单纯显示和隐藏界面，Vue 状态已经足够；但当交互必须把<em>答案交回</em>发起它的代码时，这个模型就开始变得吃力。</>}
+      {locale === 'zh-cn' && <>对于单纯显示和隐藏界面，Vue 状态已经足够；但当交互必须把<em>答案交回</em>发起它的代码时，这套做法就开始力不从心。</>}
       {locale === 'ja' && <>表示と非表示だけなら Vue の state で十分です。しかし UI が呼び出し元のコードへ<em>答えを返す</em>必要があると、そのモデルには無理が生じます。</>}
     </p>
   </header>
@@ -93,7 +93,7 @@ const copy = {
     <h2>{copy.stateTitle}</h2>
     <p>
       {locale === 'en' && <>A <code>ref</code> can keep the dialog visible, but returning its answer typically splits the consequence across an emit handler, callback prop, or resolver stored elsewhere. The code that asks and the code that acts drift apart.</>}
-      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但返回结果通常会分散到 emit 处理器、回调 prop 或存放在别处的 resolver 里。发起提问的代码与处理后续业务的代码因此逐渐分离。</>}
+      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但用户给出的答案却很难直接传回调用处：结果往往要经 emit 抛给父组件、回调 prop 接住，或者靠提前塞在别处的 resolve 函数接力。“提问”和“根据答案行事”就这样渐渐分了家。</>}
       {locale === 'ja' && <><code>ref</code> でダイアログを表示したままにはできますが、答えを返すには emit ハンドラー、callback prop、別の場所に保持した resolver に処理が分かれがちです。尋ねるコードと後続の処理が離れていきます。</>}
     </p>
     <div class="grid gap-4 md:grid-cols-2 md:gap-6">
@@ -103,7 +103,7 @@ const copy = {
     <h2>{copy.dependencyTitle}</h2>
     <p>
       {locale === 'en' && <>You can hand-roll a <code>Promise</code> resolver. Once it also handles strict typing, SSR-safe roots, concurrent calls, targeted updates, singleton <code>upsert</code>s, and delayed removal, that wrapper has become a small library. call-vue keeps those mechanics headless and tested.</>}
-      {locale === 'zh-cn' && <>你当然可以手写 <code>Promise</code> resolver。但当它还要处理严格类型、SSR 安全的 Root、并发调用、定向更新、单例 <code>upsert</code> 和延迟卸载时，这个封装已经成为一个小型库。call-vue 以 headless 的形式提供这些机制，并附带完整的测试保障。</>}
+      {locale === 'zh-cn' && <>你当然可以自己手写一个 <code>Promise</code> 的 resolve 函数。但当它还要兼顾严格类型、SSR 安全的 Root、并发调用、定向更新、单例 <code>upsert</code> 和延迟卸载时，这层封装就已经长成一个小型库了。call-vue 把这些机制做成了不带任何界面（headless）的形式，并配有完整的测试保障。</>}
       {locale === 'ja' && <><code>Promise</code> resolver を手書きすることはできます。しかし strict な型、SSR 安全な Root、同時 Call、対象を絞った更新、単一インスタンスの <code>upsert</code>、遅延アンマウントまで扱うなら、それは小さなライブラリです。call-vue はその仕組みを headless に保ち、テスト済みで提供します。</>}
     </p>
     <h2>{copy.stateUseTitle}</h2>
@@ -120,8 +120,8 @@ const copy = {
       </>}
       {locale === 'zh-cn' && <>
         <li><strong>组合性</strong> — 同时提出的问题会成为彼此独立的 Stack 条目。</li>
-        <li><strong>复用性</strong> — 定义一次，可从任意事件处理器、组合式函数、store action 或领域函数调用。</li>
-        <li><strong>线性控制流</strong> — 取消和确认都会回到同一条代码路径。</li>
+        <li><strong>复用性</strong> — 定义一次，就能从任意事件处理器、组合式函数、store action 或业务函数里调用。</li>
+        <li><strong>线性的控制流</strong> — 无论取消还是确认，最终都会回到同一条代码路径。</li>
       </>}
       {locale === 'ja' && <>
         <li><strong>合成可能性</strong> — 同時に出した質問は独立した Stack エントリになります。</li>
