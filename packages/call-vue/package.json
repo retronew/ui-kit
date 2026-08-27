@@ -1,6 +1,6 @@
 {
   "name": "@retronew/call-vue",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Call & await Vue components like async functions — a Vue 3 port of react-call.",
   "keywords": [
     "async",
