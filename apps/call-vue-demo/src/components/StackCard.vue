@@ -34,7 +34,7 @@ const depthFromTop = () => props.call.stackSize - 1 - props.call.index
 <style scoped>
 .stack-card {
   position: absolute;
-  inset: 0 0 auto 0;
+  inset: 12px 12px auto 12px;
   display: flex;
   align-items: center;
   gap: 10px;
