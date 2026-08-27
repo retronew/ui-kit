@@ -29,7 +29,7 @@ defineProps({
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  padding: 10px 12px;
+  padding: 10px 10px 10px 14px;
   font-size: 13px;
   box-shadow: var(--dialog-shadow);
   opacity: 1;
@@ -45,24 +45,30 @@ defineProps({
 }
 
 .dismiss {
+  position: relative;
   display: inline-grid;
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   place-items: center;
   margin-left: auto;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: none;
   color: var(--fg-muted);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   transition:
     color 0.15s ease,
     background-color 0.15s ease,
     transform 0.15s ease;
+}
+
+.dismiss::after {
+  content: '';
+  position: absolute;
+  inset: -11px;
 }
 
 .dismiss:hover {
