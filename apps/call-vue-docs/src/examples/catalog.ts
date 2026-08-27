@@ -97,11 +97,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'error-banner',
     meta: {
-      title: 'Error banner',
+      title: 'Auto-dismissing error',
       description:
-        'Stack assertive, self-dismissing error banners without making their calls overlap.',
+        'A transient banner that closes itself via setTimeout. Multiple calls stack — each error gets its own banner.',
       category: 'notification',
       behaviors: ['stacking'],
+      tags: ['error', 'auto-dismiss', 'stack'],
       files: { callable: 'ErrorBanner.vue + callable.ts', caller: 'TriggerErrorButton.vue' },
     },
     component: ErrorBannerExample,
@@ -112,11 +113,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'save-form',
     meta: {
-      title: 'Save form',
+      title: 'Save form with mutation flow',
       description:
-        'A mutation-flow form stays open after a handled failure, so the user can correct and retry.',
+        'A dialog with an async submit. useMutationFlow tracks pending; on throw, the call stays open so the user can retry without losing their input.',
       category: 'flow',
       behaviors: ['mutation-flow'],
+      tags: ['async', 'submit', 'retry'],
       files: { callable: 'SaveForm.vue + callable.ts', caller: 'NewItemButton.vue' },
     },
     component: SaveFormExample,
@@ -127,12 +129,14 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'root-context',
     meta: {
-      title: 'Root context',
+      title: 'Account-aware dialog',
       description:
-        'Pass shared data at the mounted root and read it from each call through call.root.',
+        'A dialog that greets the signed-in user without the caller ever passing their name. The user lives on a Root prop and reaches every call through call.root — separate from the per-call props.',
       category: 'flow',
       behaviors: ['root-props'],
+      tags: ['root-props', 'context', 'shared'],
       files: { callable: 'Greeter.vue + callable.ts', caller: 'AskButton.vue' },
+      rootProps: 'userName="Ada Lovelace"',
     },
     component: RootContextExample,
     componentSource: rootContextComponentSource,
@@ -142,11 +146,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'optional-mutation',
     meta: {
-      title: 'Optional mutation',
+      title: 'Confirm with optional async',
       description:
-        'Use a mutation handler when supplied, or fall back to an immediate response when it is absent.',
+        'One Callable, two callers. Omit mutationFn and submit().orEnd(true) closes instantly with a fallback response; pass one and the async handler decides when to close — the same Confirm serves both.',
       category: 'flow',
       behaviors: ['mutation-flow'],
+      tags: ['optional', 'orEnd', 'fallback'],
       files: { callable: 'OptionalMutationConfirm.vue + callable.ts', caller: 'PublishButton.vue' },
     },
     component: OptionalMutationExample,
@@ -157,11 +162,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'caller-resolve',
     meta: {
-      title: 'Caller-side resolve',
+      title: 'Resolve from the caller',
       description:
-        'Keep the call promise in caller scope and settle that exact dialog from a timeout.',
+        "The promise from call() is the call's identity. A timeout in the caller settles that exact open call from the outside with Approval.end(promise, false) — delivering a response without any in-dialog click.",
       category: 'flow',
       behaviors: ['end-from-caller'],
+      tags: ['timeout', 'external', 'promise'],
       files: { callable: 'ApprovalDialog.vue + callable.ts', caller: 'RequestApprovalButton.vue' },
     },
     component: CallerResolveExample,
@@ -174,9 +180,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Nested dialog',
       description:
-        'A callable opens itself, preserving a distinct promise and stack position per dialog.',
+        'A Callable that opens itself. Each open instance can spawn the same Callable from inside its own template — the library tracks the stack and resolves each promise independently.',
       category: 'dialog',
       behaviors: ['nested', 'stacking'],
+      tags: ['recursion', 'stack'],
       files: { callable: 'NestedDialog.vue + callable.ts', caller: 'OpenNestedButton.vue' },
     },
     component: NestedDialogExample,
@@ -187,10 +194,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'permission-prompt',
     meta: {
-      title: 'Permission prompt',
-      description: 'Request scoped consent and await an allow-or-deny result from the caller.',
+      title: 'Permission consent',
+      description:
+        'OAuth-style "do you allow X?" prompt. Resolves with allow or deny — a tagged response, not a boolean.',
       category: 'dialog',
       behaviors: [],
+      tags: ['oauth', 'consent'],
       files: { callable: 'PermissionPrompt.vue + callable.ts', caller: 'ConnectButton.vue' },
     },
     component: PermissionPromptExample,
@@ -201,11 +210,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'broadcast-update',
     meta: {
-      title: 'Broadcast update',
+      title: 'Broadcast to every call',
       description:
-        'Update every open upload notification at once while each one retains its own label.',
+        'Several upload pills stacked at once. One Upload.update(props) with no promise merges into every open call, so a single connection change flips them all — while each keeps its own filename.',
       category: 'notification',
       behaviors: ['update', 'stacking'],
+      tags: ['broadcast', 'status', 'stack'],
       files: { callable: 'UploadPill.vue + callable.ts', caller: 'UploadQueueButton.vue' },
     },
     component: BroadcastUpdateExample,
@@ -216,11 +226,12 @@ export const examples: readonly ExampleEntry[] = [
   {
     slug: 'live-status',
     meta: {
-      title: 'Live status',
+      title: 'Live status update',
       description:
-        'Hold one call promise and update that exact notification as an order progresses.',
+        'A pinned status pill. The caller pushes new props into the open call as work advances — same instance, updated from the outside via the promise reference.',
       category: 'notification',
       behaviors: ['update'],
+      tags: ['status', 'live', 'tracker'],
       files: { callable: 'LiveStatus.vue + callable.ts', caller: 'PlaceOrderButton.vue' },
     },
     component: LiveStatusExample,
@@ -232,9 +243,11 @@ export const examples: readonly ExampleEntry[] = [
     slug: 'item-picker',
     meta: {
       title: 'Item picker',
-      description: 'Show a list and resolve with the chosen item, or null when cancelled.',
+      description:
+        'Show a list and resolve with the chosen item. Caller-side cancellation returns null; selecting an item returns the object itself.',
       category: 'picker',
       behaviors: [],
+      tags: ['list', 'select'],
       files: { callable: 'ItemPicker.vue + callable.ts', caller: 'FruitPickerTrigger.vue' },
     },
     component: ItemPickerExample,
@@ -247,9 +260,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Color picker',
       description:
-        'A grid of swatches. The current value is forwarded as a prop so the picker can render it as selected.',
+        'A grid of swatches. The current value is forwarded as a prop so the picker can render it as selected; resolves with the chosen hex or null.',
       category: 'picker',
       behaviors: [],
+      tags: ['color', 'grid'],
       files: { callable: 'ColorPicker.vue + callable.ts', caller: 'ColorSwatch.vue' },
     },
     component: ColorPickerExample,
@@ -265,6 +279,7 @@ export const examples: readonly ExampleEntry[] = [
         'Ask the user to confirm a destructive action before it runs. Returns a boolean to the caller.',
       category: 'dialog',
       behaviors: [],
+      tags: ['destructive', 'boolean'],
       files: { callable: 'ConfirmDialog.vue + callable.ts', caller: 'DeleteButton.vue' },
     },
     component: ConfirmDialogExample,
@@ -277,9 +292,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Alert dialog',
       description:
-        'A one-button notice. The caller awaits acknowledgement; closing is the response.',
+        'A one-button notice. The caller awaits acknowledgement; the response type is void — the act of closing is the value.',
       category: 'dialog',
       behaviors: [],
+      tags: ['info', 'one-button'],
       files: { callable: 'AlertDialog.vue + callable.ts', caller: 'ShowAlertButton.vue' },
     },
     component: AlertDialogExample,
@@ -295,6 +311,7 @@ export const examples: readonly ExampleEntry[] = [
         'window.prompt(), but with your component. Resolves with the entered string, or null on cancel.',
       category: 'dialog',
       behaviors: [],
+      tags: ['text-input', 'string', 'rename'],
       files: { callable: 'PromptInput.vue + callable.ts', caller: 'RenameButton.vue' },
     },
     component: PromptInputExample,
@@ -307,9 +324,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Command palette (⌘K)',
       description:
-        'A searchable list of actions. Arrow keys navigate, Enter runs, and Esc dismisses.',
+        'A searchable list of actions. Keyboard-driven: arrow keys to navigate, Enter to run, Esc to dismiss.',
       category: 'menu',
       behaviors: [],
+      tags: ['cmdk', 'search', 'keyboard'],
       files: {
         callable: 'CommandPalette.vue + callable.ts',
         caller: 'CommandPaletteTrigger.vue',
@@ -325,9 +343,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Bottom sheet',
       description:
-        'Slides up from the bottom and back down on close — the mobile-native pattern for quick actions.',
+        'Slides up from the bottom and back down on close — the mobile-native pattern for action menus and quick choices.',
       category: 'drawer',
       behaviors: ['exit-animation'],
+      tags: ['mobile', 'actions'],
       files: { callable: 'BottomSheet.vue + callable.ts', caller: 'ShareButton.vue' },
     },
     component: BottomSheetExample,
@@ -339,9 +358,11 @@ export const examples: readonly ExampleEntry[] = [
     slug: 'wizard',
     meta: {
       title: 'Multi-step wizard',
-      description: 'A three-step signup flow. One await resolves with the whole form.',
+      description:
+        'A signup flow with three steps and a back/forward navigation. State lives inside the Callable; the caller awaits a single structured response.',
       category: 'flow',
       behaviors: [],
+      tags: ['multi-step', 'form', 'onboarding'],
       files: { callable: 'Wizard.vue + callable.ts', caller: 'StartWizardButton.vue' },
     },
     component: WizardExample,
@@ -354,9 +375,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Context menu',
       description:
-        'Forwards the cursor position to a positioned Callable and resolves with the selected action.',
+        'A positioned menu opened on right-click. The caller forwards the cursor coordinates so the Callable renders at the click site.',
       category: 'menu',
       behaviors: [],
+      tags: ['right-click', 'positioned'],
       files: { callable: 'ContextMenu.vue + callable.ts', caller: 'ContextMenuTrigger.vue' },
     },
     component: ContextMenuExample,
@@ -369,9 +391,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Progress toast',
       description:
-        'A singleton notification that updates itself via upsert() while async work progresses.',
+        'A singleton toast that updates itself as work progresses. Uses upsert() so consecutive calls mutate the same instance.',
       category: 'notification',
       behaviors: ['upsert'],
+      tags: ['progress', 'singleton'],
       files: { callable: 'ProgressToast.vue + callable.ts', caller: 'ProgressToastTrigger.vue' },
     },
     component: ProgressToastExample,
@@ -384,9 +407,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Settings drawer',
       description:
-        'A settings panel that slides in from the side and keeps its exit animation before unmounting.',
+        'A panel that slides in from the edge and slides back out on close. Props carry the initial settings as plain data; the Callable owns its own form state and resolves with the saved values, or null if the user dismisses.',
       category: 'drawer',
       behaviors: ['exit-animation'],
+      tags: ['settings', 'panel', 'form'],
       files: { callable: 'SettingsDrawer.vue + callable.ts', caller: 'OpenSettingsButton.vue' },
     },
     component: SettingsDrawerExample,
@@ -399,9 +423,10 @@ export const examples: readonly ExampleEntry[] = [
     meta: {
       title: 'Image lightbox',
       description:
-        'Click a thumbnail to open the full image as an overlay; backdrop click and Escape close it.',
+        'Click a thumbnail, open the full image as an overlay. The Callable closes on backdrop click or Escape.',
       category: 'overlay',
       behaviors: [],
+      tags: ['gallery', 'image'],
       files: { callable: 'ImageLightbox.vue + callable.ts', caller: 'ImageGallery.vue' },
     },
     component: ImageLightboxExample,

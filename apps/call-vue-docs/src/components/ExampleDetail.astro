@@ -1,8 +1,9 @@
 ---
 import { Code } from 'astro-expressive-code/components'
+import type { MarkdownInstance } from 'astro'
 import type { Locale } from '~/i18n'
 import { localizePath } from '~/i18n'
-import { getExample } from '~/examples/catalog'
+import { examples, getExample } from '~/examples/catalog'
 import Base from '~/layouts/Base.astro'
 import AlertDialogExample from '~/examples/alert-dialog/AlertDialogExample.vue'
 import BottomSheetExample from '~/examples/bottom-sheet/BottomSheetExample.vue'
@@ -26,6 +27,10 @@ import RootContextExample from '~/examples/root-context/RootContextExample.vue'
 import SaveFormExample from '~/examples/save-form/SaveFormExample.vue'
 import SettingsDrawerExample from '~/examples/side-drawer/SettingsDrawerExample.vue'
 
+type NotesModule = Pick<MarkdownInstance<Record<string, unknown>>, 'Content'>
+
+const noteModules = import.meta.glob<NotesModule>('../examples/*/notes.mdx')
+
 interface Props {
   slug: string
   locale?: Locale
@@ -44,7 +49,24 @@ const categoryLabels = {
   overlay: 'Overlay',
   flow: 'Flow',
 }
+const behaviorLabels = {
+  update: 'Update',
+  upsert: 'Upsert',
+  'mutation-flow': 'Mutation flow',
+  stacking: 'Stacking',
+  nested: 'Nested',
+  'exit-animation': 'Exit animation',
+  'root-props': 'Root props',
+  'end-from-caller': 'End from caller',
+}
 const examplesHref = localizePath('/examples', locale)
+
+const noteImporter = noteModules[`../examples/${slug}/notes.mdx`]
+const Notes = noteImporter ? (await noteImporter()).Content : null
+
+const related = examples
+  .filter((entry) => entry.slug !== slug && entry.meta.category === example.meta.category)
+  .slice(0, 3)
 const callableName = {
   'confirm-dialog': 'Confirm',
   'alert-dialog': 'Alert',
@@ -69,13 +91,14 @@ const callableName = {
   'root-context': 'GreeterCall',
 }[slug]
 if (!callableName) throw new Error(`Unknown callable name: ${slug}`)
+const rootTag = example.meta.rootProps ? `${callableName} ${example.meta.rootProps}` : callableName
 const appSource = `<script setup lang="ts">
 import { ${callableName} } from './callable'
 import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
 </script>
 
 <template>
-  <${callableName} />
+  <${rootTag} />
   <Caller />
 </template>`
 ---
@@ -88,6 +111,13 @@ import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
   <header class="mb-10">
     <h1 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{example.meta.title}</h1>
     <p class="mt-3 text-base text-[var(--color-fg-muted)]">{example.meta.description}</p>
+    {example.meta.behaviors.length > 0 && (
+      <div class="mt-4 flex flex-wrap gap-1.5">
+        {example.meta.behaviors.map((behavior) => (
+          <span class="rounded bg-[var(--color-bg-muted)] px-2 py-0.5 font-mono text-xs text-[var(--color-fg-muted)]">{behaviorLabels[behavior]}</span>
+        ))}
+      </div>
+    )}
   </header>
   <section class="relative mb-12 flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-10" aria-label="Live demo">
     {slug === 'confirm-dialog' && <ConfirmDialogExample client:load />}
@@ -127,5 +157,23 @@ import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
       <Code code={example.callerSource} lang="vue" title={example.meta.files.caller} />
     </div>
   </section>
+  {Notes && (
+    <section class="prose-call-vue mt-16 space-y-4 text-[var(--color-fg-muted)]">
+      <Notes />
+    </section>
+  )}
+  {related.length > 0 && (
+    <section class="mt-16">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">Related examples</h2>
+      <div class="grid gap-3 sm:grid-cols-3">
+        {related.map((entry) => (
+          <a href={localizePath(`/examples/${entry.slug}`, locale)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4 transition-colors hover:border-[var(--color-accent)]">
+            <span class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{categoryLabels[entry.meta.category]}</span>
+            <h3 class="mt-1 text-sm font-medium text-[var(--color-fg)]">{entry.meta.title}</h3>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 </article>
 </Base>
