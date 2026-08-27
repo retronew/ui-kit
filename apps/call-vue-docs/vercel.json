@@ -1,9 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "astro",
-  "build": {
-    "env": {
-      "ENABLE_EXPERIMENTAL_COREPACK": "1"
-    }
-  }
+  "installCommand": "corepack pnpm@11.9.0 install --frozen-lockfile",
+  "buildCommand": "corepack pnpm@11.9.0 --filter call-vue-docs... run build",
+  "outputDirectory": "dist"
 }

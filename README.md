@@ -23,7 +23,8 @@ ui-kit/
 │  └─ call-vue/              # Vue 3 port of react-call (createCallable)
 ├─ apps/                     # demo / playground apps (private, not published)
 │  ├─ toast-vue-demo/        # Vite + Vue app exercising @retronew/toast-vue
-│  └─ call-vue-demo/         # Vite + Vue app exercising @retronew/call-vue
+│  ├─ call-vue-demo/         # Vite + Vue app exercising @retronew/call-vue
+│  └─ call-vue-docs/         # Astro docs + demo site for @retronew/call-vue (en/zh-cn/ja)
 ├─ vite.config.ts            # shared lint / fmt / task config
 └─ pnpm-workspace.yaml       # workspace + dependency catalog
 ```
@@ -75,6 +76,7 @@ Playwright/axe, and linted/formatted with **Oxlint**/**Oxfmt** (`vp check`).
 vp install
 vp run toast-vue-demo#dev # open the toast playground
 vp run call-vue-demo#dev  # open the call-vue playground
+vp run call-vue-docs#dev  # open the call-vue docs site
 ```
 
 ## Contributing
