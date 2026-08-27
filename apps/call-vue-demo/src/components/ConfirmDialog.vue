@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CallContext } from '@retronew/call-vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { PropType } from 'vue'
 import type { ConfirmProps, ConfirmResponse } from '../callables/confirm'
 
@@ -8,24 +9,75 @@ import type { ConfirmProps, ConfirmResponse } from '../callables/confirm'
 // types inside that macro ("No fs option provided to `compileScript` in
 // non-Node environment") — apps/toast-vue-demo avoids it the same way, so
 // the `call` prop's type comes from a `PropType` cast instead.
-defineProps({
+const props = defineProps({
   title: { type: String, required: true },
   message: { type: String, required: true },
   call: {
-    type: Object as PropType<CallContext<ConfirmProps, ConfirmResponse, Record<string, never>>>,
+    type: Object as PropType<CallContext<ConfirmProps, ConfirmResponse, {}>>,
     required: true,
   },
 })
+
+const cancelButton = ref<HTMLButtonElement>()
+const confirmButton = ref<HTMLButtonElement>()
+const previouslyFocused =
+  typeof document === 'undefined' ? null : (document.activeElement as HTMLElement | null)
+const titleId = `confirm-title-${props.call.key}`
+const descriptionId = `confirm-description-${props.call.key}`
+
+onMounted(async () => {
+  await nextTick()
+  cancelButton.value?.focus()
+})
+
+onBeforeUnmount(() => {
+  if (previouslyFocused?.isConnected) previouslyFocused.focus()
+})
+
+function finish(response: ConfirmResponse) {
+  props.call.end(response)
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    finish(false)
+    return
+  }
+
+  if (event.key !== 'Tab') return
+  const first = cancelButton.value
+  const last = confirmButton.value
+  if (!first || !last) return
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 </script>
 
 <template>
-  <div class="backdrop" @click.self="call.end(false)" @keydown.esc="call.end(false)">
-    <div class="dialog" role="alertdialog" aria-modal="true" :aria-label="title">
-      <h3 class="title">{{ title }}</h3>
-      <p class="message">{{ message }}</p>
+  <div class="backdrop" @click.self="finish(false)" @keydown="handleKeydown">
+    <div
+      class="dialog"
+      role="alertdialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      :aria-describedby="descriptionId"
+    >
+      <h3 :id="titleId" class="title">{{ title }}</h3>
+      <p :id="descriptionId" class="message">{{ message }}</p>
       <div class="actions">
-        <button class="demo-btn" type="button" @click="call.end(false)">Cancel</button>
-        <button class="demo-btn-strong" type="button" @click="call.end(true)">Confirm</button>
+        <button ref="cancelButton" class="demo-btn" type="button" @click="finish(false)">
+          Cancel
+        </button>
+        <button ref="confirmButton" class="demo-btn-strong" type="button" @click="finish(true)">
+          Confirm
+        </button>
       </div>
     </div>
   </div>

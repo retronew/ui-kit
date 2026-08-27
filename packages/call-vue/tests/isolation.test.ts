@@ -24,11 +24,11 @@ describe('multiple createCallable() instances', () => {
     })
     const wrapper = mount(Comp)
 
-    A.call({ text: 'from A' })
+    void A.call({ text: 'from A' })
     await nextTick()
 
     expect(wrapper.findAll('.note')).toHaveLength(1)
-    expect(() => B.call({ text: 'from B' })).not.toThrow()
+    expect(() => void B.call({ text: 'from B' })).not.toThrow()
     await nextTick()
     expect(wrapper.findAll('.note')).toHaveLength(2)
   })
@@ -36,7 +36,7 @@ describe('multiple createCallable() instances', () => {
   it('remounting the same Callable elsewhere starts from an empty stack', async () => {
     const A = createCallable<Props, Response>(Note)
     const wrapper1 = mount(A)
-    A.call({ text: 'x' })
+    void A.call({ text: 'x' })
     await nextTick()
     expect(wrapper1.findAll('.note')).toHaveLength(1)
 

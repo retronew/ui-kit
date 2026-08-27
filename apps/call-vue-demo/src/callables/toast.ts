@@ -1,6 +1,5 @@
 import { createCallable } from '@retronew/call-vue'
 import ToastCard from '../components/ToastCard.vue'
-import { asCallableComponent } from './asCallableComponent'
 
 export interface ToastCardProps {
   text: string
@@ -16,7 +15,4 @@ export type ToastCardResponse = void
  * transition in `ToastCard.vue` (driven off `call.ended`) to finish before
  * it's actually removed from the stack.
  */
-export const Toast = createCallable<ToastCardProps, ToastCardResponse>(
-  asCallableComponent(ToastCard),
-  220,
-)
+export const Toast = createCallable<ToastCardProps, ToastCardResponse>(ToastCard, 220)

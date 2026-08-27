@@ -43,7 +43,7 @@ import type { PropsWithCall } from '@retronew/call-vue'
 type Props = { message: string }
 type Response = boolean
 
-defineProps<PropsWithCall<Props, Response, Record<string, never>>>()
+defineProps<PropsWithCall<Props, Response, {}>>()
 </script>
 
 <template>
@@ -109,6 +109,20 @@ async function handleDelete() {
   instance's position in the stack, how many are open, and whatever props
   were passed to `<Confirm rootProp="…" />`.
 
+For a `void` response, the two external forms are intentionally distinct:
+
+```ts
+const promise = Toast.upsert({ text: 'Uploading…' })
+
+Toast.end(promise, undefined) // end only this call
+Toast.end() // end every open call
+```
+
+Do not write `Toast.end(promise)`: JavaScript would otherwise interpret that
+single argument as the response for the broadcast overload. The public type
+rejects this form. Inside the user component, `call.end()` remains the natural
+way to finish its own `void` call.
+
 See the [Claude Code skill](skills/call-vue/SKILL.md) for the stacking model,
 `unmountingDelay` exit-transition pattern, and the single-`<Root>` constraint
 in depth.
@@ -124,6 +138,73 @@ export const Toast = createCallable<Props, Response>(ToastCard, 200 /* ms */)
 ```
 
 Inside `ToastCard`, branch on `call.ended` to trigger the leave state.
+
+## Root props and TypeScript
+
+The third generic is the type of props mounted on the Callable Root. A normal
+interface works directly; it does not need to extend `Record<string, unknown>`:
+
+```ts
+interface RootProps {
+  accent: string
+}
+
+export const Notice = createCallable<NoticeProps, void, RootProps>(NoticeCard)
+```
+
+```vue
+<Notice accent="#6366f1" />
+```
+
+Every active card reads the current value through `call.root.accent`. Updating
+the Root prop re-renders active calls. For cross-file `.vue` prop validation,
+run `vue-tsc --noEmit` in addition to a plain TypeScript check; plain `tsc`
+cannot inspect generated SFC props by itself.
+
+The Callable itself is the Root component. Mount `<Notice />`; there is no
+separate `.Root` alias. Its public type is Vue's general `Component` shape, so
+it remains valid whether the internal Root is represented as an options object
+or a functional component.
+
+## Async components
+
+`defineAsyncComponent()` can be passed directly to `createCallable`. The loader
+is not invoked until the first call creates a component instance:
+
+```ts
+import { defineAsyncComponent } from 'vue'
+import PickerLoadError from './PickerLoadError.vue'
+import PickerLoading from './PickerLoading.vue'
+
+const AsyncPicker = defineAsyncComponent({
+  loader: () => import('./PickerDialog.vue'),
+  loadingComponent: PickerLoading,
+  errorComponent: PickerLoadError,
+  delay: 0,
+})
+
+export const Picker = createCallable<PickerProps, PickedItem>(AsyncPicker)
+```
+
+Use Vue's `loadingComponent`/`errorComponent` options when a call may be added
+after its surrounding `<Suspense>` has already resolved. Ending a call while
+its component is still loading does not resurrect it when the loader finishes.
+
+## SSR
+
+Callable Roots are safe to render repeatedly with Vue SSR: server-side setup
+does not register a live Root or leak the Root count into later requests. The
+user component is not rendered on the server while the stack is empty.
+`call()` and `upsert()` remain client-imperative APIs and throw
+`No <Root> found!` until the Root's client `onMounted` hook has run.
+
+## Accessibility responsibility
+
+`call-vue` controls stack and Promise lifecycles; it is deliberately headless.
+Dialog semantics remain the user component's responsibility. A production
+dialog should at least provide an accessible name/description, move focus
+inside on open, trap Tab, close with Escape when appropriate, restore focus on
+unmount, and respect reduced-motion preferences.
 
 ## Stacking
 

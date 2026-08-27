@@ -21,6 +21,12 @@ function makeConfirm() {
 }
 
 describe(createCallable, () => {
+  it('returns the root component without a legacy .Root alias', () => {
+    const Confirm = makeConfirm()
+
+    expect('Root' in Confirm).toBe(false)
+  })
+
   it('throws when call() runs before a <Root> is mounted', () => {
     const Confirm = makeConfirm()
     expect(() => Confirm.call({ message: 'hi' })).toThrow('No <Root> found!')
@@ -35,6 +41,19 @@ describe(createCallable, () => {
     })
     mount(Comp)
     expect(() => Confirm.call({ message: 'hi' })).toThrow('Multiple instances of <Root> found!')
+  })
+
+  it('accepts calls again after the duplicate root unmounts', () => {
+    const Confirm = makeConfirm()
+    const first = mount(Confirm)
+    const duplicate = mount(Confirm)
+    expect(() => Confirm.call({ message: 'blocked' })).toThrow(
+      'Multiple instances of <Root> found!',
+    )
+
+    duplicate.unmount()
+    expect(() => void Confirm.call({ message: 'accepted' })).not.toThrow()
+    first.unmount()
   })
 
   it('mounts a call and resolves its promise on end()', async () => {
@@ -55,8 +74,8 @@ describe(createCallable, () => {
     const Confirm = makeConfirm()
     const wrapper = mount(Confirm)
 
-    Confirm.call({ message: 'first' })
-    Confirm.call({ message: 'second' })
+    void Confirm.call({ message: 'first' })
+    void Confirm.call({ message: 'second' })
     await nextTick()
 
     const items = wrapper.findAll('.confirm')
@@ -69,7 +88,7 @@ describe(createCallable, () => {
     const Confirm = makeConfirm()
     const wrapper = mount(Confirm)
 
-    Confirm.call({ message: 'only' })
+    void Confirm.call({ message: 'only' })
     await nextTick()
     await wrapper.find('.yes').trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -102,7 +121,7 @@ describe(createCallable, () => {
   it('resets the stack once every <Root> unmounts', async () => {
     const Confirm = makeConfirm()
     const wrapper = mount(Confirm)
-    Confirm.call({ message: 'a' })
+    void Confirm.call({ message: 'a' })
     await nextTick()
     expect(wrapper.findAll('.confirm')).toHaveLength(1)
 

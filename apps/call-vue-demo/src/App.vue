@@ -17,7 +17,7 @@ async function askConfirm() {
 let stackCount = 0
 function pushStackCard() {
   stackCount += 1
-  Stack.call({ label: `Card #${stackCount}` })
+  void Stack.call({ label: `Card #${stackCount}` })
 }
 
 let uploadToken = 0
@@ -30,7 +30,7 @@ async function simulateUpload() {
     Toast.update(promise, { text: pct === 100 ? 'Upload complete ✔' : `Uploading… ${pct}%` })
   }
   await new Promise((resolve) => setTimeout(resolve, 700))
-  if (token === uploadToken) Toast.end(promise)
+  if (token === uploadToken) Toast.end(promise, undefined)
 }
 </script>
 

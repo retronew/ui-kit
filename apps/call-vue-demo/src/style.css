@@ -43,6 +43,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@media (pointer: coarse) {
+  button.demo-btn,
+  button.demo-btn-strong,
+  button.dismiss {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
