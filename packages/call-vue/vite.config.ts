@@ -17,6 +17,9 @@ export default defineConfig({
     deps: {
       neverBundle: ['vue'],
     },
+    // The unminified output keeps full JSDoc comments, which dominates its
+    // size (~4.5kB vs ~1.7kB minified). Type declarations stay untouched.
+    minify: true,
   },
   test: {
     coverage: {
