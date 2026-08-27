@@ -112,4 +112,8 @@ jobs:
       - name: Build demo
         run: pnpm --filter toast-vue-demo build
       - name: Run browser tests
-        run: pnpm e2e
+        run: pnpm e2e:toast
+      - name: Build docs site
+        run: pnpm --filter call-vue-docs build
+      - name: Run docs site browser tests
+        run: pnpm e2e:docs

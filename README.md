@@ -57,9 +57,11 @@ Everything runs through the unified `vp` CLI:
 | Install E2E Chromium         | `pnpm run e2e:install`      |
 | Run the toast-vue demo       | `vp run toast-vue-demo#dev` |
 | Run the call-vue demo        | `vp run call-vue-demo#dev`  |
+| Run the call-vue docs site   | `vp run call-vue-docs#dev`  |
 | Format + lint + typecheck    | `pnpm run check`            |
 | Test with coverage budgets   | `pnpm run test:coverage`    |
-| Run browser + axe tests      | `pnpm run e2e`              |
+| Run browser + axe tests      | `pnpm run e2e:toast`        |
+| Run docs site browser tests  | `pnpm run e2e:docs`         |
 | Run core performance budgets | `pnpm run perfcheck`        |
 | Build all libraries          | `pnpm run build`            |
 | Full local verification      | `pnpm run ready`            |
