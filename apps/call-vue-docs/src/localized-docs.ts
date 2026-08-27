@@ -71,7 +71,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     concepts: {
       title: '核心概念',
       description:
-        '用四个视角理解 call-vue：Root 与 Stack、Call 与 End、Upsert 与 Update，以及退出生命周期。',
+        '用五个视角理解 call-vue：Root 与 Stack、Call 与 End、Upsert 与 Update、Mutation flow，以及退出生命周期。',
       sections: [
         {
           heading: 'Root 与 Stack',
@@ -167,6 +167,31 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: '与普通 Call 共存',
           paragraphs: [
             'upsert 单例不会替换普通 call 创建的项。两种模型共享 Root，但拥有独立生命周期。',
+          ],
+        },
+      ],
+    },
+    'concepts/mutation-flow': {
+      title: 'Mutation flow',
+      description: '为异步提交提供 pending、重入保护与显式成功结束的可选 composable。',
+      sections: [
+        {
+          heading: '由 composable 管理 pending',
+          paragraphs: [
+            'useMutationFlow 管理 pending，并在同一次异步操作中忽略重复提交。模板可以直接读取 submit.pending。',
+          ],
+          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))",
+        },
+        {
+          heading: '由 handler 决定结果',
+          paragraphs: [
+            'MutationFn 只收到 { end }。调用 end 才会关闭当前 Call；正常返回或抛出而没有调用 end 时，pending 会清除，Call 保持打开以供重试。错误不会被吞掉。',
+          ],
+        },
+        {
+          heading: '可选 handler 的兜底',
+          paragraphs: [
+            'handler 可选时，submit(payload).orEnd(value) 仅在没有提供 handler 时使用 value 结束。省略 orEnd 是受支持的手动关闭路径。',
           ],
         },
       ],
@@ -285,7 +310,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '能力边界',
           paragraphs: [
-            'mutation-flow、Vite HMR transform 与多预览 host 子路径目前尚未发布，文档不会把上游 React 专用入口伪装成 Vue 能力。',
+            '@retronew/call-vue/mutation-flow 已发布；Vite HMR transform 与多预览 host 子路径仍未发布，文档不会把上游 React 专用入口伪装成 Vue 能力。',
           ],
         },
       ],
@@ -380,7 +405,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     concepts: {
       title: 'コアコンセプト',
       description:
-        'Root と Stack、Call と End、Upsert と Update、終了ライフサイクルの四つで理解します。',
+        'Root と Stack、Call と End、Upsert と Update、Mutation flow、終了ライフサイクルの五つで理解します。',
       sections: [
         {
           heading: 'Root と Stack',
@@ -477,6 +502,31 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '通常の Call と共存',
           paragraphs: ['upsert の単一項目は通常の call が作った項目を置換しません。'],
+        },
+      ],
+    },
+    'concepts/mutation-flow': {
+      title: 'Mutation flow',
+      description: '非同期送信の pending、再入防止、成功時の明示的な終了を扱う opt-in composable。',
+      sections: [
+        {
+          heading: 'composable が pending を管理',
+          paragraphs: [
+            'useMutationFlow は pending を管理し、同じ非同期処理中の重複送信を無視します。テンプレートから submit.pending を直接読めます。',
+          ],
+          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))",
+        },
+        {
+          heading: 'handler が結果を決める',
+          paragraphs: [
+            'MutationFn が受け取るのは { end } だけです。end を呼んだ時だけ現在の Call が閉じ、end に到達せず戻るか throw した場合は pending が解除され、再試行のために開いたままになります。エラーは握りつぶしません。',
+          ],
+        },
+        {
+          heading: 'optional handler のフォールバック',
+          paragraphs: [
+            'handler が optional のとき、submit(payload).orEnd(value) は handler がない場合だけ value で閉じます。orEnd を省略するのはサポートされた手動クローズ経路です。',
+          ],
         },
       ],
     },
@@ -594,7 +644,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '機能境界',
           paragraphs: [
-            'mutation-flow、Vite HMR transform、複数プレビュー host はまだ公開していません。React のサブパスを Vue の機能として案内しません。',
+            '@retronew/call-vue/mutation-flow は公開済みです。Vite HMR transform と複数プレビュー host はまだ公開していません。React のサブパスを Vue の機能として案内しません。',
           ],
         },
       ],

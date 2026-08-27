@@ -22,6 +22,7 @@ reactivity — no context providers, no global store to wire up.
 - [API](#api)
 - [Exit transitions](#exit-transitions)
 - [Root props and TypeScript](#root-props-and-typescript)
+- [Mutation flow](#mutation-flow)
 - [Async components](#async-components)
 - [SSR](#ssr)
 - [Stacking](#stacking)
@@ -201,6 +202,39 @@ separate `.Root` alias. Its public type is Vue's general `Component` shape, so
 it remains valid whether the internal Root is represented as an options object
 or a functional component.
 
+## Mutation flow
+
+For the common “submit → await a side effect → close only on success” flow,
+import the opt-in composable from its own subpath:
+
+```vue
+<script setup lang="ts">
+import { toRef } from 'vue'
+import type { PropsWithCall } from '@retronew/call-vue'
+import { useMutationFlow, type MutationFn } from '@retronew/call-vue/mutation-flow'
+
+type Props = { mutationFn: MutationFn<boolean> }
+const props = defineProps<PropsWithCall<Props, boolean, {}>>()
+const submit = useMutationFlow(props.call, toRef(props, 'mutationFn'))
+</script>
+
+<template>
+  <button :disabled="submit.pending" @click="submit()">Save</button>
+  <button :disabled="submit.pending" @click="props.call.end(false)">Cancel</button>
+</template>
+```
+
+`MutationFn<Response, Payload>` receives only `{ end }` and decides when to
+close the Call. If it returns or rejects without calling `end`, the Call stays
+open and `pending` clears, so the user can retry. Errors are not swallowed.
+
+When `mutationFn` is optional, `submit(payload).orEnd(value)` supplies a
+per-button fallback response only when no handler was provided. Omitting the
+chain intentionally leaves the Call open for another explicit close path.
+
+Pass a `Ref` such as `toRef(props, 'mutationFn')` when a live Call can receive
+an updated handler through `Callable.update()`.
+
 ## Async components
 
 `defineAsyncComponent()` can be passed directly to `createCallable`. The loader
@@ -286,7 +320,7 @@ using Vue-native components and lifecycle primitives.
 | Vue async components | Supported | Use `defineAsyncComponent`; empty stacks stay lazy. |
 | SSR-safe Root creation | Supported | Calling remains client-only. |
 | `<Callable.Root />` alias | Not provided | The direct `<Callable />` Root is the only API; the legacy alias was removed rather than soft-deprecated. |
-| Mutation-flow helper subpath | Not published | Compose an async function and local pending state today; a dedicated helper requires its own public design and tests. |
+| Mutation-flow helper subpath | Supported | Import `useMutationFlow` and its types from `@retronew/call-vue/mutation-flow`. |
 | Vite HMR transform | Not published | Normal Vue HMR applies, but open-call preservation is not promised yet. |
 | Multi-preview host helper | Not published | Mount one Callable Root outside repeated Storybook/Histoire previews manually. |
 
@@ -313,11 +347,11 @@ Repeated upserts update only the singleton and return its original Promise.
 
 ### Is mutation flow just an async function?
 
-The domain work is an async function. A mutation-flow helper additionally
+The domain work is an async function. `useMutationFlow` additionally
 standardizes pending state, duplicate-submit behavior, payload typing, retry
 after failure, and the rule that only an explicit `call.end()` closes the Call.
-Those semantics are why such a helper belongs in an optional subpath rather
-than in the core.
+Those semantics are why it ships as an optional subpath rather than in the
+core entry.
 
 ### Can I use Teleport?
 

@@ -1,5 +1,5 @@
 ---
-import AdvancedSection from '~/components/landing/AdvancedSection.vue'
+import MutationFlowSection from '~/components/landing/MutationFlowSection.vue'
 import FinalCta from '~/components/landing/FinalCta.astro'
 import Hero from '~/components/landing/Hero.vue'
 import HowItLives from '~/components/landing/HowItLives.vue'
@@ -25,6 +25,6 @@ const meta = locale === 'zh-cn'
   <HowItLives locale={locale} client:visible />
   <StateComparison locale={locale} />
   <StackSection locale={locale} client:visible />
-  <AdvancedSection locale={locale} client:visible />
+  <MutationFlowSection locale={locale} client:visible />
   <FinalCta locale={locale} />
 </Base>
