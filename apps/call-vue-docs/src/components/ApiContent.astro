@@ -1,0 +1,142 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Article from '~/layouts/Article.astro'
+import type { Locale } from '~/i18n'
+
+interface Props {
+  locale?: Locale
+}
+
+const { locale = 'en' } = Astro.props
+
+const signature = `createCallable<Props = void, Response = void, RootProps extends object = {}>(
+  component: UserComponent<Props, Response, RootProps>,
+  unmountingDelay?: number,
+): Callable<Props, Response, RootProps>`
+const methods = `const promise = Callable.call(props)
+const singleton = Callable.upsert(props)
+
+Callable.end(promise, response) // target one
+Callable.end(response)          // broadcast
+
+Callable.update(promise, partialProps) // target one
+Callable.update(partialProps)          // broadcast`
+
+const copy = {
+  en: {
+    title: 'API reference',
+    description:
+      'Every public function, method, context field, generic, error, and exported type in @retronew/call-vue.',
+    createCallable: 'createCallable',
+    methodsTitle: 'Callable methods',
+    methodsTable: {
+      headers: ['Method', 'Behavior', 'Returns'],
+      rows: [
+        ['call(props)', 'Appends a normal Call.', 'Promise<Response>'],
+        ['upsert(props)', 'Creates or updates the singleton Call.', 'Stable Promise<Response>'],
+        ['end(…)', 'Resolves targeted or all active Calls.', 'void'],
+        ['update(…)', 'Merges partial props into targeted or all Calls.', 'void'],
+      ],
+    },
+    contextTitle: 'CallContext',
+    contextTable: {
+      headers: ['Field', 'Meaning'],
+      rows: [
+        ['key', 'Stable identity for this Call.'],
+        ['end(response)', 'Ends this specific Call.'],
+        ['ended', 'True after resolution, before delayed removal.'],
+        ['root', 'Current attributes passed to the mounted Root.'],
+        ['index', 'Zero-based position in the active Stack.'],
+        ['stackSize', 'Number of Calls currently rendered.'],
+      ],
+    },
+    typesTitle: 'Public types',
+    errorsTitle: 'Errors',
+  },
+  'zh-cn': {
+    title: 'API 参考',
+    description: '@retronew/call-vue 的全部公开方法、上下文字段、泛型与类型。',
+    createCallable: 'createCallable',
+    methodsTitle: 'Callable 方法',
+    methodsTable: {
+      headers: ['方法', '行为', '返回值'],
+      rows: [
+        ['call(props)', '添加一个普通 Call。', 'Promise<Response>'],
+        ['upsert(props)', '创建或更新单例 Call。', '稳定的 Promise<Response>'],
+        ['end(…)', '定向或广播解析活跃的 Call。', 'void'],
+        ['update(…)', '定向或广播地合并部分 props。', 'void'],
+      ],
+    },
+    contextTitle: 'CallContext',
+    contextTable: {
+      headers: ['字段', '含义'],
+      rows: [
+        ['key', '这个 Call 的稳定标识。'],
+        ['end(response)', '结束这一个特定的 Call。'],
+        ['ended', '已 resolve 但尚未延迟移除期间为 true。'],
+        ['root', '传给已挂载 Root 的当前属性。'],
+        ['index', '在当前活跃 Stack 中从零开始的位置。'],
+        ['stackSize', '当前渲染的 Call 数量。'],
+      ],
+    },
+    typesTitle: '公开类型',
+    errorsTitle: '错误处理',
+  },
+  ja: {
+    title: 'API リファレンス',
+    description: '@retronew/call-vue の公開メソッド、コンテキスト、ジェネリクス、型のすべて。',
+    createCallable: 'createCallable',
+    methodsTitle: 'Callable メソッド',
+    methodsTable: {
+      headers: ['メソッド', '動作', '戻り値'],
+      rows: [
+        ['call(props)', '通常の Call を追加します。', 'Promise<Response>'],
+        ['upsert(props)', '単一の Call を作成または更新します。', '安定した Promise<Response>'],
+        ['end(…)', '対象または全ての Call を解決します。', 'void'],
+        ['update(…)', '対象または全ての Call に部分的な props をマージします。', 'void'],
+      ],
+    },
+    contextTitle: 'CallContext',
+    contextTable: {
+      headers: ['フィールド', '意味'],
+      rows: [
+        ['key', 'この Call の安定した識別子。'],
+        ['end(response)', 'この Call だけを終了します。'],
+        ['ended', '解決済みで、まだ削除されていない間 true。'],
+        ['root', 'マウントされた Root に渡されている現在の属性。'],
+        ['index', '現在の Stack 内でのゼロ始まりの位置。'],
+        ['stackSize', '現在描画されている Call の数。'],
+      ],
+    },
+    typesTitle: '公開型',
+    errorsTitle: 'エラー',
+  },
+}[locale]
+---
+
+<Article title={copy.title} description={copy.description} locale={locale}>
+  <h2>{copy.createCallable}</h2>
+  <Code code={signature} lang="ts" />
+  <p>
+    {locale === 'en' && <><strong>Props</strong> is passed by <code>call</code>/<code>upsert</code>. <strong>Response</strong> is resolved by <code>end</code>. <strong>RootProps</strong> is passed to the mounted Callable and exposed as <code>call.root</code>. The optional delay keeps ended Calls mounted for exit animation.</>}
+    {locale === 'zh-cn' && <><strong>Props</strong> 由 <code>call</code>/<code>upsert</code> 传入。<strong>Response</strong> 由 <code>end</code> 解析。<strong>RootProps</strong> 传给已挂载的 Callable，并通过 <code>call.root</code> 暴露。可选的 delay 让已结束的 Call 保持挂载，以完成退场动画。</>}
+    {locale === 'ja' && <><strong>Props</strong> は <code>call</code>/<code>upsert</code> に渡されます。<strong>Response</strong> は <code>end</code> で解決されます。<strong>RootProps</strong> はマウントされた Callable に渡され、<code>call.root</code> として公開されます。省略可能な delay は、終了アニメーションのために終了した Call をマウントしたままにします。</>}
+  </p>
+  <h2>{copy.methodsTitle}</h2>
+  <Code code={methods} lang="ts" meta="{1,2,4,5,7,8}" />
+  <div tabindex="0" class="overflow-x-auto"><table><thead><tr>{copy.methodsTable.headers.map((h) => <th>{h}</th>)}</tr></thead><tbody>{copy.methodsTable.rows.map((row) => <tr>{row.map((cell, i) => i === 0 ? <td><code>{cell}</code></td> : <td>{cell}</td>)}</tr>)}</tbody></table></div>
+  <h2>{copy.contextTitle}</h2>
+  <div tabindex="0" class="overflow-x-auto"><table><thead><tr>{copy.contextTable.headers.map((h) => <th>{h}</th>)}</tr></thead><tbody>{copy.contextTable.rows.map((row) => <tr>{row.map((cell, i) => i === 0 ? <td><code>{cell}</code></td> : <td>{cell}</td>)}</tr>)}</tbody></table></div>
+  <h2>{copy.typesTitle}</h2>
+  <p>
+    {locale === 'en' && <>All types are flat named exports: <code>CallFunction</code>, <code>UpsertFunction</code>, <code>CallContext</code>, <code>PropsWithCall</code>, <code>UserComponent</code>, and <code>Callable</code>.</>}
+    {locale === 'zh-cn' && <>所有类型都是扁平的具名导出：<code>CallFunction</code>、<code>UpsertFunction</code>、<code>CallContext</code>、<code>PropsWithCall</code>、<code>UserComponent</code> 与 <code>Callable</code>。</>}
+    {locale === 'ja' && <>すべての型はフラットな名前付きエクスポートです：<code>CallFunction</code>、<code>UpsertFunction</code>、<code>CallContext</code>、<code>PropsWithCall</code>、<code>UserComponent</code>、<code>Callable</code>。</>}
+  </p>
+  <h2>{copy.errorsTitle}</h2>
+  <p>
+    {locale === 'en' && <><code>call</code> and <code>upsert</code> throw synchronously when no Root or multiple Roots are mounted. <code>end</code> and <code>update</code> are no-ops when their target is already gone.</>}
+    {locale === 'zh-cn' && <>当没有 Root 或存在多个 Root 时，<code>call</code> 和 <code>upsert</code> 会同步抛出异常。当目标已经不存在时，<code>end</code> 和 <code>update</code> 不会做任何事。</>}
+    {locale === 'ja' && <>Root が無い場合や複数ある場合、<code>call</code> と <code>upsert</code> は同期的に例外を投げます。対象がすでに存在しない場合、<code>end</code> と <code>update</code> は何もしません。</>}
+  </p>
+</Article>

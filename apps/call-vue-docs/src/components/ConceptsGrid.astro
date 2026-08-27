@@ -1,0 +1,64 @@
+---
+import Base from '~/layouts/Base.astro'
+import { localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
+import { localizedDocs } from '~/localized-docs'
+
+interface Props {
+  locale?: Locale
+}
+
+const { locale = 'en' } = Astro.props
+
+const conceptSlugs = [
+  'concepts/root-and-stack',
+  'concepts/call-and-end',
+  'concepts/upsert-and-update',
+  'concepts/mutation-flow',
+  'concepts/exit-lifecycle',
+] as const
+
+const english = {
+  metaTitle: 'Concepts — call-vue',
+  metaDescription: 'The core mental model behind call-vue.',
+  heading: 'Concepts',
+  intro:
+    'Five lenses on the mental model, from the single Root to async submission and the final delayed unmount.',
+  items: [
+    { title: 'Root & Stack', description: 'Where a Callable lives in the Vue tree and what happens when many calls are active at once.' },
+    { title: 'Call & End', description: "How props enter a call, how its Promise resolves, and how targeted and broadcast ending differ." },
+    { title: 'Upsert & Update', description: 'Singleton calls, stable Promise identity, and targeted or broadcast prop updates.' },
+    { title: 'Mutation flow', description: 'Pending state, duplicate-submit protection, retries, and an explicit close on success.' },
+    { title: 'Exit lifecycle', description: 'The ended flag, delayed unmounting, animation timing, and race-free cleanup.' },
+  ],
+}
+
+const items =
+  locale === 'en'
+    ? english.items.map((item, i) => ({ href: `/${conceptSlugs[i]}`, ...item }))
+    : conceptSlugs.map((slug) => ({
+        href: localizePath(`/${slug}`, locale),
+        title: localizedDocs[locale][slug].title,
+        description: localizedDocs[locale][slug].description,
+      }))
+
+const shell =
+  locale === 'en'
+    ? { metaTitle: english.metaTitle, metaDescription: english.metaDescription, heading: english.heading, intro: english.intro }
+    : {
+        metaTitle: `${localizedDocs[locale].concepts.title} — call-vue`,
+        metaDescription: localizedDocs[locale].concepts.description,
+        heading: localizedDocs[locale].concepts.title,
+        intro: localizedDocs[locale].concepts.description,
+      }
+---
+
+<Base title={shell.metaTitle} description={shell.metaDescription}>
+  <div class="mx-auto max-w-3xl px-6 py-16">
+    <h1 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-5xl">{shell.heading}</h1>
+    <p class="mt-3 text-base leading-7 text-[var(--color-fg-muted)]">{shell.intro}</p>
+    <div class="mt-12 grid gap-4">
+      {items.map((item) => <a href={item.href} class="group flex flex-col gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5 shadow-sm shadow-black/3 transition-[border-color,transform] hover:border-[var(--color-accent)]"><h2 class="text-lg font-medium text-[var(--color-fg)] transition-colors group-hover:text-[var(--color-accent)]">{item.title}</h2><p class="text-sm leading-6 text-[var(--color-fg-muted)]">{item.description}</p></a>)}
+    </div>
+  </div>
+</Base>
