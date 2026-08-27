@@ -1,0 +1,23 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Concept from '~/layouts/Concept.astro'
+
+const code = `const submit = useMutationFlow(call, toRef(props, 'mutationFn'))
+
+await Confirm.call({
+  mutationFn: async (call) => {
+    await save()
+    call.end(true)
+  },
+})`
+---
+
+<Concept title="Mutation flow" intro="An opt-in composable for async submissions that remain retryable until an explicit end.">
+  <h2>Pending without boilerplate</h2>
+  <p><code>useMutationFlow</code> owns pending state and ignores duplicate submits in the same in-flight operation. Read <code>submit.pending</code> directly from a template to disable the submit control.</p>
+  <Code code={code} lang="ts" meta="{1,4-7}" />
+  <h2>The handler owns the outcome</h2>
+  <p>A <code>MutationFn</code> receives only <code>{'{ end }'}</code>. Calling it closes the current Call; returning or rejecting without it leaves the Call open and clears pending, ready for retry. Errors are not swallowed.</p>
+  <h2>Optional handler fallback</h2>
+  <p>When the handler is optional, <code>submit(payload).orEnd(value)</code> supplies a fallback only when no handler was provided. Omitting <code>orEnd</code> is the supported manual-close path.</p>
+</Concept>

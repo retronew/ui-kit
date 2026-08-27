@@ -29,6 +29,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
+    "./mutation-flow": "./src/mutation-flow/index.ts",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -36,6 +37,10 @@
       ".": {
         "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
+      },
+      "./mutation-flow": {
+        "types": "./dist/mutation-flow/index.d.mts",
+        "default": "./dist/mutation-flow/index.mjs"
       },
       "./package.json": "./package.json"
     },

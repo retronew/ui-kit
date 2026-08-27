@@ -38,4 +38,6 @@ The Promise can still be ended from caller scope while the component chunk is lo
 
 ## Capability boundary
 
-call-vue currently provides the core Callable API. A mutation-flow composable, a Vite HMR transform, and a multi-preview host entry are not published yet; do not import React's subpaths under Vue names.
+`@retronew/call-vue/mutation-flow` is available for async submission flows. A
+Vite HMR transform and multi-preview host entry are not published yet; do not
+import React's other subpaths under Vue names.

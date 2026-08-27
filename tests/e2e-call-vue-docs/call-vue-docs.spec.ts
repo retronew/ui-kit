@@ -28,7 +28,7 @@ test('runs a real callable and restores focus after Escape', async ({ page }) =>
   await expect(page.getByText('false', { exact: true }).first()).toBeVisible()
 })
 
-test('keeps concurrent calls isolated and updates a singleton progress call', async ({ page }) => {
+test('keeps concurrent calls isolated and retries a mutation in place', async ({ page }) => {
   const stack = page.locator('section').filter({
     has: page.getByRole('heading', { name: 'Many calls. One Root. No conflict.' }),
   })
@@ -41,16 +41,24 @@ test('keeps concurrent calls isolated and updates a singleton progress call', as
   await stack.getByRole('button', { name: 'Close all' }).click()
   await expect(stack.getByText('0 / 5 active', { exact: true })).toBeVisible()
 
-  const advanced = page.locator('section').filter({
-    has: page.getByRole('heading', { name: 'Create once. Keep the same call current.' }),
+  const mutation = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Stay open on failure. Close on success.' }),
   })
-  await advanced.scrollIntoViewIfNeeded()
+  await mutation.scrollIntoViewIfNeeded()
   await page.waitForTimeout(250)
-  await advanced.getByRole('button', { name: 'Run progress call' }).click()
-  await expect(advanced.getByText('upsert() creates one active call')).toBeVisible()
-  await expect(advanced.getByText('end(promise) resolves and unmounts')).toBeVisible({
+  await mutation.getByRole('checkbox', { name: 'Make it fail' }).check()
+  await mutation.getByRole('button', { name: 'Open Save dialog' }).click()
+  const dialog = mutation.getByRole('dialog', { name: 'Save changes' })
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(mutation.getByText('caught → pending clears, call stays open')).toBeVisible({
     timeout: 4000,
   })
+  await expect(dialog).toBeVisible()
+
+  await mutation.getByRole('checkbox', { name: 'Make it fail' }).uncheck()
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(mutation.getByText('success → call.end("saved")')).toBeVisible({ timeout: 4000 })
+  await expect(dialog).toHaveCount(0)
 })
 
 test('renders comparison comments as secondary code', async ({ page }) => {
@@ -70,6 +78,21 @@ test('renders comparison comments as secondary code', async ({ page }) => {
   for (const [commentColor, codeColor] of colors) {
     expect(commentColor).not.toBe(codeColor)
   }
+})
+
+test('uses semantic inline code for homepage API names', async ({ page }) => {
+  const comparison = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'One question. One handler.' }),
+  })
+
+  await expect(comparison.locator('p code').filter({ hasText: 'ref' })).toHaveCount(1)
+  await expect(comparison.locator('p code').filter({ hasText: 'call()' })).toHaveCount(1)
+
+  const mutation = page.locator('section').filter({
+    has: page.getByRole('heading', { name: 'Stay open on failure. Close on success.' }),
+  })
+  await expect(mutation.locator('p code').filter({ hasText: 'mutationFn' })).toHaveCount(1)
+  await expect(mutation.locator('p code').filter({ hasText: 'call.end()' })).toHaveCount(1)
 })
 
 test('serves complete localized routes and preserves the document language', async ({ page }) => {
