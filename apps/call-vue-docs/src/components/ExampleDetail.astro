@@ -1,8 +1,16 @@
 ---
 import { Code } from 'astro-expressive-code/components'
+import type { MarkdownInstance } from 'astro'
 import type { Locale } from '~/i18n'
-import { localizePath } from '~/i18n'
-import { getExample } from '~/examples/catalog'
+import {
+  exampleBehaviorLabels,
+  exampleCategoryLabels,
+  exampleDetailMessages,
+  exampleTranslations,
+  localizePath,
+  shellMessages,
+} from '~/i18n'
+import { examples, getExample } from '~/examples/catalog'
 import Base from '~/layouts/Base.astro'
 import AlertDialogExample from '~/examples/alert-dialog/AlertDialogExample.vue'
 import BottomSheetExample from '~/examples/bottom-sheet/BottomSheetExample.vue'
@@ -26,6 +34,10 @@ import RootContextExample from '~/examples/root-context/RootContextExample.vue'
 import SaveFormExample from '~/examples/save-form/SaveFormExample.vue'
 import SettingsDrawerExample from '~/examples/side-drawer/SettingsDrawerExample.vue'
 
+type NotesModule = Pick<MarkdownInstance<Record<string, unknown>>, 'Content'>
+
+const noteModules = import.meta.glob<NotesModule>('../examples/*/notes*.mdx')
+
 interface Props {
   slug: string
   locale?: Locale
@@ -35,16 +47,23 @@ const { slug, locale = 'en' } = Astro.props
 const example = getExample(slug)
 if (!example) throw new Error(`Unknown example: ${slug}`)
 
-const categoryLabels = {
-  dialog: 'Dialog',
-  picker: 'Picker',
-  notification: 'Notification',
-  menu: 'Menu',
-  drawer: 'Drawer',
-  overlay: 'Overlay',
-  flow: 'Flow',
-}
+const categoryLabels = exampleCategoryLabels[locale]
+const behaviorLabels = exampleBehaviorLabels[locale]
+const detail = exampleDetailMessages[locale]
 const examplesHref = localizePath('/examples', locale)
+
+const translated = locale === 'en' ? undefined : exampleTranslations[locale]?.[slug]
+const title = translated?.title ?? example.meta.title
+const description = translated?.description ?? example.meta.description
+
+const noteImporter =
+  (locale !== 'en' && noteModules[`../examples/${slug}/notes.${locale}.mdx`]) ||
+  noteModules[`../examples/${slug}/notes.mdx`]
+const Notes = noteImporter ? (await noteImporter()).Content : null
+
+const related = examples
+  .filter((entry) => entry.slug !== slug && entry.meta.category === example.meta.category)
+  .slice(0, 3)
 const callableName = {
   'confirm-dialog': 'Confirm',
   'alert-dialog': 'Alert',
@@ -69,25 +88,33 @@ const callableName = {
   'root-context': 'GreeterCall',
 }[slug]
 if (!callableName) throw new Error(`Unknown callable name: ${slug}`)
+const rootTag = example.meta.rootProps ? `${callableName} ${example.meta.rootProps}` : callableName
 const appSource = `<script setup lang="ts">
 import { ${callableName} } from './callable'
 import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
 </script>
 
 <template>
-  <${callableName} />
+  <${rootTag} />
   <Caller />
 </template>`
 ---
 
-<Base title={`${example.meta.title} — call-vue`} description={example.meta.description}>
+<Base title={`${title} — call-vue`} description={description}>
 <article class="mx-auto max-w-4xl px-6 py-12 md:py-16">
   <nav class="mb-6 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb">
-    <a href={examplesHref} class="transition-colors hover:text-[var(--color-fg-muted)]">Examples</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{categoryLabels[example.meta.category]}</span>
+    <a href={examplesHref} class="transition-colors hover:text-[var(--color-fg-muted)]">{shellMessages[locale].nav.examples}</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{categoryLabels[example.meta.category]}</span>
   </nav>
   <header class="mb-10">
-    <h1 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{example.meta.title}</h1>
-    <p class="mt-3 text-base text-[var(--color-fg-muted)]">{example.meta.description}</p>
+    <h1 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{title}</h1>
+    <p class="mt-3 text-base text-[var(--color-fg-muted)]">{description}</p>
+    {example.meta.behaviors.length > 0 && (
+      <div class="mt-4 flex flex-wrap gap-1.5">
+        {example.meta.behaviors.map((behavior) => (
+          <span class="rounded bg-[var(--color-bg-muted)] px-2 py-0.5 font-mono text-xs text-[var(--color-fg-muted)]">{behaviorLabels[behavior]}</span>
+        ))}
+      </div>
+    )}
   </header>
   <section class="relative mb-12 flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-10" aria-label="Live demo">
     {slug === 'confirm-dialog' && <ConfirmDialogExample client:load />}
@@ -114,18 +141,39 @@ import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
   </section>
   <section class="space-y-6">
     <div>
-      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The Callable</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">declared once, mounted in the Vue tree</span></div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">{detail.theCallable}</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">{detail.declaredOnce}</span></div>
       <Code code={example.componentSource} lang="vue" title={example.meta.files.callable.split(' + ')[0]} />
       <div class="mt-4"><Code code={example.callableSource} lang="ts" title="callable.ts" /></div>
     </div>
     <div>
-      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The Root</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">mounted in your app tree, once</span></div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">{detail.theRoot}</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">{detail.mountedOnce}</span></div>
       <Code code={appSource} lang="vue" title="Example.vue" />
     </div>
     <div>
-      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The caller</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">anywhere in your app, imperative</span></div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">{detail.theCaller}</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">{detail.anywhereImperative}</span></div>
       <Code code={example.callerSource} lang="vue" title={example.meta.files.caller} />
     </div>
   </section>
+  {Notes && (
+    <section class="prose-call-vue mt-16 space-y-4 text-[var(--color-fg-muted)]">
+      <Notes />
+    </section>
+  )}
+  {related.length > 0 && (
+    <section class="mt-16">
+      <h2 class="mb-4 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{detail.relatedExamples}</h2>
+      <div class="grid gap-3 sm:grid-cols-3">
+        {related.map((entry) => {
+          const entryTranslated = locale === 'en' ? undefined : exampleTranslations[locale]?.[entry.slug]
+          return (
+            <a href={localizePath(`/examples/${entry.slug}`, locale)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4 transition-colors hover:border-[var(--color-accent)]">
+              <span class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{categoryLabels[entry.meta.category]}</span>
+              <h3 class="mt-1 text-sm font-medium text-[var(--color-fg)]">{entryTranslated?.title ?? entry.meta.title}</h3>
+            </a>
+          )
+        })}
+      </div>
+    </section>
+  )}
 </article>
 </Base>

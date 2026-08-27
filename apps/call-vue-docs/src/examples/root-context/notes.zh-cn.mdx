@@ -1,0 +1,28 @@
+## 两种 props
+
+一次调用有**逐次 props**（在 `GreeterCall.call({ message })` 时传入）和
+**Root props**（在挂载时传入，`<GreeterCall userName="Ada Lovelace" />`）之分。
+`createCallable<Props, Response, RootProps>` 的第三个泛型给后者定型，而每个
+调用都通过 `call.root` 读取它：
+
+```vue-html
+<p>Signed in as {{ call.root.userName }}</p>
+```
+
+调用方从来不需要转发用户名——那样每个调用现场都是噪音。Root 只持有它一次，
+每个调用去投影它。
+
+## 何时该用 Root props
+
+- **向每次调用共享同一个值**——当前用户、租户、语言区域、功能开关。设置在
+  Root 上，从 `call.root` 读取。
+- **暴露只有 Root 的父级才拥有的东西**——主题对象、路由实例，任何在你挂载
+  `<GreeterCall />` 的作用域内、但在你调用它的作用域外可用的东西。
+- **把实时数据推送进已打开的调用。** Root props 是响应式的：当 Root 用新的
+  `userName` 重新渲染时，每个活跃调用也会随之重新渲染——不需要 `update()`，
+  因为它压根不是逐次 prop。
+
+## 逐次 prop 还是 Root prop？
+
+如果值会随每次调用而变化（消息本身、正在操作的条目），那它是**逐次 prop**。
+如果它是环境性的——对每次调用都一样，且由周围的应用拥有——那它就是**Root prop**。

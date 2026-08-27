@@ -1,0 +1,25 @@
+## 为什么是一个 Callable，而不是三个
+
+你**可以**串联三次独立的 `.call()`——每一步一次——这样写出来的流程看起来甚至
+还挺像干净的命令式代码：
+
+```ts
+const name = await NameStep.call({})
+if (!name) return
+const email = await EmailStep.call({ name })
+if (!email) return
+const plan = await PlanStep.call({ name, email })
+```
+
+它能跑起来。但**返回上一步**这件事做不到。从子步骤内部取消，没办法重新打开
+上一步——上一步的 promise 已经解析过了。你得在调用方作用域里自己维护一个状态
+机来驱动后退导航。
+
+用一个内部维护步骤状态的单一 Callable，能把这个状态机留在它该在的地方（向导
+内部），并向调用方暴露一个干净的单一 promise 接口。代价是这个 Callable 会
+更大；收益是调用方完全不用关心「步骤」这件事。
+
+## 何时选择这种形态
+
+- 需要线性前进/后退导航的多步表单。
+- 用户可以在任意时刻以 `null` 放弃的引导流程。

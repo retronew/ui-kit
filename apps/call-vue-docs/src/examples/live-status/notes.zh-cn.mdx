@@ -1,0 +1,25 @@
+## 为什么是 `update` 而不是 `upsert`
+
+`call()` 返回的 promise 同时充当**调用的身份标识**。把同一个 promise 传回
+`Callable.update(promise, newProps)`，同一个打开的调用就会带着新 props 重新
+渲染。
+
+这正是它与 [`upsert`](/zh-cn/concepts/upsert-and-update) 的区别：用 `update`
+时，你精确地选择要推送到哪一个打开的调用——而且只有它仍然打开时更新才会生效。
+（如果不传 promise，唯一的兜底方式就是 `Callable.update(props)`，它会广播给
+**所有**打开的实例。）多个并行的订单，各自由自己的 promise 追踪，互不争夺
+同一个单例槽位。
+
+## 何时使用它
+
+- 从 Callable 外部持续产生进度的长时间操作（WebSocket 帧、服务器推送事件、
+  定时器）。
+- 已打开对话框上的实时「在线人数」或「在场」指示器。
+- 任何调用的 props 需要在保持挂载状态下变化、且调用方明确知道要定向哪一个
+  具体调用的场景。
+
+## 注意事项
+
+- **对已关闭调用的更新是无操作的。** 如果用户提前关闭，后续的
+  `update(promise, …)` 会被静默丢弃。如果你的循环需要停止推送，请通过
+  `promise.then(…)` 来追踪关闭状态。

@@ -1,0 +1,32 @@
+## promise 就是这次调用本身
+
+`Approval.call(...)` 返回的 promise 既是要 await 的响应，**也是**这个具体打开
+调用的句柄。把它传回 `Approval.end(promise, value)`，就能从任何地方结束那个
+调用——这里用的是一个在用户长时间无响应时自动拒绝的 `setTimeout`：
+
+```ts
+const promise = Approval.call({ action: 'Deploy to production' })
+setTimeout(() => Approval.end(promise, false), 4000)
+const approved = await promise // 谁先触发就以谁为准：用户还是超时
+```
+
+无论是用户点击按钮（内部的 `call.end`），还是超时触发（外部的 `Approval.end`），
+最终都是同一个 promise 被解析，对话框随之关闭。
+
+## 定向 vs. 全部结束
+
+传入 promise 只命中**一个**调用。省略它则用同一个响应值结束**所有**打开的调用：
+
+```ts
+Approval.end(false) // 拒绝所有打开的审批
+```
+
+这对全局性的「取消一切」很有用——路由跳转、退出登录、一个已经被放弃的父流程等。
+
+## 注意事项
+
+- **结束一个已经完成的调用是无操作的。** 如果用户先给出了答案，之后那次
+  `Approval.end(promise, …)` 什么都不会发生——出于正确性我们其实不需要清掉定时器，
+  但为了停止倒计时我们还是清了它。
+- 这正好是[更新](/zh-cn/examples/live-status)故事的反面：那边是调用方向已打开的
+  调用推送新 props；这里则是把它关闭。

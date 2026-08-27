@@ -15,5 +15,19 @@ export interface ExampleMeta {
   description: string
   category: Category
   behaviors: readonly Behavior[]
+  tags?: readonly string[]
   files: { callable: string; caller: string }
+  /**
+   * Attribute string spliced into the Root mount shown in the detail page's
+   * "The Root" code block, e.g. `userName="Ada Lovelace"`. Set this on
+   * examples that read `call.root` so the snippet shows where those Root
+   * props come from.
+   */
+  rootProps?: string
+  /**
+   * Sort key for the gallery, matching upstream react-call's per-example
+   * `order` values so both galleries list examples in the same sequence.
+   * Examples without one sort after all ordered ones, by title.
+   */
+  order?: number
 }

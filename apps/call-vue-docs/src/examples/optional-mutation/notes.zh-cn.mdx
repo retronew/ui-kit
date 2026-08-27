@@ -1,0 +1,15 @@
+## 一个 Callable，两条关闭路径
+
+把 `mutationFn?` 声明为可能未定义，会改变触发器的返回值：`submit()` 不再返回
+`void`，而是一个带 `.orEnd(value)` 的链式对象。这一条链覆盖了两种调用方：
+
+- **没有处理函数**（「放弃草稿」按钮）→ `submit().orEnd(true)` 立即用**兜底
+  响应**关闭调用。没有异步，没有 pending——就是一个普通的确认。
+- **传入了处理函数**（「发布文章」按钮）→ `.orEnd` 变成**无操作**。MutationFn
+  执行（pending 翻转为 true），然后它自己调用 `call.end(true)`。
+
+Callable 本身并不会去判断当前服务的是哪一种调用方——`useMutationFlow` 会在
+运行时根据 `mutationFn` 是否存在来决定行为。
+
+需要「必须提供处理函数」的场景，参见[保存表单](/zh-cn/examples/save-form)，
+那里对话框会在抛出异常时保持打开，方便用户重试。
