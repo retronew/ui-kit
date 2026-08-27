@@ -20,7 +20,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     why: {
       title: '为什么选择 call-vue？',
       description:
-        '当一个界面需要把答案交回调用它的代码时，await 比跨组件的 ref、emit 与回调更贴合问题本身。',
+        '当 UI 需要把答案交回发起调用的代码时，比起跨组件传递 ref、emit 和回调，await 更贴合问题本身。',
       sections: [
         {
           heading: '命令式流程与声明式渲染',
@@ -46,7 +46,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
     examples: {
       title: '可运行示例',
       description:
-        '首页已经提供命令面板、底部面板、向导、颜色选择器、上下文菜单和进度通知六种真实 Callable。',
+        '首页内置了六种可运行的 Callable：命令面板、底部面板、多步骤向导、颜色选择器、上下文菜单和进度通知。',
       sections: [
         {
           heading: '从返回值开始建模',
@@ -140,7 +140,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '定向与广播',
           paragraphs: [
-            '传入 call 返回的 Promise 可以只 end/update 某一项；省略 Promise 则作用于当前所有活动项。',
+            '把 call 返回的 Promise 作为第一个参数传入，即可精确 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
           code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
         },
@@ -185,7 +185,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '由 handler 决定结果',
           paragraphs: [
-            'MutationFn 只收到 { end }。调用 end 才会关闭当前 Call；正常返回或抛出而没有调用 end 时，pending 会清除，Call 保持打开以供重试。错误不会被吞掉。',
+            'MutationFn 只会收到 { end }：只有调用了 end，当前的 Call 才会关闭；若正常返回或抛出异常时都没有调用 end，则只清除 pending，Call 保持打开以供重试。错误不会被吞掉。',
           ],
         },
         {
@@ -220,7 +220,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '竞态安全',
           paragraphs: [
-            '广播 end 后在同一个 tick 新建的 Call 不会被旧计时器删除；清理以 Promise 身份为边界。',
+            '广播 end 之后，即使同一个 tick 内新建了 Call，也不会被旧的计时器误删；清理始终以单个 Promise 的生命周期为边界。',
           ],
         },
       ],
@@ -310,7 +310,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
         {
           heading: '能力边界',
           paragraphs: [
-            '@retronew/call-vue/mutation-flow 已发布；Vite HMR transform 与多预览 host 子路径仍未发布，文档不会把上游 React 专用入口伪装成 Vue 能力。',
+            '已发布的子路径只有 @retronew/call-vue/mutation-flow；Vite HMR transform 与多预览 host 子路径尚未提供，文档也不会把上游 React 专有的入口包装成 Vue 能力。',
           ],
         },
       ],

@@ -62,12 +62,10 @@ function openSave() {
               closes.</template
             >
             <template v-else-if="locale === 'zh-cn'"
-              >这个 composable 会管理 <code class="font-mono text-sm">pending</code>。<code
-                class="font-mono text-sm"
-                >mutationFn</code
-              >
-              是否调用
-              <code class="font-mono text-sm">call.end()</code>，决定对话框是否关闭。</template
+              >composable 会帮你管理
+              <code class="font-mono text-sm">pending</code>；对话框是否关闭， 取决于
+              <code class="font-mono text-sm">mutationFn</code> 有没有调用
+              <code class="font-mono text-sm">call.end()</code>。</template
             >
             <template v-else
               >この composable は <code class="font-mono text-sm">pending</code> を管理します。<code
@@ -85,8 +83,8 @@ function openSave() {
               Call stays open so the user can retry without losing their place.</template
             >
             <template v-else-if="locale === 'zh-cn'"
-              >业务错误被自行处理后，<code class="font-mono text-sm">pending</code> 会清除而 Call
-              保持打开，用户可以原地重试。</template
+              >失败被妥善处理后，<code class="font-mono text-sm">pending</code> 随之清除，Call
+              保持打开，用户可以在原地重试。</template
             >
             <template v-else
               >失敗を自分で処理すると

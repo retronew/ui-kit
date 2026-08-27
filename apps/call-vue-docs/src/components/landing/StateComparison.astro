@@ -18,7 +18,7 @@ const copy = {
       <h2 class="mt-3 text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{copy.title}</h2>
       <p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">
         {locale === 'en' && <>A <code class="font-mono text-sm">ref</code> shows the dialog, but it cannot hand the answer back to the code that opened it — so the flow splits across emits and handlers. A <code class="font-mono text-sm">call()</code> returns the answer right where you asked.</>}
-        {locale === 'zh-cn' && <><code class="font-mono text-sm">ref</code> 可以显示对话框，却无法把答案直接交回打开它的代码，于是流程被拆到 emit 和多个 handler 中。<code class="font-mono text-sm">call()</code> 会在提问处直接返回答案。</>}
+        {locale === 'zh-cn' && <><code class="font-mono text-sm">ref</code> 可以显示对话框，却无法把答案交回打开它的代码，于是提问被打散到 emit 和多个 handler 中。<code class="font-mono text-sm">call()</code> 让答案在提问处就地返回。</>}
         {locale === 'ja' && <><code class="font-mono text-sm">ref</code> はダイアログを表示できますが、開いたコードへ答えを直接返せません。<code class="font-mono text-sm">call()</code> なら質問した同じ場所で結果を受け取れます。</>}
       </p>
     </div>
