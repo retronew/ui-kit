@@ -172,7 +172,7 @@ async function simulateUpload() {
 
 .stack-area {
   position: relative;
-  height: 104px;
+  height: 120px;
   margin-top: 16px;
   border: 1px dashed var(--border);
   border-radius: 12px;
