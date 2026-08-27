@@ -13,7 +13,7 @@ reactivity — no context providers, no global store to wire up.
 [Documentation with live demos](https://call-vue.retronew.dev) ·
 [Examples](https://call-vue.retronew.dev/examples) ·
 [Concepts](https://call-vue.retronew.dev/concepts) ·
-[Full API reference](https://call-vue.retronew.dev/api)
+[Full reference](https://github.com/retronew/ui-kit/tree/main/packages/call-vue#readme)
 
 ## Contents
 
