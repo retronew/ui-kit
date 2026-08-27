@@ -12,16 +12,12 @@ import StackConceptDemo from '~/components/concepts/StackConceptDemo.vue'
 import MutationFlowConceptDemo from '~/components/concepts/MutationFlowConceptDemo.vue'
 import UpsertConceptDemo from '~/components/concepts/UpsertConceptDemo.vue'
 
-export function getStaticPaths() {
-  return (['zh-cn', 'ja'] as const).flatMap((locale) =>
-    Object.keys(localizedDocs[locale])
-      .filter((slug) => slug !== 'api')
-      .map((slug) => ({ params: { locale, slug } })),
-  )
+interface Props {
+  locale: Exclude<Locale, 'en'>
+  slug: string
 }
 
-const locale = Astro.params.locale as Exclude<Locale, 'en'>
-const slug = Astro.params.slug ?? ''
+const { locale, slug } = Astro.props
 const doc = localizedDocs[locale][slug]
 if (!doc) throw new Error(`Missing localized document: ${locale}/${slug}`)
 

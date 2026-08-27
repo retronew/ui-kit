@@ -1,0 +1,14 @@
+---
+import LocalizedSlugPage from '~/components/LocalizedSlugPage.astro'
+import { localizedDocs } from '~/localized-docs'
+
+export function getStaticPaths() {
+  return Object.keys(localizedDocs['zh-cn'])
+    .filter((slug) => slug !== 'api')
+    .map((slug) => ({ params: { slug } }))
+}
+
+const slug = Astro.params.slug ?? ''
+---
+
+<LocalizedSlugPage locale="zh-cn" slug={slug} />

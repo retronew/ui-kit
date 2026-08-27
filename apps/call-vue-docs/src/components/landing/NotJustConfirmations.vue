@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import { landingMessages } from '~/i18n'
+import { landingMessages, localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 import { BottomSheet, Showcase } from './showcase-callable'
 import type { ShowcaseOption, ShowcaseProps } from './showcase-callable'
@@ -231,7 +231,7 @@ async function run(card: Card, event: MouseEvent) {
             {{ t.try }}
           </button>
           <a
-            :href="`${locale === 'en' ? '' : `/${locale}`}/examples#${card.slug}`"
+            :href="`${localizePath('/examples', locale)}#${card.slug}`"
             class="font-mono text-xs text-[var(--color-fg-subtle)] underline-offset-2 transition-colors hover:text-[var(--color-fg-muted)] hover:underline"
             >{{ t.code }}</a
           >
@@ -251,7 +251,7 @@ async function run(card: Card, event: MouseEvent) {
     </div>
     <div class="mt-10 text-center">
       <a
-        :href="`${locale === 'en' ? '' : `/${locale}`}/examples`"
+        :href="localizePath('/examples', locale)"
         class="inline-flex items-center gap-2 font-mono text-sm text-[var(--color-accent)] underline-offset-4 hover:underline"
         >{{ t.browse }} <span aria-hidden="true">→</span></a
       >
