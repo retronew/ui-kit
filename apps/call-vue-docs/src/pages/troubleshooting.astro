@@ -1,0 +1,22 @@
+---
+import Article from '~/layouts/Article.astro'
+---
+
+<Article title="Troubleshooting & FAQ" description="Diagnose Root errors, calls that never finish, update surprises, SSR timing, and exit animation mismatches.">
+  <h2><code>No &lt;Root&gt; found!</code></h2>
+  <p>Mount the returned Callable itself — for example <code>&lt;Confirm /&gt;</code> — before the first call. Do not use the removed <code>&lt;Confirm.Root /&gt;</code> alias. During SSR, move the invocation to a client event.</p>
+  <h2><code>Multiple instances of &lt;Root&gt; found!</code></h2>
+  <p>The same Callable is mounted in two live Vue trees or previews. Keep exactly one Root for that Callable. Separate Callable values may each have their own Root.</p>
+  <h2>The returned Promise never resolves</h2>
+  <p>A Call ends only through <code>call.end(response)</code> or <code>Callable.end(…)</code>. Hiding the dialog with local state or CSS does not resolve it. Every cancel, backdrop, Escape, and success path must end explicitly.</p>
+  <h2>Targeted end closes the wrong thing</h2>
+  <p>Keep the Promise returned by the exact call you want to target. Passing only a response invokes the broadcast overload. For <code>void</code>, use <code>Callable.end(promise, undefined)</code> to target or <code>Callable.end()</code> to broadcast.</p>
+  <h2>Root props do not look declared in the component</h2>
+  <p>Root props arrive through <code>call.root</code>, not as top-level Call props. Supply the third <code>createCallable</code> generic and pass the value to the mounted Root.</p>
+  <h2>The exit animation is cut off</h2>
+  <p>Set the second <code>createCallable</code> argument to at least the CSS exit duration, and bind the leaving class to <code>call.ended</code>. The Promise resolves before removal by design.</p>
+  <h2>Can multiple calls be active?</h2>
+  <p>Yes. Normal calls form a concurrent Stack. If you need one evolving instance instead, use <code>upsert()</code>.</p>
+  <h2>Does call-vue render UI?</h2>
+  <p>No. It owns Stack and Promise lifecycles. Dialog semantics, focus management, Teleport, styling, and animation remain responsibilities of your Vue component or headless UI layer.</p>
+</Article>

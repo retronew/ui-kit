@@ -1,0 +1,8 @@
+---
+import NotFoundPage from '~/components/NotFoundPage.vue'
+import Base from '~/layouts/Base.astro'
+---
+
+<Base title="404 — call-vue" description="This page does not exist. But the dialog telling you so does." noindex>
+  <NotFoundPage pathname={Astro.url.pathname} client:load />
+</Base>

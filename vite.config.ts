@@ -2,7 +2,7 @@ import { defineConfig } from 'vite-plus'
 
 export default defineConfig({
   fmt: {
-    ignorePatterns: ['**/*.md'],
+    ignorePatterns: ['**/*.md', '**/.astro/**'],
     singleQuote: true,
     semi: false,
     tabWidth: 2,
@@ -12,7 +12,7 @@ export default defineConfig({
   },
 
   lint: {
-    ignorePatterns: ['**/*.md'],
+    ignorePatterns: ['**/*.md', '**/.astro/**'],
     jsPlugins: [
       {
         name: 'vite-plus',

@@ -1,0 +1,32 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Article from '~/layouts/Article.astro'
+
+const signature = `createCallable<Props = void, Response = void, RootProps extends object = {}>(
+  component: UserComponent<Props, Response, RootProps>,
+  unmountingDelay?: number,
+): Callable<Props, Response, RootProps>`
+const methods = `const promise = Callable.call(props)
+const singleton = Callable.upsert(props)
+
+Callable.end(promise, response) // target one
+Callable.end(response)          // broadcast
+
+Callable.update(promise, partialProps) // target one
+Callable.update(partialProps)          // broadcast`
+---
+
+<Article title="API reference" description="Every public function, method, context field, generic, error, and exported type in @retronew/call-vue.">
+  <h2>createCallable</h2>
+  <Code code={signature} lang="ts" />
+  <p><strong>Props</strong> is passed by <code>call</code>/<code>upsert</code>. <strong>Response</strong> is resolved by <code>end</code>. <strong>RootProps</strong> is passed to the mounted Callable and exposed as <code>call.root</code>. The optional delay keeps ended Calls mounted for exit animation.</p>
+  <h2>Callable methods</h2>
+  <Code code={methods} lang="ts" meta="{1,2,4,5,7,8}" />
+  <div tabindex="0" class="overflow-x-auto"><table><thead><tr><th>Method</th><th>Behavior</th><th>Returns</th></tr></thead><tbody><tr><td><code>call(props)</code></td><td>Appends a normal Call.</td><td><code>Promise&lt;Response&gt;</code></td></tr><tr><td><code>upsert(props)</code></td><td>Creates or updates the singleton Call.</td><td>Stable <code>Promise&lt;Response&gt;</code></td></tr><tr><td><code>end(…)</code></td><td>Resolves targeted or all active Calls.</td><td><code>void</code></td></tr><tr><td><code>update(…)</code></td><td>Merges partial props into targeted or all Calls.</td><td><code>void</code></td></tr></tbody></table></div>
+  <h2>CallContext</h2>
+  <div tabindex="0" class="overflow-x-auto"><table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>key</code></td><td>Stable identity for this Call.</td></tr><tr><td><code>end(response)</code></td><td>Ends this specific Call.</td></tr><tr><td><code>ended</code></td><td>True after resolution, before delayed removal.</td></tr><tr><td><code>root</code></td><td>Current attributes passed to the mounted Root.</td></tr><tr><td><code>index</code></td><td>Zero-based position in the active Stack.</td></tr><tr><td><code>stackSize</code></td><td>Number of Calls currently rendered.</td></tr></tbody></table></div>
+  <h2>Public types</h2>
+  <p>All types are flat named exports: <code>CallFunction</code>, <code>UpsertFunction</code>, <code>CallContext</code>, <code>PropsWithCall</code>, <code>UserComponent</code>, and <code>Callable</code>.</p>
+  <h2>Errors</h2>
+  <p><code>call</code> and <code>upsert</code> throw synchronously when no Root or multiple Roots are mounted. <code>end</code> and <code>update</code> are no-ops when their target is already gone.</p>
+</Article>

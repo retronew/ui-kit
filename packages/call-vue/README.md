@@ -10,6 +10,25 @@ Call & await Vue components like async functions. A Vue 3 port of
 (`createCallable`, `call`/`upsert`/`end`/`update`) built on native Vue
 reactivity — no context providers, no global store to wire up.
 
+[Documentation with live demos](https://call-vue.retronew.dev) ·
+[Examples](https://call-vue.retronew.dev/examples) ·
+[Concepts](https://call-vue.retronew.dev/concepts) ·
+[Full API reference](https://call-vue.retronew.dev/api)
+
+## Contents
+
+- [Install](#install)
+- [Quick start](#quick-start)
+- [API](#api)
+- [Exit transitions](#exit-transitions)
+- [Root props and TypeScript](#root-props-and-typescript)
+- [Async components](#async-components)
+- [SSR](#ssr)
+- [Stacking](#stacking)
+- [Errors and troubleshooting](#errors-and-troubleshooting)
+- [Capability matrix](#capability-matrix)
+- [FAQ](#faq)
+
 ## Why
 
 Confirmation dialogs, prompts, and toasts are usually one-off components you
@@ -29,6 +48,9 @@ No global state, no extra store — `<Confirm />` mounted once *is* the stack.
 ```bash
 pnpm add @retronew/call-vue
 ```
+
+Use `npm install @retronew/call-vue`, `yarn add @retronew/call-vue`, or
+`bun add @retronew/call-vue` with another package manager.
 
 ## Quick start
 
@@ -127,6 +149,19 @@ See the [Claude Code skill](skills/call-vue/SKILL.md) for the stacking model,
 `unmountingDelay` exit-transition pattern, and the single-`<Root>` constraint
 in depth.
 
+### Public types
+
+All public types are flat named exports:
+
+| Type | Purpose |
+| --- | --- |
+| `CallFunction<Props, Response>` | The typed `call()` method. |
+| `UpsertFunction<Props, Response>` | The typed singleton `upsert()` method. |
+| `CallContext<Props, Response, RootProps>` | The injected `call` prop. |
+| `PropsWithCall<Props, Response, RootProps>` | Your props merged with `call`. |
+| `UserComponent<Props, Response, RootProps>` | A component accepted by `createCallable`. |
+| `Callable<Props, Response, RootProps>` | The Root component plus its imperative methods. |
+
 ## Exit transitions
 
 Pass a second argument to `createCallable` to keep an ended call mounted
@@ -221,6 +256,73 @@ stack, or rendering all of them with a depth-based transform).
   `Multiple instances of <Root> found!` if more than one is.
 - Unmounting `<Confirm />` resets its stack — a fresh mount always starts
   empty.
+
+## Errors and troubleshooting
+
+| Error or symptom | Cause and solution |
+| --- | --- |
+| `No <Root> found!` | Mount the returned Callable once and wait for client `onMounted` before calling it. During SSR, move the call to a client interaction. |
+| `Multiple instances of <Root> found!` | The same Callable is mounted in more than one live location. Keep exactly one Root for that Callable. |
+| The Promise never resolves | Every success, cancel, Escape, and backdrop path must explicitly run `call.end(response)` or an external `Callable.end(...)`. Hiding the UI is not enough. |
+| Exit animation is cut off | Match `createCallable(component, unmountingDelay)` to the CSS leave duration and style against `call.ended`. |
+| A targeted `void` end fails to type-check | Use `Toast.end(promise, undefined)`. `Toast.end()` is the broadcast form. |
+| Root data appears missing | Read mounted Root props from `call.root`; normal call props remain top-level component props. |
+
+The documentation site has the expanded
+[troubleshooting guide](https://call-vue.retronew.dev/troubleshooting).
+
+## Capability matrix
+
+This package targets `react-call`'s framework-neutral core semantics, while
+using Vue-native components and lifecycle primitives.
+
+| Capability | `call-vue` | Notes |
+| --- | --- | --- |
+| `createCallable`, `call`, `end` | Supported | Promise and broadcast/targeted semantics match the upstream core. |
+| Concurrent Stack | Supported | Every normal call remains independently active. |
+| `upsert`, `update` | Supported | Singleton Promise identity and targeted/broadcast updates are covered. |
+| Root props | Supported | Available reactively through `call.root`. |
+| Exit lifecycle | Supported | `call.ended` plus `unmountingDelay`. |
+| Vue async components | Supported | Use `defineAsyncComponent`; empty stacks stay lazy. |
+| SSR-safe Root creation | Supported | Calling remains client-only. |
+| `<Callable.Root />` alias | Not provided | The direct `<Callable />` Root is the only API; the legacy alias was removed rather than soft-deprecated. |
+| Mutation-flow helper subpath | Not published | Compose an async function and local pending state today; a dedicated helper requires its own public design and tests. |
+| Vite HMR transform | Not published | Normal Vue HMR applies, but open-call preservation is not promised yet. |
+| Multi-preview host helper | Not published | Mount one Callable Root outside repeated Storybook/Histoire previews manually. |
+
+Unsupported entries are deliberate capability boundaries, not hidden aliases.
+Do not import `react-call`-specific subpaths from this package.
+
+## FAQ
+
+### What if more than one call is active?
+
+The Root renders all Calls as a Stack in insertion order. Your component may
+show all of them, position them by `call.index`, or visually prioritize the
+latest using `call.stackSize`.
+
+### Can I place more than one Root?
+
+Not for the same Callable. You may mount one `Confirm`, one `Toast`, and one
+`Picker` together because those are three independent Callable values.
+
+### Does `upsert()` replace normal calls?
+
+No. The singleton upsert instance coexists with normal `call()` instances.
+Repeated upserts update only the singleton and return its original Promise.
+
+### Is mutation flow just an async function?
+
+The domain work is an async function. A mutation-flow helper additionally
+standardizes pending state, duplicate-submit behavior, payload typing, retry
+after failure, and the rule that only an explicit `call.end()` closes the Call.
+Those semantics are why such a helper belongs in an optional subpath rather
+than in the core.
+
+### Can I use Teleport?
+
+Yes. Teleport is presentation owned by your user component. Mount the Callable
+Root once, then Teleport each rendered dialog or toast to the desired target.
 
 ## Claude Code skill
 

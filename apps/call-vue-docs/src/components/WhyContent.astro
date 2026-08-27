@@ -1,0 +1,134 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+
+const byHand = `<script setup lang="ts">
+const open = ref(false)
+
+async function accept() {
+  await api.delete(id)
+  open.value = false
+}
+</script>
+
+<template>
+  <button @click="open = true">Delete</button>
+  <Confirm v-if="open" @accept="accept" @cancel="open = false" />
+</template>`
+
+const withCall = `<script setup lang="ts">
+async function remove() {
+  if (await Confirm.call({ message: 'Delete?' })) {
+    await api.delete(id)
+  }
+}
+</script>
+
+<template><button @click="remove">Delete</button></template>`
+
+const copy = {
+  en: {
+    breadcrumb: 'Why',
+    title: 'Why call-vue?',
+    imperativeTitle: 'An imperative flow in a declarative model',
+    stateTitle: 'State renders the dialog. It cannot return the answer.',
+    byHand: 'By hand',
+    withCall: 'With call-vue',
+    dependencyTitle: '“But why add a dependency?”',
+    stateUseTitle: 'When Vue state is the right call',
+    examples: 'See it on real examples',
+    concepts: 'Or learn how it works →',
+  },
+  'zh-cn': {
+    breadcrumb: '为什么',
+    title: '为什么选择 call-vue？',
+    imperativeTitle: '命令式流程，声明式渲染',
+    stateTitle: '状态可以渲染对话框，却不能返回答案',
+    byHand: '手动协调',
+    withCall: '使用 call-vue',
+    dependencyTitle: '“为什么还要增加一个依赖？”',
+    stateUseTitle: '什么时候 Vue 状态仍然是正确选择',
+    examples: '查看真实示例',
+    concepts: '或了解它如何工作 →',
+  },
+  ja: {
+    breadcrumb: 'なぜ',
+    title: 'なぜ call-vue？',
+    imperativeTitle: '宣言的な描画の中の命令的なフロー',
+    stateTitle: 'state はダイアログを描画できても答えを返せない',
+    byHand: '手作業',
+    withCall: 'call-vue を使う',
+    dependencyTitle: '「なぜ依存関係を増やすの？」',
+    stateUseTitle: '通常の Vue state が適切な場合',
+    examples: '実際のサンプルを見る',
+    concepts: '仕組みを学ぶ →',
+  },
+}[locale]
+---
+
+<div class="mx-auto max-w-4xl px-6 py-12 md:py-16">
+  <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href={localizePath('/', locale)} class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{copy.breadcrumb}</span></nav>
+  <header class="mb-12">
+    <h1 class="text-3xl leading-[1.1] font-medium tracking-[-0.025em] text-[var(--color-fg)] md:text-5xl">{copy.title}</h1>
+    <p class="mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)] md:text-lg">
+      {locale === 'en' && <>For showing and hiding something, Vue state is perfect. The moment the interaction must <em>answer</em> the code that opened it, that model starts to strain.</>}
+      {locale === 'zh-cn' && <>对于单纯显示和隐藏界面，Vue 状态已经足够；但当交互必须把<em>答案交回</em>发起它的代码时，这个模型就开始变得吃力。</>}
+      {locale === 'ja' && <>表示と非表示だけなら Vue の state で十分です。しかし UI が呼び出し元のコードへ<em>答えを返す</em>必要があると、そのモデルには無理が生じます。</>}
+    </p>
+  </header>
+  <div class="prose-call-vue space-y-6 text-[var(--color-fg-muted)]">
+    <h2>{copy.imperativeTitle}</h2>
+    <p>
+      {locale === 'en' && <>A confirm, prompt, or picker is <strong>imperative by nature</strong>: ask, wait, receive an answer, continue. Vue rendering stays <strong>declarative</strong> inside the Root; <code>await Confirm.call()</code> gives the caller an imperative boundary that matches the problem.</>}
+      {locale === 'zh-cn' && <>确认框、输入框和选择器本质上都是“提问、等待、得到答案、继续”的<strong>命令式</strong>流程。Vue 仍在 Root 内负责<strong>声明式</strong>渲染；<code>await Confirm.call()</code> 则为调用方提供与问题形状一致的命令式边界。</>}
+      {locale === 'ja' && <>確認、入力、選択は「問い、待ち、答えを受け、続ける」という<strong>命令的</strong>な流れです。Vue の描画は Root 内で<strong>宣言的</strong>なままにし、<code>await Confirm.call()</code> が呼び出し側に問題の形に合う命令的な境界を与えます。</>}
+    </p>
+    <h2>{copy.stateTitle}</h2>
+    <p>
+      {locale === 'en' && <>A <code>ref</code> can keep the dialog visible, but returning its answer typically splits the consequence across an emit handler, callback prop, or resolver stored elsewhere. The code that asks and the code that acts drift apart.</>}
+      {locale === 'zh-cn' && <><code>ref</code> 能让对话框保持可见，但返回结果通常会分散到 emit 处理器、回调 prop 或其他地方保存的 resolver。提问的代码与执行后续业务的代码因此逐渐分离。</>}
+      {locale === 'ja' && <><code>ref</code> でダイアログを表示したままにはできますが、答えを返すには emit ハンドラー、callback prop、別の場所に保持した resolver に処理が分かれがちです。尋ねるコードと後続の処理が離れていきます。</>}
+    </p>
+    <div class="grid gap-4 md:grid-cols-2 md:gap-6">
+      <div class="min-w-0"><div class="mb-2 font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{copy.byHand}</div><Code code={byHand} lang="vue" meta="{2,4-7,12}" /></div>
+      <div class="min-w-0"><div class="mb-2 font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">{copy.withCall}</div><Code code={withCall} lang="vue" meta="{3-5}" /></div>
+    </div>
+    <h2>{copy.dependencyTitle}</h2>
+    <p>
+      {locale === 'en' && <>You can hand-roll a <code>Promise</code> resolver. Once it also handles strict typing, SSR-safe roots, concurrent calls, targeted updates, singleton <code>upsert</code>s, and delayed removal, that wrapper has become a small library. call-vue keeps those mechanics headless and tested.</>}
+      {locale === 'zh-cn' && <>你当然可以手写 <code>Promise</code> resolver。但当它还要处理严格类型、SSR 安全的 Root、并发调用、定向更新、单例 <code>upsert</code> 和延迟卸载时，这个封装已经成为一个小型库。call-vue 把这些机制保持为 headless，并提供测试保障。</>}
+      {locale === 'ja' && <><code>Promise</code> resolver を手書きすることはできます。しかし strict な型、SSR 安全な Root、同時 Call、対象を絞った更新、単一インスタンスの <code>upsert</code>、遅延アンマウントまで扱うなら、それは小さなライブラリです。call-vue はその仕組みを headless に保ち、テスト済みで提供します。</>}
+    </p>
+    <h2>{copy.stateUseTitle}</h2>
+    <p>
+      {locale === 'en' && <>For a local show/hide toggle that returns nothing, use a <code>ref</code>. Reach for a Callable when the interaction returns a value, is reused from many places, or may coexist with other active calls.</>}
+      {locale === 'zh-cn' && <>如果只是局部显示/隐藏且不需要向调用方返回值，<code>ref</code> 更直接。当交互需要返回值、会在多处复用，或可能和其他活跃调用共存时，再使用 Callable。</>}
+      {locale === 'ja' && <>戻り値を返さない局所的な表示切替なら <code>ref</code> が直接的です。値を返す、複数箇所で再利用する、他の active call と共存する場合に Callable を使います。</>}
+    </p>
+    <ul>
+      {locale === 'en' && <>
+        <li><strong>Composition</strong> — simultaneous questions are independent Stack entries.</li>
+        <li><strong>Reuse</strong> — define once, call from any handler, composable, store action, or domain function.</li>
+        <li><strong>Linear control flow</strong> — cancellation and acceptance return to the same code path.</li>
+      </>}
+      {locale === 'zh-cn' && <>
+        <li><strong>组合性</strong> — 同时提出的问题会成为彼此独立的 Stack 条目。</li>
+        <li><strong>复用性</strong> — 定义一次，可从任意事件处理器、组合式函数、store action 或领域函数调用。</li>
+        <li><strong>线性控制流</strong> — 取消和确认都会回到同一条代码路径。</li>
+      </>}
+      {locale === 'ja' && <>
+        <li><strong>合成可能性</strong> — 同時に出した質問は独立した Stack エントリになります。</li>
+        <li><strong>再利用性</strong> — 一度定義すれば、任意のイベントハンドラー、composable、store action、ドメイン関数から呼び出せます。</li>
+        <li><strong>直線的な制御フロー</strong> — キャンセルも承認も同じコードパスへ戻ります。</li>
+      </>}
+    </ul>
+  </div>
+  <div class="mt-14 flex flex-col items-start gap-4 border-t border-[var(--color-border)] pt-10 sm:flex-row sm:items-center"><a href={localizePath('/examples', locale)} class="inline-flex h-9 items-center justify-center rounded-md bg-[var(--color-brand)] px-4 text-sm font-medium text-[var(--color-brand-fg)] transition-[background-color,transform] hover:bg-[var(--color-brand-hover)]">{copy.examples}</a><a href={localizePath('/concepts', locale)} class="text-sm text-[var(--color-fg-muted)] underline-offset-2 hover:text-[var(--color-fg)] hover:underline">{copy.concepts}</a></div>
+</div>

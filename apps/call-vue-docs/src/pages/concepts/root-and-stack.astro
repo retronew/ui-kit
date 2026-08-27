@@ -1,0 +1,27 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import StackSection from '~/components/landing/StackSection.vue'
+import Concept from '~/layouts/Concept.astro'
+
+const rootCode = `<script setup lang="ts">
+import { Confirm } from './confirm'
+</script>
+
+<template>
+  <RouterView />
+  <Confirm />
+</template>`
+---
+
+<Concept title="Root & Stack" intro="One Root mounts the Callable in your Vue tree. Many calls can be active at once — the Root renders all of them as a stack.">
+  <h2>Two roles, one component</h2>
+  <p>A <strong>Callable</strong>, returned by <code>createCallable</code>, is two things at once: a Vue component you mount as the <strong>Root</strong>, and a namespace of imperative methods — <code>call</code>, <code>upsert</code>, <code>end</code>, and <code>update</code>. The Root listens; the methods speak.</p>
+  <Code code={rootCode} lang="vue" meta="{7}" />
+  <h2>The Stack</h2>
+  <p>Every <code>.call(…)</code> appends one active Call. The Root renders every Call in insertion order. New calls coexist with old ones until each is explicitly ended.</p>
+  <div class="not-prose -mx-[calc((100vw-min(100vw,64rem))/2)] my-8"><StackSection client:load /></div>
+  <h2>One Root per Callable</h2>
+  <p>Mount <code>&lt;Confirm /&gt;</code> once, anywhere visible before calling it. No Root throws <code>No &lt;Root&gt; found!</code>; two simultaneous mounts throw <code>Multiple instances of &lt;Root&gt; found!</code> at call time.</p>
+  <h2>As many Callables as you want</h2>
+  <p>The rule is one Root <em>per Callable</em>, not one for the whole app. Confirm, Toast, Drawer, and Picker each own an independent stack and can be mounted side by side.</p>
+</Concept>

@@ -1,0 +1,24 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import AdvancedSection from '~/components/landing/AdvancedSection.vue'
+import Concept from '~/layouts/Concept.astro'
+
+const code = `const promise1 = Toast.upsert({ message: 'Starting…', percent: 0 })
+const promise2 = Toast.upsert({ message: 'Working…', percent: 40 })
+
+console.log(promise1 === promise2) // true
+
+Toast.update(promise1, { percent: 80 }) // targeted
+Toast.update({ message: 'Done' })       // broadcast`
+---
+
+<Concept title="Upsert & Update" intro="Use upsert for one singleton call whose props evolve over time. Its Promise and component state remain stable until it ends.">
+  <h2>When you want one, not many</h2>
+  <p><code>call()</code> always appends. <code>upsert()</code> creates one singleton instance, then merges new props into that same instance on subsequent upserts.</p>
+  <Code code={code} lang="ts" meta="{1,2,4,6,7}" />
+  <div class="not-prose -mx-[calc((100vw-min(100vw,64rem))/2)] my-8"><AdvancedSection client:load /></div>
+  <h2>Promise identity</h2>
+  <p>Every upsert during the singleton's lifetime returns the same Promise. Once the call ends, the next upsert creates a fresh instance and Promise.</p>
+  <h2>Targeted and broadcast updates</h2>
+  <p>Pass a Promise to update exactly one Call, or pass only partial props to update every active Call. Normal calls and the upsert singleton coexist without replacing one another.</p>
+</Concept>

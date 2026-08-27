@@ -1,0 +1,26 @@
+{
+  "name": "call-vue-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/check": "catalog:",
+    "@astrojs/mdx": "catalog:",
+    "@astrojs/sitemap": "catalog:",
+    "@astrojs/vue": "catalog:",
+    "@fontsource-variable/fira-code": "catalog:",
+    "@fontsource-variable/geist": "catalog:",
+    "@retronew/call-vue": "workspace:*",
+    "@tailwindcss/vite": "catalog:",
+    "astro": "catalog:",
+    "astro-expressive-code": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:docs",
+    "vue": "catalog:"
+  }
+}

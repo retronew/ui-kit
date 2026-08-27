@@ -1,0 +1,22 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Concept from '~/layouts/Concept.astro'
+
+const code = `const EXIT_MS = 180
+export const Toast = createCallable<ToastProps, void>(ToastCard, EXIT_MS)
+
+// ToastCard.vue
+<div :class="{ 'toast--leaving': call.ended }">…</div>`
+---
+
+<Concept title="Exit lifecycle" intro="Resolve the Promise now, leave the component mounted just long enough to animate out, then remove only the Calls that were ended.">
+  <h2>Configure the delay once</h2>
+  <p>The second <code>createCallable</code> argument is the unmounting delay in milliseconds. Match it to the exit transition, and use <code>call.ended</code> to activate the leaving style.</p>
+  <Code code={code} lang="vue" meta="{1,2,5}" />
+  <h2>What happens at end()</h2>
+  <ul><li>The Promise resolves immediately.</li><li><code>call.ended</code> becomes <code>true</code> immediately.</li><li>The rendered Call remains mounted for the configured delay.</li><li>Only Calls captured by that <code>end()</code> are removed when the timer fires.</li></ul>
+  <h2>Race safety</h2>
+  <p>A broadcast end followed by a new call in the same tick does not remove the new Call. Removal is scoped to the exact Promise identities that were ended.</p>
+  <h2>Reduced motion</h2>
+  <p>Your component owns presentation. Disable or shorten transitions under <code>prefers-reduced-motion</code>; the library still follows the configured lifecycle contract.</p>
+</Concept>

@@ -1,0 +1,210 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist/index.css';
+@import '@fontsource-variable/fira-code/index.css';
+
+@source "../**/*.astro";
+@source "../**/*.vue";
+@source "../**/*.ts";
+@source "../**/*.mdx";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    'Geist Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, sans-serif;
+  --font-mono:
+    'Fira Code Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-accent: #2c7a55;
+  --color-accent-hover: #236747;
+  --color-brand: #42b883;
+  --color-brand-hover: #33a06f;
+  --color-brand-fg: #ffffff;
+
+  --color-bg: oklch(100% 0 0);
+  --color-bg-subtle: oklch(98.5% 0.002 247.8);
+  --color-bg-muted: oklch(96.8% 0.004 247.9);
+  --color-fg: oklch(14.5% 0.01 247.8);
+  --color-fg-muted: oklch(43.9% 0.018 248.2);
+  --color-fg-subtle: oklch(55.6% 0.018 248.1);
+  --color-border: oklch(91.7% 0.008 247.9);
+  --color-border-strong: oklch(84.8% 0.012 248);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+    --color-accent: #5fd3a0;
+    --color-accent-hover: #81e0b3;
+    --color-brand: #42b883;
+    --color-brand-hover: #59cb9a;
+    --color-brand-fg: #ffffff;
+    --color-bg: oklch(14.5% 0.01 247.8);
+    --color-bg-subtle: oklch(19.5% 0.012 247.9);
+    --color-bg-muted: oklch(25.5% 0.014 248);
+    --color-fg: oklch(98.5% 0.002 247.8);
+    --color-fg-muted: oklch(72.2% 0.016 248.1);
+    --color-fg-subtle: oklch(62% 0.018 248.1);
+    --color-border: oklch(28.5% 0.014 248);
+    --color-border-strong: oklch(38.5% 0.017 248.1);
+  }
+
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+  }
+
+  body > main {
+    flex: 1 0 auto;
+  }
+
+  ::selection {
+    background-color: var(--color-brand);
+    color: var(--color-brand-fg);
+  }
+
+  *:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active:not(:disabled),
+  [role='button']:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  code,
+  pre,
+  kbd {
+    font-family: var(--font-mono);
+    font-feature-settings:
+      'liga' 1,
+      'calt' 1;
+    font-variant-ligatures: common-ligatures contextual;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+.result-enter-active,
+.dialog-enter-active,
+.dialog-leave-active {
+  transition-property: opacity, transform;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+.result-enter-from {
+  opacity: 0;
+  transform: translateY(0.25rem);
+}
+
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+}
+
+.dialog-enter-from .dialog-panel,
+.dialog-leave-to .dialog-panel {
+  transform: translateY(0.5rem) scale(0.98);
+}
+
+.dialog-panel {
+  transition-property: transform;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+.prose-call-vue h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-fg);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.prose-call-vue h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-fg);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.prose-call-vue p,
+.prose-call-vue li {
+  line-height: 1.7;
+}
+
+.prose-call-vue a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-call-vue p code,
+.prose-call-vue li code {
+  border-radius: 0.25rem;
+  background: var(--color-bg-muted);
+  padding: 0.1em 0.35em;
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+.prose-call-vue ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.prose-call-vue strong {
+  color: var(--color-fg);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

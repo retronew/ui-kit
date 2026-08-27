@@ -1,0 +1,56 @@
+---
+layout: ../../layouts/Article.astro
+title: TypeScript and Vue SFCs
+description: Keep props, responses, Root props, and async components typed from declaration through await.
+---
+
+## Type the SFC from the public contract
+
+The user component receives your call props plus `call`. `PropsWithCall` keeps that merge explicit and lets `vue-tsc` validate the template.
+
+```vue
+<script setup lang="ts">
+import type { PropsWithCall } from '@retronew/call-vue'
+
+type Props = { message: string }
+type Response = boolean
+
+defineProps<PropsWithCall<Props, Response, {}>>()
+</script>
+
+<template>
+  <button @click="call.end(true)">{{ message }}</button>
+</template>
+```
+
+## Preserve the same generics at creation
+
+```ts
+import { createCallable } from '@retronew/call-vue'
+import ConfirmDialog from './ConfirmDialog.vue'
+
+export const Confirm = createCallable<{ message: string }, boolean>(ConfirmDialog)
+```
+
+`Confirm.call()` now requires a message and resolves as `boolean`. Invalid props and invalid response values fail during type checking.
+
+## Root props
+
+Use the third generic for values owned by the mounted Root. They arrive on each Call through `call.root` and remain reactive as Root attributes change.
+
+```ts
+type RootProps = { accent: string }
+export const Toast = createCallable<ToastProps, void, RootProps>(ToastCard)
+```
+
+```vue
+<Toast :accent="theme.accent" />
+```
+
+## Void responses
+
+Inside a `void` Callable, `call.end()` needs no argument. Broadcast ending is `Toast.end()`. To target one `Promise<void>` from caller scope, use `Toast.end(promise, undefined)`.
+
+## Async components
+
+Pass `defineAsyncComponent(() => import('./HeavyDialog.vue'))` to `createCallable`. The loader remains idle until an active Call causes the Root to render it. Provide loading and error components through Vue's normal async-component options.

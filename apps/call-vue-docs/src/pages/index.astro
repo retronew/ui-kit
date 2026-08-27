@@ -1,0 +1,20 @@
+---
+import Hero from '~/components/landing/Hero.vue'
+import AdvancedSection from '~/components/landing/AdvancedSection.vue'
+import FinalCta from '~/components/landing/FinalCta.astro'
+import HowItLives from '~/components/landing/HowItLives.vue'
+import NotJustConfirmations from '~/components/landing/NotJustConfirmations.vue'
+import StackSection from '~/components/landing/StackSection.vue'
+import StateComparison from '~/components/landing/StateComparison.astro'
+import Base from '~/layouts/Base.astro'
+---
+
+<Base>
+  <Hero locale="en" client:load />
+  <NotJustConfirmations locale="en" client:idle />
+  <HowItLives locale="en" client:visible />
+  <StateComparison locale="en" />
+  <StackSection locale="en" client:visible />
+  <AdvancedSection locale="en" client:visible />
+  <FinalCta locale="en" />
+</Base>
