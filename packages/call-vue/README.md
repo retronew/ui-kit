@@ -23,6 +23,8 @@ reactivity — no context providers, no global store to wire up.
 - [Exit transitions](#exit-transitions)
 - [Root props and TypeScript](#root-props-and-typescript)
 - [Mutation flow](#mutation-flow)
+- [Vite HMR](#vite-hmr)
+- [Preview host](#preview-host)
 - [Async components](#async-components)
 - [SSR](#ssr)
 - [Stacking](#stacking)
@@ -267,6 +269,69 @@ user component is not rendered on the server while the stack is empty.
 `call()` and `upsert()` remain client-imperative APIs and throw
 `No <Root> found!` until the Root's client `onMounted` hook has run.
 
+## Vite HMR
+
+Install the optional Vite plugin to retain an open Call while Vite re-evaluates
+the module that declares its Callable during development:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import callVue from '@retronew/call-vue/vite'
+
+export default defineConfig({
+  plugins: [vue(), callVue()],
+})
+```
+
+The plugin recognizes a direct named import (including an alias) and a
+top-level `const` or `export const` declaration:
+
+```ts
+import { createCallable } from '@retronew/call-vue'
+
+export const Confirm = createCallable(ConfirmDialog)
+// development transform: Confirm.displayName = 'Confirm'
+```
+
+The assigned name lets the refreshed Callable adopt the mounted Root's Stack,
+so active Calls remain available after a save. It is dev-only and has no
+production behavior. Namespace imports, default exports, nested declarations,
+and `let`/`var` declarations are deliberately not transformed; set
+`Confirm.displayName = 'Confirm'` yourself for those shapes. A manual
+assignment always wins over an injected one.
+
+## Preview host
+
+Storybook, Histoire, and similar tools can render several isolated Vue app
+trees at once. Mounting the same Callable Root in every preview violates the
+single-Root invariant. Mount it once, outside the preview apps instead:
+
+```ts
+// preview.ts
+import { mount } from '@retronew/call-vue/host'
+import { Confirm } from './confirm'
+
+mount(Confirm)
+```
+
+`mount()` creates one body-level `<div data-call-vue-host>` and is idempotent;
+later calls reuse that Vue app and replace its rendered Root. Pass a custom
+container or a wrapper when needed:
+
+```ts
+mount(Confirm, {
+  container: document.querySelector('#preview-host')!,
+  wrapper: PreviewProviders,
+})
+```
+
+The Host is a separate Vue app, so it does not inherit `provide` values,
+plugins, or component registrations from a preview. Put the required setup in
+`wrapper`. This is a browser-only helper; call it from preview setup or another
+client entry, never during SSR.
+
 ## Accessibility responsibility
 
 `call-vue` controls stack and Promise lifecycles; it is deliberately headless.
@@ -321,8 +386,8 @@ using Vue-native components and lifecycle primitives.
 | SSR-safe Root creation | Supported | Calling remains client-only. |
 | `<Callable.Root />` alias | Not provided | The direct `<Callable />` Root is the only API; the legacy alias was removed rather than soft-deprecated. |
 | Mutation-flow helper subpath | Supported | Import `useMutationFlow` and its types from `@retronew/call-vue/mutation-flow`. |
-| Vite HMR transform | Not published | Normal Vue HMR applies, but open-call preservation is not promised yet. |
-| Multi-preview host helper | Not published | Mount one Callable Root outside repeated Storybook/Histoire previews manually. |
+| Vite HMR transform | Supported | `@retronew/call-vue/vite` assigns stable dev-only names so an open Stack survives supported Vite module updates. |
+| Multi-preview host helper | Supported | `@retronew/call-vue/host` owns one isolated Root for Storybook/Histoire-style repeated previews. |
 
 Unsupported entries are deliberate capability boundaries, not hidden aliases.
 Do not import `react-call`-specific subpaths from this package.

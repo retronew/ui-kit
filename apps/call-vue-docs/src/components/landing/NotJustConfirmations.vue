@@ -2,8 +2,8 @@
 import { computed, reactive } from 'vue'
 import { landingMessages } from '~/i18n'
 import type { Locale } from '~/i18n'
-import { Showcase } from './showcase-callable'
-import type { ShowcaseProps } from './showcase-callable'
+import { BottomSheet, Showcase } from './showcase-callable'
+import type { ShowcaseOption, ShowcaseProps } from './showcase-callable'
 import { Progress } from './toast-callable'
 
 interface Card extends ShowcaseProps {
@@ -19,7 +19,7 @@ const cards: Card[] = [
     title: 'Command palette',
     description: '⌘K-style search. Choose a command and await the result.',
     kind: 'command',
-    options: ['Open file', 'Find in files', 'Toggle theme'],
+    options: [],
   },
   {
     slug: 'bottom-sheet',
@@ -27,7 +27,7 @@ const cards: Card[] = [
     title: 'Bottom sheet',
     description: 'Slides up from the bottom — resolves with the action you tap.',
     kind: 'sheet',
-    options: ['Share', 'Copy link', 'Archive'],
+    options: [],
   },
   {
     slug: 'wizard',
@@ -51,7 +51,7 @@ const cards: Card[] = [
     title: 'Context menu',
     description: 'Forwards the cursor position to a positioned Callable.',
     kind: 'context',
-    options: ['Edit', 'Duplicate', 'Delete'],
+    options: [],
   },
   {
     slug: 'progress-toast',
@@ -62,21 +62,83 @@ const cards: Card[] = [
     options: [],
   },
 ]
-const localizedOptions: Record<Locale, Record<string, string[]>> = {
+const localizedOptions: Record<Locale, Record<string, readonly ShowcaseOption[]>> = {
   en: {
-    'command-palette': ['Open file', 'Find in files', 'Toggle theme'],
-    'bottom-sheet': ['Share', 'Copy link', 'Archive'],
-    'context-menu': ['Edit', 'Duplicate', 'Delete'],
+    'command-palette': [
+      { id: 'open-file', label: 'Open file', shortcut: '⌘ O' },
+      { id: 'find', label: 'Find in files', shortcut: '⌘ ⇧ F' },
+      { id: 'toggle-theme', label: 'Toggle theme' },
+      { id: 'restart', label: 'Restart' },
+    ],
+    'bottom-sheet': [
+      { id: 'share', label: 'Share', icon: '⇪' },
+      { id: 'copy-link', label: 'Copy link', icon: '⤴' },
+      { id: 'pin', label: 'Pin', icon: '📌' },
+      { id: 'archive', label: 'Archive', icon: '🗄' },
+    ],
+    'context-menu': [
+      { id: 'edit', label: 'Edit' },
+      { id: 'duplicate', label: 'Duplicate' },
+      { id: 'delete', label: 'Delete', destructive: true },
+    ],
   },
   'zh-cn': {
-    'command-palette': ['打开文件', '在文件中查找', '切换主题'],
-    'bottom-sheet': ['分享', '复制链接', '归档'],
-    'context-menu': ['编辑', '复制', '删除'],
+    'command-palette': [
+      { id: 'open-file', label: '打开文件', shortcut: '⌘ O' },
+      { id: 'find', label: '在文件中查找', shortcut: '⌘ ⇧ F' },
+      { id: 'toggle-theme', label: '切换主题' },
+      { id: 'restart', label: '重新启动' },
+    ],
+    'bottom-sheet': [
+      { id: 'share', label: '分享', icon: '⇪' },
+      { id: 'copy-link', label: '复制链接', icon: '⤴' },
+      { id: 'pin', label: '置顶', icon: '📌' },
+      { id: 'archive', label: '归档', icon: '🗄' },
+    ],
+    'context-menu': [
+      { id: 'edit', label: '编辑' },
+      { id: 'duplicate', label: '复制' },
+      { id: 'delete', label: '删除', destructive: true },
+    ],
   },
   ja: {
-    'command-palette': ['ファイルを開く', 'ファイル内を検索', 'テーマを切替'],
-    'bottom-sheet': ['共有', 'リンクをコピー', 'アーカイブ'],
-    'context-menu': ['編集', '複製', '削除'],
+    'command-palette': [
+      { id: 'open-file', label: 'ファイルを開く', shortcut: '⌘ O' },
+      { id: 'find', label: 'ファイル内を検索', shortcut: '⌘ ⇧ F' },
+      { id: 'toggle-theme', label: 'テーマを切替' },
+      { id: 'restart', label: '再起動' },
+    ],
+    'bottom-sheet': [
+      { id: 'share', label: '共有', icon: '⇪' },
+      { id: 'copy-link', label: 'リンクをコピー', icon: '⤴' },
+      { id: 'pin', label: '固定', icon: '📌' },
+      { id: 'archive', label: 'アーカイブ', icon: '🗄' },
+    ],
+    'context-menu': [
+      { id: 'edit', label: '編集' },
+      { id: 'duplicate', label: '複製' },
+      { id: 'delete', label: '削除', destructive: true },
+    ],
+  },
+}
+const surfaceTitles: Record<Locale, Record<string, string>> = {
+  en: {
+    'command-palette': 'Command palette',
+    'bottom-sheet': 'Quick actions',
+    wizard: 'Wizard',
+    'color-picker': 'Pick a color',
+  },
+  'zh-cn': {
+    'command-palette': '命令面板',
+    'bottom-sheet': '快捷操作',
+    wizard: '引导流程',
+    'color-picker': '选择颜色',
+  },
+  ja: {
+    'command-palette': 'コマンドパレット',
+    'bottom-sheet': 'クイックアクション',
+    wizard: 'ウィザード',
+    'color-picker': '色を選択',
   },
 }
 const props = withDefaults(defineProps<{ locale?: Locale }>(), { locale: 'en' })
@@ -109,10 +171,11 @@ async function run(card: Card, event: MouseEvent) {
       return
     }
     const cardIndex = cards.indexOf(card)
-    const value = await Showcase.call({
+    const callable = card.kind === 'sheet' ? BottomSheet : Showcase
+    const value = await callable.call({
       locale: props.locale,
       kind: card.kind,
-      title: t.value.cards[cardIndex]?.[1] ?? card.title,
+      title: surfaceTitles[props.locale][card.slug] ?? t.value.cards[cardIndex]?.[1] ?? card.title,
       options: localizedOptions[props.locale][card.slug] ?? card.options,
       x: event.clientX,
       y: event.clientY,
@@ -126,6 +189,7 @@ async function run(card: Card, event: MouseEvent) {
 
 <template>
   <Showcase />
+  <BottomSheet />
   <Progress />
 
   <section class="mx-auto max-w-6xl px-6 py-24">

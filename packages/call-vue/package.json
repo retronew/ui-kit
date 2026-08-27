@@ -30,6 +30,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./mutation-flow": "./src/mutation-flow/index.ts",
+    "./vite": "./src/vite/index.ts",
+    "./host": "./src/host/index.ts",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -41,6 +43,14 @@
       "./mutation-flow": {
         "types": "./dist/mutation-flow/index.d.mts",
         "default": "./dist/mutation-flow/index.mjs"
+      },
+      "./vite": {
+        "types": "./dist/vite/index.d.mts",
+        "default": "./dist/vite/index.mjs"
+      },
+      "./host": {
+        "types": "./dist/host/index.d.mts",
+        "default": "./dist/host/index.mjs"
       },
       "./package.json": "./package.json"
     },
@@ -60,11 +70,18 @@
     "@vue/test-utils": "catalog:",
     "jsdom": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:",
     "vue": "catalog:"
   },
   "peerDependencies": {
+    "vite": ">=8",
     "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   }
 }

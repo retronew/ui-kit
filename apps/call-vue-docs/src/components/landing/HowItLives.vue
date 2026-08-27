@@ -94,28 +94,41 @@ onBeforeUnmount(() => clearInterval(interval))
               "
               >{{ row.label }}</span
             >
-            <div
-              class="flex w-[140px] items-center"
-              :class="row.direction === 'backward' ? 'flex-row-reverse' : ''"
-            >
-              <span
-                class="h-px flex-1 transition-colors duration-200"
-                :class="
-                  phase === row.phase
-                    ? 'bg-[var(--color-brand)]'
-                    : 'bg-[var(--color-border-strong)]'
-                "
-              ></span>
-              <span
-                class="-ml-px text-xs transition-colors duration-200"
-                :class="
-                  phase === row.phase
-                    ? 'text-[var(--color-accent)]'
-                    : 'text-[var(--color-border-strong)]'
-                "
-                >▶</span
-              >
-            </div>
+            <svg width="140" height="14" viewBox="0 0 140 14" fill="none" aria-hidden="true">
+              <defs>
+                <marker
+                  :id="`head-${row.direction}-${phase === row.phase ? 'on' : 'off'}`"
+                  markerWidth="10"
+                  markerHeight="10"
+                  refX="8"
+                  refY="3"
+                  orient="auto"
+                >
+                  <path
+                    d="M0,0 L0,6 L8,3 z"
+                    :fill="
+                      phase === row.phase ? 'var(--color-accent)' : 'var(--color-border-strong)'
+                    "
+                  />
+                </marker>
+              </defs>
+              <path
+                v-if="row.direction === 'forward'"
+                d="M 5 7 L 132 7"
+                :stroke="phase === row.phase ? 'var(--color-accent)' : 'var(--color-border-strong)'"
+                stroke-width="2"
+                :marker-end="`url(#head-forward-${phase === row.phase ? 'on' : 'off'})`"
+                :class="phase === row.phase ? 'animate-pulse' : ''"
+              />
+              <path
+                v-else
+                d="M 135 7 L 8 7"
+                :stroke="phase === row.phase ? 'var(--color-accent)' : 'var(--color-border-strong)'"
+                stroke-width="2"
+                :marker-end="`url(#head-backward-${phase === row.phase ? 'on' : 'off'})`"
+                :class="phase === row.phase ? 'animate-pulse' : ''"
+              />
+            </svg>
           </div>
         </div>
 

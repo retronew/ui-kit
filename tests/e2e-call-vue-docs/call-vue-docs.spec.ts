@@ -159,7 +159,11 @@ test('keeps navigation usable on a mobile viewport', async ({ page }, testInfo) 
   const menu = page.getByRole('button', { name: 'Open menu' })
   await menu.click()
   await expect(page.getByRole('navigation', { name: 'Site' })).toBeVisible()
-  await page.getByRole('link', { name: 'Full reference' }).last().click()
-  await expect(page).toHaveURL(/\/api\/?$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('API reference')
+
+  const referenceLink = page.getByRole('link', { name: 'Full reference' }).last()
+  await expect(referenceLink).toHaveAttribute('target', '_blank')
+  await expect(referenceLink).toHaveAttribute(
+    'href',
+    'https://github.com/retronew/ui-kit/tree/main/packages/call-vue#readme',
+  )
 })

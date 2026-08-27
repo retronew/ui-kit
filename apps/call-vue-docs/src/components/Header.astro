@@ -18,9 +18,9 @@ const navItems = [
   { href: localizePath('/concepts', locale), label: messages.nav.concepts },
 ]
 const referenceLink = {
-  href: localizePath('/api', locale),
+  href: 'https://github.com/retronew/ui-kit/tree/main/packages/call-vue#readme',
   label: messages.nav.reference,
-  external: false,
+  external: true,
 }
 const mobileLinks = [...navItems, referenceLink]
 ---
@@ -39,7 +39,7 @@ const mobileLinks = [...navItems, referenceLink]
         {navItems.map((item) => (
           <a href={item.href} class="text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]">{item.label}</a>
         ))}
-        <a href={referenceLink.href} class="whitespace-nowrap text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]">
+        <a href={referenceLink.href} target="_blank" rel="noopener noreferrer" class="whitespace-nowrap text-sm text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]">
           {referenceLink.label}
         </a>
       </div>

@@ -1,6 +1,6 @@
 ---
+import ExamplesGallery from '~/components/ExamplesGallery.vue'
 import Base from '~/layouts/Base.astro'
-import { landingMessages, localizePath, shellMessages } from '~/i18n'
 import type { Locale } from '~/i18n'
 
 interface Props {
@@ -9,62 +9,8 @@ interface Props {
 
 const { locale = 'en' } = Astro.props
 
-const slugs = [
-  'command-palette',
-  'bottom-sheet',
-  'wizard',
-  'color-picker',
-  'context-menu',
-  'progress-toast',
-] as const
-
-const copy = {
-  en: {
-    metaTitle: 'Examples — call-vue',
-    metaDescription: 'Runnable call-vue patterns for menus, drawers, flows, pickers, and notifications.',
-    eyebrow: 'Live patterns',
-    title: 'Not just dialogs.',
-    description:
-      'These six patterns run directly on the homepage. Each turns a different Vue surface into a Promise-returning interaction.',
-    run: 'Run on the homepage →',
-  },
-  'zh-cn': {
-    metaTitle: '示例 — call-vue',
-    metaDescription: '可直接运行的 call-vue 模式：菜单、抽屉、流程、选择器与通知。',
-    eyebrow: '可直接运行',
-    title: '不只是对话框。',
-    description: '这六种模式直接运行在首页上。每一种都把不同的 Vue 界面变成了会返回 Promise 的交互。',
-    run: '在首页运行 →',
-  },
-  ja: {
-    metaTitle: 'サンプル — call-vue',
-    metaDescription: 'メニュー、ドロワー、フロー、ピッカー、通知のための実行可能な call-vue パターン。',
-    eyebrow: '実際に動くパターン',
-    title: 'ダイアログだけではありません。',
-    description:
-      'この六つのパターンはホームページ上でそのまま動作します。それぞれ異なる Vue の画面を Promise を返す操作に変えています。',
-    run: 'ホームページで実行 →',
-  },
-}[locale]
-
-const cards = landingMessages[locale].showcase.cards
-const examples = slugs.map((slug, i) => ({
-  slug,
-  category: cards[i][0],
-  title: cards[i][1],
-  description: cards[i][2],
-}))
-
-const homeHref = localizePath('/', locale)
-const breadcrumb = shellMessages[locale].nav.examples
 ---
 
-<Base title={copy.metaTitle} description={copy.metaDescription}>
-  <div class="mx-auto max-w-6xl px-6 py-12 md:py-16">
-    <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href={homeHref} class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{breadcrumb}</span></nav>
-    <header class="max-w-2xl"><p class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{copy.eyebrow}</p><h1 class="mt-3 text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-5xl">{copy.title}</h1><p class="mt-4 text-base leading-7 text-[var(--color-fg-muted)]">{copy.description}</p></header>
-    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {examples.map((example) => <article id={example.slug} class="scroll-mt-24 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5 shadow-sm shadow-black/3"><p class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{example.category}</p><h2 class="mt-1 text-lg font-medium text-[var(--color-fg)]">{example.title}</h2><p class="mt-2 text-sm leading-6 text-[var(--color-fg-muted)]">{example.description}</p><a href={`${homeHref}#${example.slug}`} class="mt-5 inline-flex h-9 items-center text-sm text-[var(--color-accent)] underline-offset-2 hover:underline">{copy.run}</a></article>)}
-    </div>
-  </div>
+<Base title="Examples — call-vue" description="Runnable call-vue examples.">
+  <ExamplesGallery client:load locale={locale} />
 </Base>
