@@ -125,6 +125,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             '同一个 Callable 必须恰好挂载一次。未挂载会抛出 No <Root> found!；重复挂载会在调用时抛出 Multiple instances of <Root> found!。',
           ],
         },
+        {
+          heading: '可以拥有任意多个 Callable',
+          paragraphs: [
+            '规则是每个 Callable 一个 Root，而不是整个应用一个。Confirm、Toast、Drawer、Picker 可以各自拥有独立的 Stack，并排挂载。',
+          ],
+        },
       ],
     },
     'concepts/call-and-end': {
@@ -148,6 +154,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             '把 call 返回的 Promise 作为第一个参数传入，即可精确 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
           code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
+        },
+        {
+          heading: '解析与移除是两回事',
+          paragraphs: [
+            'end 会立即解析 Promise 并把 call.ended 置为 true；真正的物理移除会等到配置的 unmountingDelay，让退出动画有时间播放，而不会拖慢调用方的异步流程。',
+          ],
         },
       ],
     },
@@ -226,6 +238,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: '竞态安全',
           paragraphs: [
             '广播 end 之后，即使同一个 tick 内新建了 Call，也不会被旧的计时器误删；清理始终以单个 Promise 的生命周期为边界。',
+          ],
+        },
+        {
+          heading: 'Reduced motion',
+          paragraphs: [
+            '呈现效果由你的组件掌控。在 prefers-reduced-motion 下禁用或缩短过渡即可，库本身仍会遵循已配置的生命周期约定。',
           ],
         },
       ],
@@ -511,6 +529,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             '同じ Callable は一度だけマウントします。未マウントと複数マウントは call 時に明確なエラーになります。',
           ],
         },
+        {
+          heading: 'Callable はいくつでも持てる',
+          paragraphs: [
+            'ルールはアプリ全体に一つではなく、Callable ごとに Root が一つというものです。Confirm、Toast、Drawer、Picker はそれぞれ独立した Stack を持ち、並べてマウントできます。',
+          ],
+        },
       ],
     },
     'concepts/call-and-end': {
@@ -534,6 +558,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'Promise を渡すと一つだけ、Response だけを渡すと現在の全 Call を終了します。',
           ],
           code: 'Confirm.end(firstPromise, false) // 対象指定\nConfirm.end(false)               // 一括',
+        },
+        {
+          heading: '解決と削除は別のタイミング',
+          paragraphs: [
+            'end は即座に Promise を解決し call.ended を true にします。実際の削除は設定した unmountingDelay まで待つため、呼び出し元の非同期フローを遅らせずに終了アニメーションの時間を確保できます。',
+          ],
         },
       ],
     },
@@ -610,6 +640,12 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: '競合を防ぐ',
           paragraphs: [
             '一括 end と同じ tick で作られた新しい Call は、古い削除タイマーの対象になりません。',
+          ],
+        },
+        {
+          heading: 'Reduced motion',
+          paragraphs: [
+            '見た目はコンポーネント側が管理します。prefers-reduced-motion では遷移を無効化または短縮してください。ライブラリ自体は設定されたライフサイクル契約に従い続けます。',
           ],
         },
       ],

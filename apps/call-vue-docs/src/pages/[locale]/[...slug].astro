@@ -9,6 +9,8 @@ import ExamplesGrid from '~/components/ExamplesGrid.astro'
 import WhyContent from '~/components/WhyContent.astro'
 import Concept from '~/layouts/Concept.astro'
 import Base from '~/layouts/Base.astro'
+import StackSection from '~/components/landing/StackSection.vue'
+import AdvancedSection from '~/components/landing/AdvancedSection.vue'
 
 export function getStaticPaths() {
   return (['zh-cn', 'ja'] as const).flatMap((locale) =>
@@ -21,6 +23,14 @@ const slug = Astro.params.slug ?? ''
 const doc = localizedDocs[locale][slug]
 const shell = shellMessages[locale]
 if (!doc) throw new Error(`Missing localized document: ${locale}/${slug}`)
+
+// Index (0-based) of the section after which the English page embeds a live
+// demo — keep these positions in sync with src/pages/concepts/*.astro.
+const demoAfterSection: Record<string, number> = {
+  'concepts/root-and-stack': 1,
+  'concepts/upsert-and-update': 0,
+}
+const demoIndex = demoAfterSection[slug]
 ---
 
 {slug === 'why' && <WhyContent locale={locale} />}
@@ -29,13 +39,17 @@ if (!doc) throw new Error(`Missing localized document: ${locale}/${slug}`)
 {slug === 'api' && <ApiContent locale={locale} />}
 {slug.startsWith('concepts/') && (
   <Concept title={doc.title} intro={doc.description} locale={locale}>
-    {doc.sections.map((section) => (
-      <section>
-        {section.codeHeading ? <h2><code>{section.heading}</code></h2> : <h2>{section.heading}</h2>}
-        {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-        {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
-        {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} />}
-      </section>
+    {doc.sections.map((section, i) => (
+      <>
+        <section>
+          {section.codeHeading ? <h2><code>{section.heading}</code></h2> : <h2>{section.heading}</h2>}
+          {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+          {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
+          {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} />}
+        </section>
+        {i === demoIndex && slug === 'concepts/root-and-stack' && <div class="not-prose -mx-[calc((100vw-min(100vw,64rem))/2)] my-8"><StackSection client:load locale={locale} /></div>}
+        {i === demoIndex && slug === 'concepts/upsert-and-update' && <div class="not-prose -mx-[calc((100vw-min(100vw,64rem))/2)] my-8"><AdvancedSection client:load locale={locale} /></div>}
+      </>
     ))}
   </Concept>
 )}
