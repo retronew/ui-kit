@@ -15,9 +15,13 @@ async function askConfirm() {
 }
 
 let stackCount = 0
+const activeStackCount = ref(0)
 function pushStackCard() {
   stackCount += 1
-  void Stack.call({ label: `Card #${stackCount}` })
+  activeStackCount.value += 1
+  void Stack.call({ label: `Card #${stackCount}` }).finally(() => {
+    activeStackCount.value -= 1
+  })
 }
 
 let uploadToken = 0
@@ -78,6 +82,9 @@ async function simulateUpload() {
       </div>
       <div class="stack-area">
         <Stack accent="#6366f1" />
+        <p v-if="activeStackCount === 0" class="stack-placeholder">
+          No cards yet — push one to see it stack.
+        </p>
       </div>
     </section>
 
@@ -165,8 +172,25 @@ async function simulateUpload() {
 
 .stack-area {
   position: relative;
-  height: 80px;
+  height: 96px;
   margin-top: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-hover);
+}
+
+.stack-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 16px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .toast-area {
