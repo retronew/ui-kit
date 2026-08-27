@@ -200,6 +200,10 @@
   font-weight: 500;
 }
 
+.prose-call-vue .demo {
+  margin: 1.5rem 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

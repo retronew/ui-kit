@@ -1,6 +1,6 @@
 ---
 import { Code } from 'astro-expressive-code/components'
-import StackSection from '~/components/landing/StackSection.vue'
+import StackConceptDemo from '~/components/concepts/StackConceptDemo.vue'
 import Concept from '~/layouts/Concept.astro'
 
 const rootCode = `<script setup lang="ts">
@@ -19,7 +19,7 @@ import { Confirm } from './confirm'
   <Code code={rootCode} lang="vue" meta="{7}" />
   <h2>The Stack</h2>
   <p>Every <code>.call(…)</code> appends one active Call. The Root renders every Call in insertion order. New calls coexist with old ones until each is explicitly ended.</p>
-  <div class="not-prose -mx-[calc((100vw-min(100vw,64rem))/2)] my-8"><StackSection client:load /></div>
+  <div class="demo"><StackConceptDemo client:load /></div>
   <h2>One Root per Callable</h2>
   <p>Mount <code>&lt;Confirm /&gt;</code> once, anywhere visible before calling it. No Root throws <code>No &lt;Root&gt; found!</code>; two simultaneous mounts throw <code>Multiple instances of &lt;Root&gt; found!</code> at call time.</p>
   <h2>As many Callables as you want</h2>
