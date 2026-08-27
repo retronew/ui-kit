@@ -1,0 +1,15 @@
+---
+import ExampleDetail from '~/components/ExampleDetail.astro'
+import { examples } from '~/examples/catalog'
+
+export function getStaticPaths() {
+  return (['zh-cn', 'ja'] as const).flatMap((locale) =>
+    examples.map((example) => ({ params: { locale, slug: example.slug } })),
+  )
+}
+
+const { slug, locale } = Astro.params
+if (!slug || (locale !== 'zh-cn' && locale !== 'ja')) throw new Error('Missing example route parameters')
+---
+
+<ExampleDetail slug={slug} locale={locale} />

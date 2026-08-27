@@ -6,25 +6,36 @@ interface Props {
   percent: number
 }
 
-defineProps<Props & { call: DemoCallContext<void> }>()
+const props = defineProps<Props & { call: DemoCallContext<void> }>()
 </script>
 
 <template>
   <div
     role="status"
-    class="fixed right-5 bottom-5 z-50 w-72 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-4 shadow-2xl shadow-black/15"
+    aria-live="polite"
+    :style="{ bottom: `${24 + props.call.index * 84}px` }"
+    class="pointer-events-none fixed right-6 z-50 transition-[bottom] duration-200"
   >
-    <div class="flex items-center justify-between gap-4">
-      <span class="text-sm text-[var(--color-fg)]">{{ message }}</span>
-      <span class="font-mono text-xs text-[var(--color-fg-subtle)] tabular-nums"
-        >{{ percent }}%</span
-      >
-    </div>
-    <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--color-bg-muted)]">
-      <div
-        class="h-full rounded-full bg-[var(--color-brand)] transition-[width] duration-200"
-        :style="{ width: `${percent}%` }"
-      ></div>
+    <div
+      class="pointer-events-auto min-w-[280px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-4 shadow-2xl"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <span class="text-sm text-[var(--color-fg)]">{{ message }}</span>
+        <button
+          type="button"
+          aria-label="Dismiss"
+          class="-mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-base leading-none text-[var(--color-fg-subtle)] transition-[color,background-color] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-fg)]"
+          @click="props.call.end()"
+        >
+          ×
+        </button>
+      </div>
+      <div class="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-bg-muted)]">
+        <div
+          class="h-full bg-[var(--color-accent)] transition-all duration-200"
+          :style="{ width: `${Math.min(100, Math.max(0, percent))}%` }"
+        ></div>
+      </div>
     </div>
   </div>
 </template>

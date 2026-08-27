@@ -1,0 +1,131 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import type { Locale } from '~/i18n'
+import { localizePath } from '~/i18n'
+import { getExample } from '~/examples/catalog'
+import Base from '~/layouts/Base.astro'
+import AlertDialogExample from '~/examples/alert-dialog/AlertDialogExample.vue'
+import BottomSheetExample from '~/examples/bottom-sheet/BottomSheetExample.vue'
+import ColorPickerExample from '~/examples/color-picker/ColorPickerExample.vue'
+import CommandPaletteExample from '~/examples/command-palette/CommandPaletteExample.vue'
+import ConfirmDialogExample from '~/examples/confirm-dialog/ConfirmDialogExample.vue'
+import PromptInputExample from '~/examples/prompt-input/PromptInputExample.vue'
+import ContextMenuExample from '~/examples/context-menu/ContextMenuExample.vue'
+import ProgressToastExample from '~/examples/progress-toast/ProgressToastExample.vue'
+import WizardExample from '~/examples/wizard/WizardExample.vue'
+import ImageLightboxExample from '~/examples/image-lightbox/ImageLightboxExample.vue'
+import ItemPickerExample from '~/examples/item-picker/ItemPickerExample.vue'
+import BroadcastUpdateExample from '~/examples/broadcast-update/BroadcastUpdateExample.vue'
+import LiveStatusExample from '~/examples/live-status/LiveStatusExample.vue'
+import NestedDialogExample from '~/examples/nested-dialog/NestedDialogExample.vue'
+import PermissionPromptExample from '~/examples/permission-prompt/PermissionPromptExample.vue'
+import CallerResolveExample from '~/examples/caller-resolve/CallerResolveExample.vue'
+import OptionalMutationExample from '~/examples/optional-mutation/OptionalMutationExample.vue'
+import ErrorBannerExample from '~/examples/error-banner/ErrorBannerExample.vue'
+import RootContextExample from '~/examples/root-context/RootContextExample.vue'
+import SaveFormExample from '~/examples/save-form/SaveFormExample.vue'
+import SettingsDrawerExample from '~/examples/side-drawer/SettingsDrawerExample.vue'
+
+interface Props {
+  slug: string
+  locale?: Locale
+}
+
+const { slug, locale = 'en' } = Astro.props
+const example = getExample(slug)
+if (!example) throw new Error(`Unknown example: ${slug}`)
+
+const categoryLabels = {
+  dialog: 'Dialog',
+  picker: 'Picker',
+  notification: 'Notification',
+  menu: 'Menu',
+  drawer: 'Drawer',
+  overlay: 'Overlay',
+  flow: 'Flow',
+}
+const examplesHref = localizePath('/examples', locale)
+const callableName = {
+  'confirm-dialog': 'Confirm',
+  'alert-dialog': 'Alert',
+  'prompt-input': 'Prompt',
+  'command-palette': 'CommandPaletteCall',
+  'bottom-sheet': 'BottomSheetCall',
+  'color-picker': 'ColorPickerCall',
+  wizard: 'WizardCall',
+  'context-menu': 'ContextMenuCall',
+  'progress-toast': 'Toast',
+  'item-picker': 'Picker',
+  'image-lightbox': 'Lightbox',
+  'side-drawer': 'SettingsDrawerCall',
+  'broadcast-update': 'Upload',
+  'live-status': 'Status',
+  'nested-dialog': 'NestedDialogCall',
+  'permission-prompt': 'Permission',
+  'optional-mutation': 'MutationConfirm',
+  'caller-resolve': 'Approval',
+  'error-banner': 'ErrorBannerCall',
+  'save-form': 'SaveFormCall',
+  'root-context': 'GreeterCall',
+}[slug]
+if (!callableName) throw new Error(`Unknown callable name: ${slug}`)
+const appSource = `<script setup lang="ts">
+import { ${callableName} } from './callable'
+import Caller from './${example.meta.files.caller.replace('.vue', '')}.vue'
+</script>
+
+<template>
+  <${callableName} />
+  <Caller />
+</template>`
+---
+
+<Base title={`${example.meta.title} — call-vue`} description={example.meta.description}>
+<article class="mx-auto max-w-4xl px-6 py-12 md:py-16">
+  <nav class="mb-6 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb">
+    <a href={examplesHref} class="transition-colors hover:text-[var(--color-fg-muted)]">Examples</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{categoryLabels[example.meta.category]}</span>
+  </nav>
+  <header class="mb-10">
+    <h1 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{example.meta.title}</h1>
+    <p class="mt-3 text-base text-[var(--color-fg-muted)]">{example.meta.description}</p>
+  </header>
+  <section class="relative mb-12 flex min-h-[280px] flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-10" aria-label="Live demo">
+    {slug === 'confirm-dialog' && <ConfirmDialogExample client:load />}
+    {slug === 'alert-dialog' && <AlertDialogExample client:load />}
+    {slug === 'prompt-input' && <PromptInputExample client:load />}
+    {slug === 'command-palette' && <CommandPaletteExample client:load />}
+    {slug === 'bottom-sheet' && <BottomSheetExample client:load />}
+    {slug === 'color-picker' && <ColorPickerExample client:load />}
+    {slug === 'wizard' && <WizardExample client:load />}
+    {slug === 'context-menu' && <ContextMenuExample client:load />}
+    {slug === 'progress-toast' && <ProgressToastExample client:load />}
+    {slug === 'item-picker' && <ItemPickerExample client:load />}
+    {slug === 'image-lightbox' && <ImageLightboxExample client:load />}
+    {slug === 'side-drawer' && <SettingsDrawerExample client:load />}
+    {slug === 'broadcast-update' && <BroadcastUpdateExample client:load />}
+    {slug === 'live-status' && <LiveStatusExample client:load />}
+    {slug === 'nested-dialog' && <NestedDialogExample client:load />}
+    {slug === 'permission-prompt' && <PermissionPromptExample client:load />}
+    {slug === 'optional-mutation' && <OptionalMutationExample client:load />}
+    {slug === 'caller-resolve' && <CallerResolveExample client:load />}
+    {slug === 'error-banner' && <ErrorBannerExample client:load />}
+    {slug === 'save-form' && <SaveFormExample client:load />}
+    {slug === 'root-context' && <RootContextExample client:load />}
+  </section>
+  <section class="space-y-6">
+    <div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The Callable</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">declared once, mounted in the Vue tree</span></div>
+      <Code code={example.componentSource} lang="vue" title={example.meta.files.callable.split(' + ')[0]} />
+      <div class="mt-4"><Code code={example.callableSource} lang="ts" title="callable.ts" /></div>
+    </div>
+    <div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The Root</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">mounted in your app tree, once</span></div>
+      <Code code={appSource} lang="vue" title="Example.vue" />
+    </div>
+    <div>
+      <div class="mb-2 flex items-baseline justify-between"><h2 class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">The caller</h2><span class="font-mono text-xs text-[var(--color-fg-subtle)]">anywhere in your app, imperative</span></div>
+      <Code code={example.callerSource} lang="vue" title={example.meta.files.caller} />
+    </div>
+  </section>
+</article>
+</Base>

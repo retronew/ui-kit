@@ -10,9 +10,17 @@ export interface ShowcaseProps {
   locale: Locale
   kind: ShowcaseKind
   title: string
-  options: string[]
+  options: readonly ShowcaseOption[]
   x?: number
   y?: number
+}
+
+export interface ShowcaseOption {
+  id: string
+  label: string
+  shortcut?: string
+  icon?: string
+  destructive?: boolean
 }
 
 // The SFC uses a structural local call prop to avoid the Vue compiler's
@@ -25,3 +33,8 @@ const ShowcaseComponent = ShowcaseSurface as unknown as UserComponent<
 >
 
 export const Showcase = createCallable<ShowcaseProps, string | null>(ShowcaseComponent)
+
+// The bottom-sheet example uses call.ended for its 300ms leave transition.
+// Keeping this lifecycle isolated prevents a completed command, picker, wizard,
+// or context menu from being held in the stack after it has resolved.
+export const BottomSheet = createCallable<ShowcaseProps, string | null>(ShowcaseComponent, 300)

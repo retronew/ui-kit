@@ -1,0 +1,13 @@
+---
+import ExampleDetail from '~/components/ExampleDetail.astro'
+import { examples } from '~/examples/catalog'
+
+export function getStaticPaths() {
+  return examples.map((example) => ({ params: { slug: example.slug } }))
+}
+
+const { slug } = Astro.params
+if (!slug) throw new Error('Missing example slug')
+---
+
+<ExampleDetail slug={slug} />

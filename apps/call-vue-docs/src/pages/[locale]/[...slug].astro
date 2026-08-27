@@ -3,7 +3,6 @@ import { Code } from 'astro-expressive-code/components'
 import { localizePath } from '~/i18n'
 import type { Locale } from '~/i18n'
 import { localizedDocs } from '~/localized-docs'
-import ApiContent from '~/components/ApiContent.astro'
 import ConceptsGrid from '~/components/ConceptsGrid.astro'
 import ExamplesGrid from '~/components/ExamplesGrid.astro'
 import WhyContent from '~/components/WhyContent.astro'
@@ -14,7 +13,9 @@ import AdvancedSection from '~/components/landing/AdvancedSection.vue'
 
 export function getStaticPaths() {
   return (['zh-cn', 'ja'] as const).flatMap((locale) =>
-    Object.keys(localizedDocs[locale]).map((slug) => ({ params: { locale, slug } })),
+    Object.keys(localizedDocs[locale])
+      .filter((slug) => slug !== 'api')
+      .map((slug) => ({ params: { locale, slug } })),
   )
 }
 
@@ -39,7 +40,6 @@ const demoIndex = demoAfterSection[slug]
 )}
 {slug === 'concepts' && <ConceptsGrid locale={locale} />}
 {slug === 'examples' && <ExamplesGrid locale={locale} />}
-{slug === 'api' && <ApiContent locale={locale} />}
 {slug.startsWith('concepts/') && (
   <Concept title={doc.title} intro={doc.description} locale={locale}>
     {doc.sections.map((section, i) => (
@@ -56,7 +56,7 @@ const demoIndex = demoAfterSection[slug]
     ))}
   </Concept>
 )}
-{!['why', 'concepts', 'examples', 'api'].includes(slug) && !slug.startsWith('concepts/') && (
+{!['why', 'concepts', 'examples'].includes(slug) && !slug.startsWith('concepts/') && (
   <Base title={`${doc.title} — call-vue`} description={doc.description} type="article">
     <div class="mx-auto max-w-3xl px-6 py-12 md:py-16">
       <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href={localizePath('/', locale)} class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{doc.title}</span></nav>

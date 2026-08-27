@@ -26,14 +26,14 @@ export function localizePath(pathname: string, locale: Locale): string {
 
 export const shellMessages = {
   en: {
-    nav: { why: 'Why', examples: 'Examples', concepts: 'Concepts', reference: 'Full reference' },
+    nav: { why: 'Why', examples: 'Examples', concepts: 'Concepts', reference: 'Full reference ↗' },
     language: 'Language',
     star: 'Star ui-kit on GitHub',
     tagline: 'your component can await.',
     built: 'built with itself',
   },
   'zh-cn': {
-    nav: { why: '为什么', examples: '示例', concepts: '核心概念', reference: 'API 参考' },
+    nav: { why: '为什么', examples: '示例', concepts: '核心概念', reference: '完整参考 ↗' },
     language: '语言',
     star: '在 GitHub 上给 ui-kit 点个 Star',
     tagline: '让组件也可以被 await。',
@@ -44,7 +44,7 @@ export const shellMessages = {
       why: 'なぜ',
       examples: 'サンプル',
       concepts: 'コンセプト',
-      reference: 'API リファレンス',
+      reference: '完全なリファレンス ↗',
     },
     language: '言語',
     star: 'GitHub で ui-kit にスター',

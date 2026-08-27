@@ -125,10 +125,11 @@ tiny callable.
   a `v-if`-gated or route-unmounted subtree, `call()` from outside it throws
   *"No `<Root>` found!"*. If that's happening, check whether the Root got
   unmounted before the call, not whether `createCallable` was set up wrong.
-- **Unmounting resets the stack.** A Callable's stack is scoped to its
-  currently-mounted Root instance — remount it (e.g. via `v-if` toggling
-  off/on, or HMR) and any Calls made against the previous mount are gone;
-  there's no persistence across mounts.
+- **Unmounting resets the stack.** A normal Root unmount (for example a
+  `v-if` toggle) clears its stack. For supported Vite development updates, add
+  the optional `@retronew/call-vue/vite` plugin: it gives top-level Callables a
+  stable name so an open Stack survives re-evaluation. This does not persist
+  across deliberate unmounts, reloads, or unsupported declaration shapes.
 - **Exit transitions** need the unmount delay as the 2nd argument to
   `createCallable`, then drive the leave state off `call.ended` (a boolean
   prop, not a Vue `<Transition>` hook by itself — combine the two):
@@ -151,6 +152,24 @@ tiny callable.
 - **SFC types need Vue tooling.** Use `vue-tsc --noEmit` to validate cross-file
   `.vue` props; a plain TypeScript shim cannot prove that the business props
   and injected `call` prop match.
+
+## Optional integrations
+
+- **Async submit flow** — import `useMutationFlow` from
+  `@retronew/call-vue/mutation-flow` when a dialog should block duplicate
+  submission and stay open until its mutation explicitly calls `call.end()`.
+  A handled failure clears `submit.pending` and leaves the Call available for a
+  retry.
+- **Vite HMR** — add `callVue()` from `@retronew/call-vue/vite` to the Vite
+  plugin list during development. It supports direct named imports (including
+  aliases) and top-level `const`/`export const` Callables. For namespace,
+  default, nested, `let`, or `var` shapes, assign
+  `Confirm.displayName = 'Confirm'` manually.
+- **Preview hosts** — Storybook/Histoire can create more than one isolated Vue
+  app, so use `mount(Confirm, { wrapper })` from
+  `@retronew/call-vue/host` once in preview setup rather than mounting the
+  same Root in every decorator. The Host is a separate Vue app; put providers,
+  plugins, and global component setup in `wrapper`.
 
 ## Anti-patterns
 
