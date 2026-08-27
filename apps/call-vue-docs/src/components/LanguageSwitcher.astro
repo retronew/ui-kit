@@ -1,0 +1,21 @@
+---
+import { localeLabels, locales, localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
+
+interface Props {
+  locale: Locale
+  pathname: string
+  label: string
+}
+
+const { locale, pathname, label } = Astro.props
+---
+
+<details class="group relative">
+  <summary class="relative flex h-9 min-w-9 list-none items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-2 font-mono text-[11px] uppercase text-[var(--color-fg-muted)] transition-[color,border-color,background-color,transform] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)] after:absolute after:-inset-1 after:content-['']" aria-label={label}>
+    {locale === 'zh-cn' ? '中' : locale === 'ja' ? '日' : 'EN'}
+  </summary>
+  <nav class="absolute top-full right-0 z-50 mt-2 min-w-36 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-1.5 shadow-lg shadow-black/8" aria-label={label}>
+    {locales.map((item) => <a href={localizePath(pathname, item)} lang={item === 'zh-cn' ? 'zh-CN' : item} hreflang={item === 'zh-cn' ? 'zh-CN' : item} aria-current={item === locale ? 'page' : undefined} class={item === locale ? 'block rounded bg-[var(--color-bg-muted)] px-3 py-2 text-sm text-[var(--color-accent)]' : 'block rounded px-3 py-2 text-sm text-[var(--color-fg-muted)] transition-[color,background-color] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-fg)]'}>{localeLabels[item]}</a>)}
+  </nav>
+</details>

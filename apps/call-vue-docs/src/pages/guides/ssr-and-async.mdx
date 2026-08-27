@@ -1,0 +1,41 @@
+---
+layout: ../../layouts/Article.astro
+title: SSR, hydration, and async components
+description: What is safe on the server, what remains client-only, and how lazy Callable components load.
+---
+
+## SSR is safe; calling is client-only
+
+`createCallable()` and the Callable Root can execute during server rendering. Root registration happens only in Vue's client `onMounted`, so one server request cannot leak a Root into another.
+
+Do not run `call()` or `upsert()` during SSR. Their purpose is to respond to client interaction, and without a mounted client Root they throw `No <Root> found!`.
+
+## Hydration order
+
+Mount the Callable high enough that it has completed hydration before an event handler can invoke it. A click handler in the same hydrated app is safe. A module-level call or an earlier independently hydrated island is not.
+
+## Lazy payloads
+
+```ts
+import { createCallable } from '@retronew/call-vue'
+import { defineAsyncComponent } from 'vue'
+
+const HeavyDialog = defineAsyncComponent({
+  loader: () => import('./HeavyDialog.vue'),
+  loadingComponent: LoadingDialog,
+  errorComponent: FailedDialog,
+  delay: 0,
+})
+
+export const Editor = createCallable<EditorProps, EditorResult>(HeavyDialog)
+```
+
+An empty Stack does not render the async component, so its chunk stays unloaded. The first Call starts loading; later Calls reuse Vue's cached async component.
+
+## Ending during loading
+
+The Promise can still be ended from caller scope while the component chunk is loading. Once removed from the Stack, a late loader resolution does not recreate that ended Call.
+
+## Capability boundary
+
+call-vue currently provides the core Callable API. A mutation-flow composable, a Vite HMR transform, and a multi-preview host entry are not published yet; do not import React's subpaths under Vue names.

@@ -1,0 +1,22 @@
+---
+import Base from '~/layouts/Base.astro'
+
+const examples = [
+  ['command-palette', 'Menu', 'Command palette', 'Await the selected command.'],
+  ['bottom-sheet', 'Drawer', 'Bottom sheet', 'Return the action tapped in a mobile surface.'],
+  ['wizard', 'Flow', 'Multi-step wizard', 'Resolve one object after several UI steps.'],
+  ['color-picker', 'Picker', 'Color picker', 'Return a selected color value.'],
+  ['context-menu', 'Menu', 'Context menu', 'Pass the trigger coordinates into a call.'],
+  ['progress-toast', 'Notification', 'Progress toast', 'Keep one notification current with upsert.'],
+] as const
+---
+
+<Base title="Examples — call-vue" description="Runnable call-vue patterns for menus, drawers, flows, pickers, and notifications.">
+  <div class="mx-auto max-w-6xl px-6 py-12 md:py-16">
+    <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href="/" class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">Examples</span></nav>
+    <header class="max-w-2xl"><p class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">Live patterns</p><h1 class="mt-3 text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-5xl">Not just dialogs.</h1><p class="mt-4 text-base leading-7 text-[var(--color-fg-muted)]">These six patterns run directly on the homepage. Each turns a different Vue surface into a Promise-returning interaction.</p></header>
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {examples.map(([slug, category, title, description]) => <article id={slug} class="scroll-mt-24 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5 shadow-sm shadow-black/3"><p class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{category}</p><h2 class="mt-1 text-lg font-medium text-[var(--color-fg)]">{title}</h2><p class="mt-2 text-sm leading-6 text-[var(--color-fg-muted)]">{description}</p><a href={`/#${slug}`} class="mt-5 inline-flex h-9 items-center text-sm text-[var(--color-accent)] underline-offset-2 hover:underline">Run on the homepage →</a></article>)}
+    </div>
+  </div>
+</Base>

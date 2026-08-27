@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">call-vue — your component can await</title>
+  <desc id="description">The call-vue documentation site</desc>
+  <rect width="1200" height="630" fill="#f8fafc" />
+  <circle cx="1030" cy="-20" r="360" fill="#d8f1df" />
+  <circle cx="1120" cy="80" r="230" fill="#91d5b1" fill-opacity=".32" />
+  <rect x="72" y="72" width="1056" height="486" rx="36" fill="#fff" stroke="#dce4ec" stroke-width="2" />
+  <text x="132" y="212" fill="#111318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" font-weight="650">call-vue<tspan fill="#42b883">()</tspan></text>
+  <text x="132" y="330" fill="#111318" font-family="ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="650" letter-spacing="-3">Your component can await.</text>
+  <text x="132" y="412" fill="#66707d" font-family="ui-sans-serif, system-ui, sans-serif" font-size="29">Headless async UI flows for Vue 3.</text>
+  <rect x="132" y="462" width="442" height="58" rx="13" fill="#f1f5f9" stroke="#dce4ec" />
+  <text x="157" y="500" fill="#111318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21"><tspan fill="#87919d">$</tspan> pnpm add @retronew/call-vue</text>
+</svg>

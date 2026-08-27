@@ -1,0 +1,30 @@
+---
+import { localizePath, shellMessages } from '~/i18n'
+import type { Locale } from '~/i18n'
+import { localizedDocs } from '~/localized-docs'
+import WhyContent from '~/components/WhyContent.astro'
+import Base from '~/layouts/Base.astro'
+
+export function getStaticPaths() {
+  return (['zh-cn', 'ja'] as const).flatMap((locale) =>
+    Object.keys(localizedDocs[locale]).map((slug) => ({ params: { locale, slug } })),
+  )
+}
+
+const locale = Astro.params.locale as Exclude<Locale, 'en'>
+const slug = Astro.params.slug ?? ''
+const doc = localizedDocs[locale][slug]
+const shell = shellMessages[locale]
+if (!doc) throw new Error(`Missing localized document: ${locale}/${slug}`)
+---
+
+<Base title={`${doc.title} — call-vue`} description={doc.description} type="article">
+  {slug === 'why' ? <WhyContent locale={locale} /> : <div class="mx-auto max-w-3xl px-6 py-12 md:py-16">
+    <nav class="mb-8 font-mono text-xs text-[var(--color-fg-subtle)]" aria-label="Breadcrumb"><a href={localizePath('/', locale)} class="underline-offset-2 hover:underline">Home</a><span class="px-2">/</span><span class="text-[var(--color-fg-muted)]">{slug.startsWith('concepts') ? shell.nav.concepts : doc.title}</span></nav>
+    <header class="mb-10"><h1 class="text-3xl leading-[1.1] font-medium tracking-[-0.025em] text-[var(--color-fg)] md:text-5xl">{doc.title}</h1><p class="mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">{doc.description}</p></header>
+    <article class="prose-call-vue max-w-[70ch] space-y-6 text-[var(--color-fg-muted)]">
+      {doc.sections.map((section) => <section><h2>{section.heading}</h2>{section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}{section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}{section.code && <pre tabindex="0" class="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4 text-sm leading-7 text-[var(--color-fg)]"><code>{section.code}</code></pre>}</section>)}
+    </article>
+    <div class="mt-12 border-t border-[var(--color-border)] pt-8"><a href={localizePath('/concepts', locale)} class="text-sm text-[var(--color-accent)] underline-offset-2 hover:underline">← {shell.nav.concepts}</a></div>
+  </div>}
+</Base>

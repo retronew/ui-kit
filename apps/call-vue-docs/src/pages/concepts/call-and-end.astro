@@ -1,0 +1,24 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import Concept from '~/layouts/Concept.astro'
+
+const callCode = `const result = await Confirm.call({ message: 'Continue?' })`
+const targeted = `const first = Confirm.call({ message: 'First?' })
+const second = Confirm.call({ message: 'Second?' })
+
+Confirm.end(first, false) // only the first
+Confirm.end(false)        // every remaining call`
+---
+
+<Concept title="Call & End" intro="A call pushes props into the Root and returns a Promise. Ending the Call resolves that Promise and begins its exit lifecycle.">
+  <h2>Props in, response out</h2>
+  <p><code>call(props)</code> validates that exactly one Root is mounted, pushes an item onto the Stack, and returns a typed Promise. The component receives those props plus its injected <code>call</code> context.</p>
+  <Code code={callCode} lang="ts" meta="{1}" />
+  <h2>End inside the component</h2>
+  <p>Use <code>call.end(response)</code> to resolve the current call. For a <code>void</code> response, call <code>call.end()</code>.</p>
+  <h2>End from caller scope</h2>
+  <p>The returned Promise is also the identity used by targeted <code>end</code> and <code>update</code>. Pass it to affect one call; omit it to broadcast to the stack that exists at that instant.</p>
+  <Code code={targeted} lang="ts" meta="{4,5}" />
+  <h2>Resolution and removal are separate</h2>
+  <p><code>end</code> resolves immediately and flips <code>call.ended</code>. Physical removal waits for the configured unmounting delay, allowing an exit animation without delaying the caller's async flow.</p>
+</Concept>

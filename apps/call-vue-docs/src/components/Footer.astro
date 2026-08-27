@@ -1,0 +1,31 @@
+---
+import { localizePath, shellMessages } from '~/i18n'
+import type { Locale } from '~/i18n'
+
+interface Props { locale?: Locale }
+const locale = Astro.props.locale ?? 'en'
+const messages = shellMessages[locale]
+const year = new Date().getFullYear()
+---
+
+<footer class="border-t border-[var(--color-border)] bg-[var(--color-bg-subtle)]">
+  <div class="mx-auto max-w-6xl px-6 py-10">
+    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-sm text-[var(--color-fg)]">call-vue<span aria-hidden="true" class="text-[var(--color-accent)]">()</span></span>
+        <span class="text-xs text-[var(--color-fg-subtle)]">— {messages.tagline}</span>
+      </div>
+      <nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-fg-muted)] md:justify-end" aria-label="Footer">
+        <a href={localizePath('/why', locale)} class="transition-colors hover:text-[var(--color-fg)]">{messages.nav.why}</a>
+        <a href={localizePath('/examples', locale)} class="transition-colors hover:text-[var(--color-fg)]">{messages.nav.examples}</a>
+        <a href={localizePath('/concepts', locale)} class="transition-colors hover:text-[var(--color-fg)]">{messages.nav.concepts}</a>
+        <a href={localizePath('/api', locale)} class="transition-colors hover:text-[var(--color-fg)]">{messages.nav.reference}</a>
+        <a href="https://www.npmjs.com/package/@retronew/call-vue" target="_blank" rel="noreferrer" class="transition-colors hover:text-[var(--color-fg)]">npm</a>
+        <a href="https://github.com/retronew/ui-kit" target="_blank" rel="noreferrer" class="transition-colors hover:text-[var(--color-fg)]">GitHub</a>
+        <a href="https://github.com/retronew/ui-kit/issues" target="_blank" rel="noreferrer" class="transition-colors hover:text-[var(--color-fg)]">Issues</a>
+        <a href="https://github.com/retronew/ui-kit/blob/main/LICENSE" target="_blank" rel="noreferrer" class="transition-colors hover:text-[var(--color-fg)]">MIT</a>
+      </nav>
+    </div>
+    <p class="mt-8 font-mono text-xs text-[var(--color-fg-subtle)]">© {year} retronew · {messages.built} · interface based on <a href="https://react-call.desko.dev" target="_blank" rel="noreferrer" class="underline-offset-2 hover:underline">react-call</a></p>
+  </div>
+</footer>

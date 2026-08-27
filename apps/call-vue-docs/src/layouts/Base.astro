@@ -1,0 +1,75 @@
+---
+import Footer from '~/components/Footer.astro'
+import Header from '~/components/Header.astro'
+import { getLocaleFromPath, locales, localizePath } from '~/i18n'
+import '~/styles/global.css'
+
+interface Props {
+  title?: string
+  description?: string
+  image?: string
+  type?: 'website' | 'article'
+  noindex?: boolean
+}
+
+const {
+  title = 'call-vue — your component can await',
+  description = 'createCallable turns any Vue component into something you can await. Dialogs, toasts, pickers, menus — any UI that returns a value.',
+  image = '/og.svg',
+  type = 'website',
+  noindex = false,
+} = Astro.props
+
+const site = Astro.site ?? new URL('https://call-vue.retronew.dev')
+const canonical = new URL(Astro.url.pathname, site).href
+const imageUrl = new URL(image, site).href
+const locale = getLocaleFromPath(Astro.url.pathname)
+const htmlLang = locale === 'zh-cn' ? 'zh-CN' : locale
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {locales.map((item) => <link rel="alternate" hreflang={item === 'zh-cn' ? 'zh-CN' : item} href={new URL(localizePath(Astro.url.pathname, item), site).href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(localizePath(Astro.url.pathname, 'en'), site).href} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111318" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="call-vue" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:type" content={image.endsWith('.svg') ? 'image/svg+xml' : 'image/png'} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script is:inline>
+      try {
+        const stored = localStorage.getItem('theme')
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <Header locale={locale} />
+    <main><slot /></main>
+    <Footer locale={locale} />
+  </body>
+</html>

@@ -1,0 +1,29 @@
+---
+import CopyCommand from '~/components/CopyCommand.vue'
+import InstallCommand from '~/components/InstallCommand.vue'
+import { landingMessages, localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
+import { formatStarCount, getStarCount } from '~/lib/github'
+
+const starsLabel = formatStarCount(await getStarCount())
+interface Props { locale?: Locale }
+const locale = Astro.props.locale ?? 'en'
+const copy = landingMessages[locale].cta
+---
+
+<section class="border-t border-[var(--color-border)]">
+  <div class="mx-auto max-w-3xl px-6 py-24 text-center">
+    <h2 class="text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{copy.title}</h2>
+    <p class="mt-4 text-base text-[var(--color-fg-muted)]">{copy.description}</p>
+    <div class="mt-8 flex justify-center"><InstallCommand client:idle /></div>
+    <div class="mt-6 flex flex-col items-center gap-2">
+      <p class="font-mono text-xs text-[var(--color-fg-subtle)]">{copy.ai}</p>
+      <CopyCommand client:idle command="npx skills add retronew/ui-kit --skill call-vue" label="Install the call-vue agent skill" />
+      <a href="https://github.com/retronew/ui-kit/tree/main/packages/call-vue/skills/call-vue" class="text-xs text-[var(--color-accent)] underline-offset-2 hover:underline">{copy.skill}</a>
+    </div>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm">
+      <a href={localizePath('/examples', locale)} class="inline-flex h-9 items-center justify-center rounded-md bg-[var(--color-brand)] px-4 font-medium text-[var(--color-brand-fg)] transition-[background-color,transform] hover:bg-[var(--color-brand-hover)]">{copy.examples}</a>
+      <a href="https://github.com/retronew/ui-kit" class="inline-flex h-9 items-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-4 font-medium text-[var(--color-fg)] transition-[background-color,transform] hover:bg-[var(--color-bg-muted)]"><span class="text-[var(--color-accent)]" aria-hidden="true">★</span><span>{copy.star}</span><span class="text-[var(--color-fg-subtle)]">·</span><span class="tabular-nums">{starsLabel}</span></a>
+    </div>
+  </div>
+</section>

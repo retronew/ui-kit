@@ -1,0 +1,42 @@
+---
+import { localizePath } from '~/i18n'
+import type { Locale } from '~/i18n'
+
+interface Props { locale?: Locale }
+const locale = Astro.props.locale ?? 'en'
+const copy = {
+  en: { eyebrow: 'Why not just Vue state?', title: 'One question. One handler.', description: 'A ref shows the dialog, but it cannot hand the answer back to the code that opened it — so the flow splits across emits and handlers. A call() returns the answer right where you asked.', state: 'Vue state', call: 'With call-vue', link: 'Read the full case' },
+  'zh-cn': { eyebrow: '为什么不用普通 Vue 状态？', title: '一个问题，一个处理函数。', description: 'ref 可以显示对话框，却无法把答案直接交回打开它的代码，于是流程被拆到 emit 和多个 handler 中。call() 会在提问处直接返回答案。', state: 'Vue 状态', call: '使用 call-vue', link: '阅读完整说明' },
+  ja: { eyebrow: 'Vue の state だけではだめ？', title: '一つの質問。一つのハンドラー。', description: 'ref はダイアログを表示できますが、開いたコードへ答えを直接返せません。call() なら質問した同じ場所で結果を受け取れます。', state: 'Vue state', call: 'call-vue', link: '詳しい理由を読む' },
+}[locale]
+---
+
+<section class="border-t border-[var(--color-border)]">
+  <div class="mx-auto max-w-6xl px-6 py-24">
+    <div class="text-center">
+      <p class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{copy.eyebrow}</p>
+      <h2 class="mt-3 text-3xl font-medium tracking-tight text-[var(--color-fg)] md:text-4xl">{copy.title}</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--color-fg-muted)]">{copy.description}</p>
+    </div>
+    <div class="mt-12 grid gap-4 md:grid-cols-2 md:gap-6">
+      <div class="min-w-0 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-6">
+        <div class="font-mono text-xs uppercase tracking-wider text-[var(--color-fg-subtle)]">{copy.state}</div>
+        <pre tabindex="0" class="mt-4 overflow-x-auto font-mono text-xs leading-relaxed text-[var(--color-fg-muted)] md:text-sm">{`// 1) the trigger flips a ref
+`}<span class="text-[var(--color-fg)]">{`const onDelete = () => (open.value = true)`}</span>{`
+
+// 2) the real work lives in another handler
+`}<span class="text-[var(--color-fg)]">{`<Confirm @accept="api.delete(id)" … />`}</span></pre>
+      </div>
+      <div class="min-w-0 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-bg-subtle)] p-6">
+        <div class="font-mono text-xs uppercase tracking-wider text-[var(--color-accent)]">{copy.call}</div>
+        <pre tabindex="0" class="mt-4 overflow-x-auto font-mono text-xs leading-relaxed text-[var(--color-fg-muted)] md:text-sm">{`// one handler: ask, await, act
+`}<span class="text-[var(--color-fg)]">{`const onDelete = async () => {
+  if (await Confirm.call()) {
+    await api.delete(id)
+  }
+}`}</span></pre>
+      </div>
+    </div>
+    <div class="mt-8 text-center"><a href={localizePath('/why', locale)} class="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-accent)] underline-offset-4 hover:underline">{copy.link} <span aria-hidden="true">→</span></a></div>
+  </div>
+</section>
