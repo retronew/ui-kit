@@ -1,5 +1,11 @@
 # @retronew/call-vue
 
+## 0.4.0
+
+### Minor Changes
+
+- d3ffc48: Add `@retronew/call-vue/mutation-flow`, a Vue composable (`useMutationFlow`) that mirrors `react-call`'s mutation-flow behavior: a reactive `pending` getter, reentrancy protection while a submission is in flight, and support for an optional or `Ref`-swappable handler via `submit(payload).orEnd(value)`.
+
 ## 0.3.0
 
 ### Minor Changes
