@@ -65,12 +65,15 @@ export interface Toast<T = unknown> {
 
 /** Options accepted when creating or updating a toast. */
 export interface ToastOptions<T = unknown> {
+  /** Explicit id; creating with an existing id updates that toast instead. */
   id?: string
   type?: ToastType
   message?: T
   /** Override the auto-dismiss duration (ms); `Infinity`/`0` disables it. */
   duration?: number
+  /** Anchor position; falls back to the store's `defaultPosition`. */
   position?: ToastPosition
+  /** Arbitrary user metadata; deep-cloned when stored. */
   meta?: Record<string, unknown>
   action?: ToastAction<T>
   cancel?: ToastAction<T>
@@ -78,8 +81,10 @@ export interface ToastOptions<T = unknown> {
 
 /** Fields accepted when patching a toast. `null` clears an optional field. */
 export interface ToastUpdateOptions<T = unknown> {
+  /** Changing the type adopts the new type's default duration unless `duration` is also given. */
   type?: ToastType
   message?: T
+  /** Override the auto-dismiss duration (ms); a changed duration restarts the timer. */
   duration?: number
   /** `null` falls back to the store's `defaultPosition`, not to unset. */
   position?: ToastPosition | null
@@ -125,7 +130,10 @@ export interface ToastEffect {
 
 /** Messages for `toast.promise`; static or derived. */
 export interface PromiseMessages<V, T = unknown> {
+  /** Shown while the promise is pending. */
   loading: T
+  /** Shown on fulfillment; a function receives the resolved value. */
   success: T | ((value: V) => T)
+  /** Shown on rejection; a function receives the thrown error. */
   error: T | ((error: unknown) => T)
 }

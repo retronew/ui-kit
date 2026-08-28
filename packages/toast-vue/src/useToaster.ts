@@ -25,6 +25,7 @@ export interface CalculateOffsetOptions {
 }
 
 export interface StackMetricsOptions {
+  /** Fallback position for toasts without an explicit `position`. */
   defaultPosition?: ToastPosition
 }
 
@@ -34,23 +35,38 @@ export interface UseToasterOptions {
 }
 
 export interface StackMetrics {
+  /** Zero-based position among visible toasts in the position group (0 = front). */
   index: number
+  /** Whether this toast is the frontmost of its group. */
   isFront: boolean
+  /** Suggested z-index; higher means closer to the front. */
   zIndex: number
 }
 
 export interface UseToaster<T> {
+  /** Reactive snapshot of all toasts, newest first. */
   toasts: ShallowRef<readonly Toast<T>[]>
+  /** Reactive distance from the toast outlet to the viewport edge. */
   viewportOffset: ShallowRef<ViewportOffset>
+  /** Reactive fallback `position` for toasts created without an explicit one. */
   defaultPosition: ShallowRef<ToastPosition | undefined>
+  /** Dismiss a toast (or all). See {@link ToastStore.dismiss}. */
   dismiss: (id?: string) => boolean
+  /** Remove a toast (or all) immediately. See {@link ToastStore.remove}. */
   remove: (id?: string) => boolean
+  /** Suspend a toast timer for an independent reason. See {@link ToastStore.pause}. */
   pause: (id?: string, reason?: ToastPauseReason) => boolean
+  /** Release one pause reason. See {@link ToastStore.resume}. */
   resume: (id?: string, reason?: ToastPauseReason) => boolean
+  /** Report a toast's rendered height. See {@link ToastStore.setHeight}. */
   updateHeight: (id: string, height: number) => boolean
+  /** Cumulative pixel offset for a toast within its stack. */
   calculateOffset: (toast: Toast<T>, opts?: CalculateOffsetOptions) => number
+  /** A toast's index/front/z-index within its position group. */
   getStackMetrics: (toast: Toast<T>, opts?: StackMetricsOptions) => StackMetrics
+  /** ms left before `id`'s timer fires; pause-aware, `undefined` when no timer is active. */
   getRemaining: (id: string) => number | undefined
+  /** Remaining duration as a `1` → `0` fraction. */
   getProgress: (id: string) => number | undefined
 }
 

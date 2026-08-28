@@ -41,10 +41,12 @@ function resolveMutation<Response, Payload>(
  * Pass a `Ref` when the handler can change while the Call is mounted, such as
  * when `Callable.update()` replaces a `mutationFn` prop.
  */
+/** Overload for a required mutation: returns a plain {@link Trigger}. */
 export function useMutationFlow<Response, Payload = void>(
   call: MutationCall<Response>,
   mutationFn: MutationFn<Response, Payload> | Readonly<Ref<MutationFn<Response, Payload>>>,
 ): Trigger<Payload>
+/** Overload for a possibly-undefined mutation: returns a {@link ChainTrigger} whose `orEnd` closes the Call when no handler is set. */
 export function useMutationFlow<Response, Payload = void>(
   call: MutationCall<Response>,
   mutationFn: MutationSource<Response, Payload>,

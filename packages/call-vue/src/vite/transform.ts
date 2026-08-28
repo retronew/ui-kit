@@ -97,6 +97,12 @@ function findCallableDeclarations(body: ESTreeNode[], localNames: Set<string>): 
   return callables
 }
 
+/**
+ * Append `<name>.displayName = "<name>"` statements for top-level `const`
+ * declarations initialized from `createCallable`, skipping ones that already
+ * assign a `displayName` manually. Returns `null` when the module needs no
+ * injection or cannot be parsed.
+ */
 export function transformInjectDisplayNames(code: string, id: string): string | null {
   if (!code.includes('createCallable')) return null
 
