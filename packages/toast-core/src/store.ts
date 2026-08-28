@@ -535,6 +535,7 @@ export class ToastStore<T = unknown> {
     return true
   }
 
+  /** Update the distance from the toast outlet to the viewport edge. */
   setViewportOffset(viewportOffset: ViewportOffset): boolean {
     this.assertActive()
     const normalized = assertViewportOffset(viewportOffset)
@@ -544,6 +545,7 @@ export class ToastStore<T = unknown> {
     return true
   }
 
+  /** The current fallback `position`, if one is configured. */
   getDefaultPosition(): ToastPosition | undefined {
     return this.defaultPosition
   }
@@ -638,10 +640,20 @@ export class ToastStore<T = unknown> {
     }
   }
 
+  /**
+   * Milliseconds left before `id` auto-dismisses, accounting for paused time.
+   * `undefined` when no finite timer exists (e.g. `Infinity` duration) or the
+   * toast is unknown.
+   */
   getRemaining(id: string): number | undefined {
     return this.getRemainingFromRecord(this.timers.get(id), Date.now())
   }
 
+  /**
+   * Milliseconds left before `id` auto-dismisses as a `1` → `0` fraction of
+   * its duration. `undefined` when no finite timer exists or the toast is
+   * unknown.
+   */
   getProgress(id: string): number | undefined {
     const toast = this.toasts.find((candidate) => candidate.id === id)
     const remaining = this.getRemaining(id)

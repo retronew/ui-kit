@@ -120,6 +120,7 @@ export const ToastWrapper = defineComponent({
       default: false,
       type: Boolean,
     },
+    /** Stacking order among toasts; typically from `getStackMetrics().zIndex`. */
     zIndex: {
       default: 0,
       type: Number,
@@ -472,7 +473,6 @@ export const ToastWrapper = defineComponent({
       // in corners then collapse around the same center line as center piles),
       // otherwise to the screen edge implied by `toastPosition` — the edge the
       // piled toasts sit flush against.
-      // `centerAlign` anchors scale to the toast's own center; otherwise to the edge implied by `toastPosition`.
       const originX = props.centerAlign || isCenter ? 'center' : isRight ? 'right' : 'left'
       const originY = props.centerAlign ? 'center' : isTop ? 'top' : 'bottom'
       const transformOrigin = `${originX} ${originY}`

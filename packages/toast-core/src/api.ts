@@ -8,17 +8,23 @@ import type { PromiseMessages, ToastOptions, ToastUpdateOptions } from './types'
 export interface ToastApi<T = unknown> {
   /** Create a `blank` toast. */
   (message: T, options?: ToastOptions<T>): string
+  /** Create a `success` toast. */
   success(message: T, options?: ToastOptions<T>): string
+  /** Create an `error` toast (subject to error deduplication). */
   error(message: T, options?: ToastOptions<T>): string
+  /** Create a `loading` toast (`Infinity` duration by default). */
   loading(message: T, options?: ToastOptions<T>): string
+  /** Create an `info` toast. */
   info(message: T, options?: ToastOptions<T>): string
+  /** Create a `warning` toast. */
   warning(message: T, options?: ToastOptions<T>): string
+  /** Create a `custom` toast. */
   custom(message: T, options?: ToastOptions<T>): string
-  /** Patch an existing toast by id. */
+  /** Patch an existing toast by id. Returns `false` when nothing changed. */
   update(id: string, patch: ToastUpdateOptions<T>): boolean
-  /** Dismiss a toast (or all) — exit, then removal. */
+  /** Dismiss a toast (or all) — exit, then removal after `removeDelay`. Returns `false` when nothing was dismissed. */
   dismiss(id?: string): boolean
-  /** Remove a toast (or all) immediately. */
+  /** Remove a toast (or all) immediately. Returns `false` when nothing matched. */
   remove(id?: string): boolean
   /**
    * Drive a toast through a promise's lifecycle: `loading` → `success`/`error`.
