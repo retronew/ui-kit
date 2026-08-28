@@ -14,14 +14,19 @@ import type { CalculateOffsetOptions, StackMetrics, StackMetricsOptions } from '
 
 /** Slot props exposed by the renderless `<ToasterProvider>` outlet. */
 export interface ToasterProviderSlotProps<T = VueToastMessage> {
+  /** All toasts, newest first. */
   toasts: readonly Toast<T>[]
   /** Distance from the toast outlet to the viewport edge. Numbers are pixels. */
   viewportOffset: ViewportOffset
   /** Fallback `position` for toasts created without an explicit one. */
   defaultPosition?: ToastPosition
+  /** Dismiss a toast (or all) — exit, then removal. */
   dismiss: (id?: string) => boolean
+  /** Remove a toast (or all) immediately. */
   remove: (id?: string) => boolean
+  /** Suspend a toast timer for an independent reason. */
   pause: (id?: string, reason?: ToastPauseReason) => boolean
+  /** Release one pause reason; counting resumes only when no reasons remain. */
   resume: (id?: string, reason?: ToastPauseReason) => boolean
   /** Report a toast's rendered height; wire to `<ToastWrapper>`'s `height-update`. */
   updateHeight: (id: string, height: number) => boolean

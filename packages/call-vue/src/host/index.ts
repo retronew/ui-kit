@@ -1,6 +1,7 @@
 import { createApp, defineComponent, h, isVNode, shallowRef } from 'vue'
 import type { App, Component, ShallowRef, VNode } from 'vue'
 
+/** The Root to mount: a component (given `options.props`) or a prebuilt VNode. */
 export type HostRoot<Props extends object = Record<string, never>> = Component<Props> | VNode
 
 export interface MountOptions<Props extends object = Record<string, never>> {

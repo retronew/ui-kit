@@ -1,6 +1,8 @@
 import type { ViewportOffset } from './types'
 
+/** A function producing a value from an argument. */
 export type ValueFunction<TValue, TArg> = (arg: TArg) => TValue
+/** Either a ready value or a function producing it — accepted by message/config surfaces. */
 export type ValueOrFunction<TValue, TArg> = TValue | ValueFunction<TValue, TArg>
 
 function isFunction<TValue, TArg>(
@@ -26,7 +28,11 @@ export function prefersReducedMotion(): boolean {
     : false
 }
 
-/** Subscribe to runtime reduced-motion preference changes. */
+/**
+ * Subscribe to runtime reduced-motion preference changes.
+ *
+ * @returns An unsubscribe function; a no-op where `matchMedia` is unavailable.
+ */
 export function subscribeReducedMotion(listener: (reduced: boolean) => void): () => void {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
   const query = window.matchMedia(REDUCED_MOTION_QUERY)
