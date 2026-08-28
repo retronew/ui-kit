@@ -1,11 +1,13 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -44,8 +46,22 @@ jobs:
           install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore Vite Task cache
+        id: vite-task-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: vite-task-typecheck-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vite-task-typecheck-${{ runner.os }}-${{ runner.arch }}-
       - name: Typecheck
         run: pnpm typecheck
+      - name: Save Vite Task cache
+        if: success()
+        uses: actions/cache/save@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.vite-task-cache.outputs.cache-primary-key }}
 
   test:
     name: Test
@@ -62,8 +78,22 @@ jobs:
           install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore Vite Task cache
+        id: vite-task-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: vite-task-test-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vite-task-test-${{ runner.os }}-${{ runner.arch }}-
       - name: Test
         run: pnpm test:coverage
+      - name: Save Vite Task cache
+        if: success()
+        uses: actions/cache/save@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.vite-task-cache.outputs.cache-primary-key }}
 
   build:
     name: Build
@@ -80,8 +110,22 @@ jobs:
           install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore Vite Task cache
+        id: vite-task-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: vite-task-build-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vite-task-build-${{ runner.os }}-${{ runner.arch }}-
       - name: Build
         run: pnpm build
+      - name: Save Vite Task cache
+        if: success()
+        uses: actions/cache/save@v6
+        with:
+          path: node_modules/.vite/task-cache
+          key: ${{ steps.vite-task-cache.outputs.cache-primary-key }}
       - name: Check bundle sizes
         run: pnpm sizecheck
       - name: Check core performance budgets

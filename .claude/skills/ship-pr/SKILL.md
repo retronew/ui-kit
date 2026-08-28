@@ -10,6 +10,11 @@ disable-model-invocation: false
 
 ## Steps
 
+0. **Before opening a new branch, check whether this belongs in one already open.** Every PR carries the same fixed CI overhead (5 required checks, a possible release cycle), so don't pay that cost twice for work that's really one requirement. Run `gh pr list --state open --author @me` (or check local branches) first:
+   - **Same PR** — the new work is part of the same requirement/task you already have an open, unmerged branch for (a follow-up fix to feedback, another piece of the same feature, a second file you forgot). Just commit onto that branch and push; don't open a second PR for it.
+   - **Separate PR** — the new work is a different concern from anything currently open: a different requirement, a different type of change (e.g. CI/infra vs. docs vs. a feature), or something a reviewer would reasonably want to approve independently of the other change. Give it its own branch even if you did both in the same session.
+   - If unrelated changes have piled up together in one working tree (e.g. you were mid-task on branch A and picked up unrelated work B), split them by file before committing — `git stash push -- <files for B>`, branch off `main`, `git stash pop`, commit only B's files there — rather than committing everything to A's branch. See "Branch off `main`" below for the actual branch-creation commands.
+
 1. **Branch off `main`.** Prefix per `CONTRIBUTING.md`: `feat/`, `fix/`, `docs/`, `refactor/`, `chore/`, `ci/`, `release/`.
    ```
    git checkout main && git pull
