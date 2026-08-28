@@ -10,9 +10,9 @@ Call & await Vue components like async functions. A Vue 3 port of
 (`createCallable`, `call`/`upsert`/`end`/`update`) built on native Vue
 reactivity — no context providers, no global store to wire up.
 
-[Documentation with live demos](https://call-vue.retronew.dev) ·
-[Examples](https://call-vue.retronew.dev/examples) ·
-[Concepts](https://call-vue.retronew.dev/concepts) ·
+[Documentation with live demos](https://call-vue-docs.vercel.app) ·
+[Examples](https://call-vue-docs.vercel.app/examples) ·
+[Concepts](https://call-vue-docs.vercel.app/concepts) ·
 [Full reference](https://github.com/retronew/ui-kit/tree/main/packages/call-vue#readme)
 
 ## Contents
@@ -368,7 +368,7 @@ stack, or rendering all of them with a depth-based transform).
 | Root data appears missing | Read mounted Root props from `call.root`; normal call props remain top-level component props. |
 
 The documentation site has the expanded
-[troubleshooting guide](https://call-vue.retronew.dev/troubleshooting).
+[troubleshooting guide](https://call-vue-docs.vercel.app/troubleshooting).
 
 ## Capability matrix
 
