@@ -13,6 +13,18 @@ It started as a headless toast library; `@retronew/call-vue` (a Vue 3 port of
 structure is designed so new libraries (React/Svelte/vanilla adapters,
 components, utilities) drop in without reshaping anything.
 
+## Live demos
+
+| App | Live |
+| --- | --- |
+| [`apps/call-vue-docs`](apps/call-vue-docs) — docs + demos for `@retronew/call-vue` | https://call-vue-docs.vercel.app |
+| [`apps/call-vue-demo`](apps/call-vue-demo) — `@retronew/call-vue` playground | https://call-vue-demo.vercel.app |
+| [`apps/toast-vue-demo`](apps/toast-vue-demo) — `@retronew/toast-vue` playground | https://toast-vue-demo.vercel.app |
+
+Each app auto-deploys to production on every push to `main` via its own Vercel
+project (Root Directory set to the app's path). See each app's README for the
+Vercel project settings.
+
 ## Structure
 
 ```

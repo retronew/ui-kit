@@ -1,5 +1,7 @@
 # call-vue docs
 
+**Live:** https://call-vue-docs.vercel.app
+
 The public Astro documentation site for `@retronew/call-vue`. Its information architecture and visual baseline follow the MIT-licensed [react-call site](https://react-call.desko.dev), adapted to Vue and restricted to capabilities that call-vue actually ships.
 
 ## Develop
