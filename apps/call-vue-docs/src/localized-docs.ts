@@ -150,6 +150,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'call(props) 会先确认 Root 已经挂载且只有一个，然后创建一个 Stack 条目并返回一个带类型的 Promise。你的组件既能拿到自己的 props，也能拿到注入的 call 上下文。',
           ],
           code: "const result = await Confirm.call({ message: '继续吗？' })",
+          meta: '{1}',
         },
         {
           heading: '组件内部结束',
@@ -162,7 +163,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             '把 call 返回的 Promise 作为第一个参数传入，即可定向 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
-          code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
+          code: "const first = Confirm.call({ message: '第一个？' })\nconst second = Confirm.call({ message: '第二个？' })\n\nConfirm.end(first, false) // 只结束第一个\nConfirm.end(false)        // 结束其余所有",
+          meta: '{4,5}',
         },
         {
           heading: '敲定与移除是两回事',
@@ -587,6 +589,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'call(props) は Root がちょうど一つマウントされていることを検証し、Stack に項目を追加して、型付きの Promise を返します。コンポーネントはその props と、注入された call コンテキストを受け取ります。',
           ],
           code: "const result = await Confirm.call({ message: '続けますか？' })",
+          meta: '{1}',
         },
         {
           heading: 'コンポーネント内で終了',
@@ -599,7 +602,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'Promise を渡すと一つだけ、Response だけを渡すと現在の全 Call を終了します。',
           ],
-          code: 'Confirm.end(firstPromise, false) // 対象指定\nConfirm.end(false)               // 一括',
+          code: "const first = Confirm.call({ message: '一つ目？' })\nconst second = Confirm.call({ message: '二つ目？' })\n\nConfirm.end(first, false) // 一つ目だけ\nConfirm.end(false)        // 残り全部",
+          meta: '{4,5}',
         },
         {
           heading: '解決と削除は別のタイミング',
