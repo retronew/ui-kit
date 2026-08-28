@@ -225,7 +225,7 @@ async function run(card: Card, event: MouseEvent) {
           <button
             type="button"
             :disabled="pending[card.slug]"
-            class="inline-flex h-9 items-center justify-center rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-xs text-[var(--color-fg)] transition-[color,border-color,opacity,transform] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+            class="rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-1.5 text-xs text-[var(--color-fg)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
             @click="run(card, $event)"
           >
             {{ t.try }}

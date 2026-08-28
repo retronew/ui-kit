@@ -182,7 +182,7 @@ onBeforeUnmount(() => clearInterval(interval))
         >
         <button
           type="button"
-          class="ml-3 inline-flex h-9 items-center justify-center rounded border border-[var(--color-border)] px-3 font-mono text-[10px] text-[var(--color-fg-muted)] transition-[color,transform] hover:text-[var(--color-fg)]"
+          class="ml-3 rounded border border-[var(--color-border)] px-2 py-0.5 font-mono text-[10px] text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]"
           @click="toggleAutoplay"
         >
           {{ autoplay ? t.pause : t.play }}

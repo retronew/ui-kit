@@ -46,7 +46,7 @@ const demoIndex = demoAfterSection[slug]
           {section.codeHeading ? <h2><code>{section.heading}</code></h2> : <h2>{section.heading}</h2>}
           {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
           {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
-          {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} />}
+          {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} meta={section.meta} />}
         </section>
         {i === demoIndex && slug === 'concepts/root-and-stack' && <div class="demo"><StackConceptDemo client:load locale={locale} /></div>}
         {i === demoIndex && slug === 'concepts/mutation-flow' && <div class="demo"><MutationFlowConceptDemo client:load locale={locale} /></div>}
@@ -66,7 +66,7 @@ const demoIndex = demoAfterSection[slug]
             {section.codeHeading ? <h2><code>{section.heading}</code></h2> : <h2>{section.heading}</h2>}
             {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
             {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
-            {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} />}
+            {section.code && <Code code={section.code} lang={section.lang ?? 'ts'} meta={section.meta} />}
           </section>
         ))}
       </article>

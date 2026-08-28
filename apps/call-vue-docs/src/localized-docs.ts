@@ -9,6 +9,8 @@ export interface LocalizedSection {
   code?: string
   /** Syntax-highlighting language for `code`. Defaults to `'ts'`. */
   lang?: 'ts' | 'vue'
+  /** Expressive Code line-highlight range, e.g. `'{1,4-7}'`. */
+  meta?: string
 }
 
 export interface LocalizedDoc {
@@ -113,8 +115,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'createCallable 返回的同一个对象身兼两职：作为 Vue 组件，它负责挂载和渲染，这次挂载就是 Root；作为方法集合，它提供 call、upsert、end、update 这些用来发起和控制调用的入口。Root 负责监听，这些方法负责发起。',
           ],
-          code: '<RouterView />\n<Confirm /> <!-- 唯一 Root -->',
+          code: '<script setup lang="ts">\nimport { Confirm } from \'./confirm\'\n</script>\n\n<template>\n  <RouterView />\n  <Confirm />\n</template>',
           lang: 'vue',
+          meta: '{7}',
         },
         {
           heading: '并发是默认行为',
@@ -147,6 +150,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'call(props) 会先确认 Root 已经挂载且只有一个，然后创建一个 Stack 条目并返回一个带类型的 Promise。你的组件既能拿到自己的 props，也能拿到注入的 call 上下文。',
           ],
           code: "const result = await Confirm.call({ message: '继续吗？' })",
+          meta: '{1}',
         },
         {
           heading: '组件内部结束',
@@ -159,7 +163,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             '把 call 返回的 Promise 作为第一个参数传入，即可定向 end/update 某一项；省略 Promise 则作用于当前全部活动项。',
           ],
-          code: 'Confirm.end(firstPromise, false) // 定向\nConfirm.end(false)               // 广播',
+          code: "const first = Confirm.call({ message: '第一个？' })\nconst second = Confirm.call({ message: '第二个？' })\n\nConfirm.end(first, false) // 只结束第一个\nConfirm.end(false)        // 结束其余所有",
+          meta: '{4,5}',
         },
         {
           heading: '敲定与移除是两回事',
@@ -178,7 +183,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             '第一次 upsert 会创建这条单例条目。在它结束之前，后续的 upsert 只会把新的 props 合并进这条已有条目，并且返回的是同一个 Promise。',
           ],
-          code: "const a = Toast.upsert({ text: '开始' })\nconst b = Toast.upsert({ text: '进行中' })\nconsole.log(a === b) // true",
+          code: "const promise1 = Toast.upsert({ message: '开始…', percent: 0 })\nconst promise2 = Toast.upsert({ message: '进行中…', percent: 40 })\n\nconsole.log(promise1 === promise2) // true\n\nToast.update(promise1, { percent: 80 }) // 定向\nToast.update({ message: '完成' })       // 广播",
+          meta: '{1,2,4,6,7}',
         },
         {
           heading: 'Update',
@@ -204,7 +210,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'useMutationFlow 替你跟踪 pending，并自动忽略同一次操作里的重复提交。模板里可以直接读 submit.pending 来展示加载状态。',
           ],
-          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))",
+          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))\n\nawait Confirm.call({\n  mutationFn: async (call) => {\n    await save()\n    call.end(true)\n  },\n})",
+          meta: '{1,4-7}',
         },
         {
           heading: '要不要关闭，由你的函数说了算',
@@ -228,27 +235,17 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: 'Vite HMR 保留 Stack',
           paragraphs: [
             '可选的 Vite 插件会在开发期为顶层 const Callable 自动补上稳定的 displayName。模块被热更新重新执行时，新 Callable 会接管旧 Root 的 Stack，因此已经打开的 Call 不会消失。',
-          ],
-          code: "import callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
-        },
-        {
-          heading: '哪些声明会被自动处理',
-          paragraphs: [
             "支持从 @retronew/call-vue 直接具名导入 createCallable（可改名）后写出的顶层 const 或 export const。命名空间导入、默认导出、嵌套声明、let/var 会被有意跳过；这些写法可自行添加 Confirm.displayName = 'Confirm'。手动名称不会被插件覆盖，且全部行为只发生在开发期。",
           ],
+          code: "// vite.config.ts\nimport { defineConfig } from 'vite'\nimport vue from '@vitejs/plugin-vue'\nimport callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
         },
         {
           heading: '预览环境只保留一个 Root',
           paragraphs: [
             'Storybook、Histoire 等工具会并行创建多棵独立 Vue 树。用 Host 在预览树外只挂一次 Callable，而不要在每个 decorator 中重复挂载同一个 Root。mount 是幂等的，可以指定 container；再次调用会复用同一个 Host，并替换掉上一次渲染的内容。',
-          ],
-          code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
-        },
-        {
-          heading: '独立应用的边界',
-          paragraphs: [
             'Host 创建的是独立 Vue 应用，不会继承预览应用的 provide、插件或全局组件。需要的依赖请在 wrapper 中安装；它只应从浏览器端预览设置调用，不能用于 SSR。',
           ],
+          code: "// .storybook/preview.ts or a Histoire setup file\nimport { mount } from '@retronew/call-vue/host'\nimport { Confirm } from '../src/confirm'\n\nmount(Confirm, { wrapper: PreviewProviders })",
         },
       ],
     },
@@ -261,7 +258,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'createCallable 的第二个参数是毫秒数。把它设成与 CSS 退出动画一致的时长，再把离场样式绑定到 call.ended 上即可。',
           ],
-          code: 'const Toast = createCallable<Props, void>(ToastCard, 180)',
+          code: 'const EXIT_MS = 180\nexport const Toast = createCallable<ToastProps, void>(ToastCard, EXIT_MS)\n\n// ToastCard.vue\n<div :class="{ \'toast--leaving\': call.ended }">…</div>',
+          lang: 'vue',
+          meta: '{1,2,5}',
         },
         {
           heading: '结束时发生什么',
@@ -555,8 +554,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'createCallable の戻り値は Vue コンポーネントであり、そのマウントが Root になります。同時に call・upsert・end・update という命令的なメソッドの名前空間でもあります。Root が Call を監視し、これらのメソッドが Call を発します。',
           ],
-          code: '<RouterView />\n<Confirm /> <!-- 唯一の Root -->',
+          code: '<script setup lang="ts">\nimport { Confirm } from \'./confirm\'\n</script>\n\n<template>\n  <RouterView />\n  <Confirm />\n</template>',
           lang: 'vue',
+          meta: '{7}',
         },
         {
           heading: '並行動作が標準',
@@ -589,6 +589,7 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
             'call(props) は Root がちょうど一つマウントされていることを検証し、Stack に項目を追加して、型付きの Promise を返します。コンポーネントはその props と、注入された call コンテキストを受け取ります。',
           ],
           code: "const result = await Confirm.call({ message: '続けますか？' })",
+          meta: '{1}',
         },
         {
           heading: 'コンポーネント内で終了',
@@ -601,7 +602,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'Promise を渡すと一つだけ、Response だけを渡すと現在の全 Call を終了します。',
           ],
-          code: 'Confirm.end(firstPromise, false) // 対象指定\nConfirm.end(false)               // 一括',
+          code: "const first = Confirm.call({ message: '一つ目？' })\nconst second = Confirm.call({ message: '二つ目？' })\n\nConfirm.end(first, false) // 一つ目だけ\nConfirm.end(false)        // 残り全部",
+          meta: '{4,5}',
         },
         {
           heading: '解決と削除は別のタイミング',
@@ -620,7 +622,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             '最初の upsert が単一項目を作り、終了までの upsert は Props を更新して同じ Promise を返します。',
           ],
-          code: "const a = Toast.upsert({ text: '開始' })\nconst b = Toast.upsert({ text: '進行中' })\nconsole.log(a === b) // true",
+          code: "const promise1 = Toast.upsert({ message: '開始…', percent: 0 })\nconst promise2 = Toast.upsert({ message: '進行中…', percent: 40 })\n\nconsole.log(promise1 === promise2) // true\n\nToast.update(promise1, { percent: 80 }) // 対象指定\nToast.update({ message: '完了' })       // 一括",
+          meta: '{1,2,4,6,7}',
         },
         {
           heading: 'Update',
@@ -643,7 +646,8 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'useMutationFlow は pending を管理し、同じ非同期処理中の重複送信を無視します。テンプレートから submit.pending を直接読めます。',
           ],
-          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))",
+          code: "const submit = useMutationFlow(call, toRef(props, 'mutationFn'))\n\nawait Confirm.call({\n  mutationFn: async (call) => {\n    await save()\n    call.end(true)\n  },\n})",
+          meta: '{1,4-7}',
         },
         {
           heading: 'handler が結果を決める',
@@ -668,27 +672,17 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           heading: 'Vite HMR で Stack を保持',
           paragraphs: [
             '任意の Vite プラグインは、開発中のトップレベル const Callable に安定した displayName を追加します。モジュールが再評価されると、新しい Callable が既存 Root の Stack を引き継ぐため、開いている Call を失いません。',
-          ],
-          code: "import callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
-        },
-        {
-          heading: '自動処理される宣言',
-          paragraphs: [
             "@retronew/call-vue から createCallable を直接名前付き import（別名も可）し、トップレベル const または export const に書いた形を扱います。namespace import、default export、ネストした宣言、let/var は意図的に対象外です。その場合は Confirm.displayName = 'Confirm' を自分で設定してください。手動名は上書きされず、動作は開発時だけです。",
           ],
+          code: "// vite.config.ts\nimport { defineConfig } from 'vite'\nimport vue from '@vitejs/plugin-vue'\nimport callVue from '@retronew/call-vue/vite'\n\nexport default defineConfig({\n  plugins: [vue(), callVue()],\n})",
         },
         {
           heading: 'プレビューでは Root を一つにする',
           paragraphs: [
             'Storybook や Histoire は独立した Vue ツリーを並行して作成します。各 decorator に同じ Root を置く代わりに、Host でプレビューの外に Callable を一度だけマウントします。mount は冪等で、container を指定でき、再度呼び出すと同じ Host を再利用しつつ、直前にレンダリングした内容を置き換えます。',
-          ],
-          code: "import { mount } from '@retronew/call-vue/host'\n\nmount(Confirm, { wrapper: PreviewProviders })",
-        },
-        {
-          heading: '独立アプリの境界',
-          paragraphs: [
             'Host は独立した Vue アプリを作るため、プレビュー側の provide、プラグイン、グローバルコンポーネントを継承しません。必要な設定は wrapper に入れ、SSR ではなくブラウザーのプレビュー設定からだけ呼んでください。',
           ],
+          code: "// .storybook/preview.ts or a Histoire setup file\nimport { mount } from '@retronew/call-vue/host'\nimport { Confirm } from '../src/confirm'\n\nmount(Confirm, { wrapper: PreviewProviders })",
         },
       ],
     },
@@ -701,7 +695,9 @@ export const localizedDocs: Record<TranslatedLocale, Record<string, LocalizedDoc
           paragraphs: [
             'createCallable の第二引数を CSS の終了時間に合わせ、call.ended で終了スタイルを適用します。',
           ],
-          code: 'const Toast = createCallable<Props, void>(ToastCard, 180)',
+          code: 'const EXIT_MS = 180\nexport const Toast = createCallable<ToastProps, void>(ToastCard, EXIT_MS)\n\n// ToastCard.vue\n<div :class="{ \'toast--leaving\': call.ended }">…</div>',
+          lang: 'vue',
+          meta: '{1,2,5}',
         },
         {
           heading: 'end() の順序',
